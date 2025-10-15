@@ -276,7 +276,7 @@ const BlogViewPage: React.FC = () => {
                         onClick={handleBookmark}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
                           isBookmarked 
-                            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200' 
+                            ? 'bg-secondary-100 text-secondary-600 hover:bg-secondary-200' 
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >

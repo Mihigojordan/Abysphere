@@ -160,13 +160,13 @@ const HRExcellenceHero = () => {
 
               {/* Right Side - Stats and Navigation */}
               <div className="relative flex items-center justify-center">
-                {/* Stat Badge - Yellow Circle */}
+                {/* Stat Badge - secondary Circle */}
                 <div
                   className={`absolute bottom-32 left-12 transition-all duration-700 delay-600 ${
                     currentSlide === index && isVisible ? "scale-100 opacity-100" : "scale-90 opacity-0"
                   }`}
                 >
-                  <div className="w-48 h-48 bg-yellow-400 rounded-full flex flex-col animate-float items-center justify-center shadow-2xl">
+                  <div className="w-48 h-48 bg-secondary-400 rounded-full flex flex-col animate-float items-center justify-center shadow-2xl">
                     <div className="text-primary-600 mb-2">
                       <TrendingUp className="w-8 h-8" />
                     </div>

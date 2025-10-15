@@ -73,7 +73,7 @@ const AboutUsSection = () => {
                 </h2>
 
                 {/* Contact Button */}
-                <button className="px-8 py-4 bg-yellow-400 text-slate-900 font-semibold rounded hover:bg-yellow-500 transition-all duration-300 flex items-center gap-2 group">
+                <button className="px-8 py-4 bg-secondary-400 text-slate-900 font-semibold rounded hover:bg-secondary-500 transition-all duration-300 flex items-center gap-2 group">
                   CONTACT US
                   <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </button>
@@ -159,7 +159,7 @@ const AboutUsSection = () => {
                     hoveredCard === index ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
                   }`}
                 >
-                  <div className="w-20 h-20 bg-yellow-400/80 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <div className="w-20 h-20 bg-secondary-400/80 backdrop-blur-sm rounded-full flex items-center justify-center">
                     <ArrowRight className="w-8 h-8 text-primary-900" />
                   </div>
                 </div>
@@ -167,7 +167,7 @@ const AboutUsSection = () => {
                 {/* Content at Bottom */}
                 <div className={`absolute text-center ${index %2 == 0 ? ' bottom-0' : ' top-0'} left-0 right-0 p-8`}>
                   {/* Tag */}
-                  <div className="inline-block px-6 py-2 border-2 border-yellow-400 rounded-full text-yellow-400 text-sm font-semibold mb-4">
+                  <div className="inline-block px-6 py-2 border-2 border-secondary-400 rounded-full text-secondary-400 text-sm font-semibold mb-4">
                     {card.tag}
                   </div>
 

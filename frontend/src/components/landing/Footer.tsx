@@ -108,7 +108,7 @@ const Footer = () => {
             className="lg:col-span-2"
           >
             <div className="flex items-start gap-2 mb-6">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-secondary-400 rounded-full mt-2"></div>
               <h3 className="text-lg font-semibold">Quicklinks</h3>
             </div>
             <ul className="space-y-3">
@@ -135,7 +135,7 @@ const Footer = () => {
             className="lg:col-span-2"
           >
             <div className="flex items-start gap-2 mb-6">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-secondary-400 rounded-full mt-2"></div>
               <h3 className="text-lg font-semibold">Our Services</h3>
             </div>
             <ul className="space-y-3">
@@ -162,27 +162,27 @@ const Footer = () => {
             className="lg:col-span-3"
           >
             <div className="flex items-start gap-2 mb-6">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-secondary-400 rounded-full mt-2"></div>
               <h3 className="text-lg font-semibold">Contact Info</h3>
             </div>
             
             <div className="space-y-6">
               <div>
-                <p className="text-yellow-400 text-sm mb-2">Inquiry</p>
+                <p className="text-secondary-400 text-sm mb-2">Inquiry</p>
                 <a href="tel:+250788123456" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
                   +(250) 788-123-456
                 </a>
               </div>
               
               <div className="border-t border-gray-700 pt-6">
-                <p className="text-yellow-400 text-sm mb-2">Email</p>
+                <p className="text-secondary-400 text-sm mb-2">Email</p>
                 <a href="mailto:info@abysphere.com" className="text-white hover:text-primary-400 transition-colors">
                   info@abysphere.com
                 </a>
               </div>
               
               <div className="border-t border-gray-700 pt-6">
-                <p className="text-yellow-400 text-sm mb-2">Location</p>
+                <p className="text-secondary-400 text-sm mb-2">Location</p>
                 <p className="text-white">
                   Kigali, Rwanda
                 </p>

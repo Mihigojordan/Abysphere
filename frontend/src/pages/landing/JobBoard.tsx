@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Users, Briefcase, Calendar, ChevronRight, ChevronLeft, CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { MapPin, Clock, Users, Briefcase, Calendar, ChevronRight, ChevronLeft, CheckCircle, XCircle, AlertCircle, X, GoalIcon, BriefcaseConveyorBeltIcon } from 'lucide-react';
 import company_logo from '../../../src/assets/images/aby_hr.png';
 import jobService from '../../services/jobService';
 import { useSocketEvent } from '../../context/SocketContext';
 import type { Job } from '../../types/model';
 import { useNavigate } from 'react-router-dom';
+import HeaderBanner from '../../components/landing/HeaderBanner';
 
 interface OperationStatus {
   type: 'success' | 'error' | 'info';
@@ -17,6 +18,7 @@ const JobBoard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<string>('all');
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
+  
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -129,7 +131,7 @@ const JobBoard: React.FC = () => {
       case 'entry':
         return 'bg-emerald-100 text-emerald-800';
       case 'mid':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-secondary-100 text-secondary-800';
       case 'senior':
         return 'bg-red-100 text-red-800';
       default:
@@ -244,8 +246,14 @@ const JobBoard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-primary-50 p-6">
-      <div className="w-12/12 mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-primary-50 ">
+      <HeaderBanner
+        title="Job Board"
+        subtitle="Home / Job Board"
+        backgroundStyle="image"
+        icon={<BriefcaseConveyorBeltIcon className="w-10 h-10" />}
+      />
+      <div className=" mx-auto p-6 min-h-screen">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Find Your Dream Job</h1>

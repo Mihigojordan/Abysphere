@@ -3,7 +3,7 @@ import { Check, Star, ArrowUpRight } from 'lucide-react';
 
 export default function SuccessStoriesHero() {
   return (
-    <div className="min-h-screen bg-gray-50 p-16 py-0 flex items-center justify-center">
+    <div className=" bg-gray-50 p-16 py-10 flex items-center justify-center">
       <div className="  grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Section */}
         <div className="lg:col-span-5 relative">
@@ -72,7 +72,7 @@ export default function SuccessStoriesHero() {
                     strokeWidth="20"
                     strokeDasharray="150 251"
                   />
-                  {/* Business Transformation - Yellow */}
+                  {/* Business Transformation - secondary */}
                   <circle
                     cx="50"
                     cy="50"
@@ -104,7 +104,7 @@ export default function SuccessStoriesHero() {
                   <span className="text-gray-700">Customer Growth</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-secondary-400"></div>
                   <span className="text-gray-700">Business Transformation</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -169,14 +169,14 @@ export default function SuccessStoriesHero() {
                 </div>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    <Star key={i} className="w-3 h-3 text-secondary-400 fill-secondary-400" />
                   ))}
                 </div>
               </div>
             </div>
 
             {/* Contact Button */}
-            <button className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors">
+            <button className="w-full bg-secondary-400 hover:bg-secondary-500 text-gray-900 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors">
               CONTACT US
               <ArrowUpRight className="w-5 h-5" />
             </button>

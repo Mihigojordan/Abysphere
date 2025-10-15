@@ -58,7 +58,7 @@ export default function WhyChooseUsSection() {
 
           {/* Video Play Card */}
           <div className="bg-primary-700/40 backdrop-blur-sm border border-primary-600/50 rounded-3xl p-12 text-center max-w-md">
-            <button className="w-24 h-24 rounded-full bg-amber-400 hover:bg-amber-500 flex items-center justify-center mx-auto mb-6 transition-all shadow-lg hover:scale-105">
+            <button className="w-24 h-24 rounded-full bg-secondary-400 hover:bg-secondary-500 flex items-center justify-center mx-auto mb-6 transition-all shadow-lg hover:scale-105">
               <Play className="w-10 h-10 text-primary-900 fill-primary-900 ml-1" />
             </button>
             <h3 className="text-2xl font-bold text-white">

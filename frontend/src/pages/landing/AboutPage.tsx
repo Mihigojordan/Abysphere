@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Check, Users, Target, Award, TrendingUp, Star, Briefcase, ChevronRight } from 'lucide-react';
+import { ArrowRight, Check, Users, Target, Award, TrendingUp, Star, Briefcase, ChevronRight, GoalIcon } from 'lucide-react';
 import TestimonialSection from '../../components/landing/home/Testimonials';
+import HeaderBanner from '../../components/landing/HeaderBanner';
 
 export default function AboutUsSection() {
   const [hoveredService, setHoveredService] = useState(null);
@@ -48,8 +49,17 @@ export default function AboutUsSection() {
   ];
 
   return (
-    <div className="bg-white py-24 px-6 md:px-16 overflow-hidden">
-      <div className=" mx-auto">
+    <div className="bg-white   overflow-hidden"
+    
+    >
+
+        <HeaderBanner
+              title="About Us"
+              subtitle="Home / About Us"
+              backgroundStyle="image"
+              icon={ <GoalIcon className="w-8 h-8" />}
+            />
+      <div className=" mx-auto py-24 px-6 md:px-16">
         {/* Header Section */}
         <div className={`text-center mb-20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="inline-flex items-center gap-2 px-5 py-2 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-6">
@@ -101,7 +111,7 @@ export default function AboutUsSection() {
                 <div className="text-sm text-gray-700 font-semibold">Client Satisfaction</div>
                 <div className="flex gap-1 mt-2 justify-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="w-4 h-4 fill-secondary-400 text-secondary-400" />
                   ))}
                 </div>
               </div>
