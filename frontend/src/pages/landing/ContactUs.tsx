@@ -10,7 +10,8 @@ import {
   Briefcase,
   FileText,
   Phone,
-  Mail
+  Mail,
+  PhoneCall
 } from 'lucide-react';
 import HeaderBanner from '../../components/landing/HeaderBanner';
 
@@ -42,7 +43,7 @@ export default function ContactPage() {
         title="Contact Us"
         subtitle="Home / Contact Us"
         backgroundStyle="image"
-        icon={<Briefcase className="w-10 h-10" />}
+        icon={<PhoneCall className="w-10 h-10" />}
       />
 
       <div className="text-center mb-6 pt-5">
@@ -254,7 +255,7 @@ export default function ContactPage() {
                 <div className="flex items-center gap-1">
                   <span className="text-sm font-semibold text-teal-600">4.9</span>
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="w-4 h-4 fill-secondary-400 text-secondary-400" />
                   ))}
                 </div>
               </div>
@@ -287,10 +288,10 @@ export default function ContactPage() {
             </div>
             <div className="flex items-center gap-1 mb-6">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                <Star key={i} className="w-5 h-5 fill-secondary-400 text-secondary-400" />
               ))}
             </div>
-            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase cursor-pointer shadow-lg hover:shadow-xl">
+            <button className="w-full bg-secondary-400 hover:bg-secondary-500 text-gray-800 font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase cursor-pointer shadow-lg hover:shadow-xl">
               Book Consultation
               <Briefcase className="w-4 h-4" />
             </button>

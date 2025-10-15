@@ -21,19 +21,18 @@ primary: {
   900: '#06332f',  // very dark
   950: '#031d1b',  // deepest shade
 },
-
 secondary: {
-  50:  '#e6f9f7',
-  100: '#bff0ea',
-  200: '#80e0d3',
-  300: '#4dd1bf',
-  400: '#1ac2aa',
-  500: '#00b39a', // main secondary
-  600: '#009c86',
-  700: '#008673',
-  800: '#006f60',
-  900: '#004b3f',
-  950: '#002620',
+  50:  '#fff9eb',  // very light cream
+  100: '#fff2cf',  // light pastel yellow
+  200: '#ffe19c',  // soft yellow
+  300: '#f9d67b',  // base color
+  400: '#eec25b',  // warm gold
+  500: '#daa13c',  // golden brown
+  600: '#b7812d',  // medium-dark amber
+  700: '#946221',  // deep golden-brown
+  800: '#704717',  // darker accent
+  900: '#4a2f0e',  // very dark golden brown
+  950: '#261706',  // deepest shade
 },
 
 

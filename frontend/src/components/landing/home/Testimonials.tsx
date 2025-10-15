@@ -60,7 +60,7 @@ export default function TestimonialSection() {
   ];
 
   return (
-    <div className="bg-gray-50 py-16 px-8 md:px-16 relative overflow-hidden">
+    <div className="bg-gray-50 py-10 px-8 md:px-16 relative overflow-hidden">
       {/* Large decorative quote marks in background */}
       <div className="absolute top-0 right-32 text-primary-600/10 text-[300px] font-serif leading-none pointer-events-none select-none">
         "
@@ -69,7 +69,7 @@ export default function TestimonialSection() {
         "
       </div>
       
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className=" mx-auto relative z-10">
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center gap-2 text-primary-700 text-sm font-semibold mb-3">
@@ -110,7 +110,7 @@ export default function TestimonialSection() {
               <SwiperSlide key={testimonial.id}>
                 <div className="space-y-4 h-full">
                   {/* Rating Badge */}
-                  <div className="inline-flex items-center gap-1 bg-amber-300 rounded-full px-4 py-2">
+                  <div className="inline-flex items-center gap-1 bg-secondary-300 rounded-full px-4 py-2">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
                         key={i}
