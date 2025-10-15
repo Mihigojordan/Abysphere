@@ -1,365 +1,335 @@
-import { useState, type ChangeEvent, type FormEvent, type JSX } from "react";
+import React, { useState } from 'react';
 import { 
-  Phone, Mail, MapPin, Clock, Send, MessageCircle, Fish, HelpCircle, User, ArrowRight
-} from "lucide-react";
-import HeaderBanner from "../../components/landing/HeaderBanner";
-
-// --- Types ---
-interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  organization: string;
-  inquiryType: string;
-  farmerId: string;
-  message: string;
-}
-
-interface ContactMethod {
-  icon: JSX.Element;
-  title: string;
-  description: string;
-  info: string[];
-  action: string;
-  availability: string;
-}
-
-interface OfficeLocation {
-  name: string;
-  address: string;
-  city: string;
-  phone: string;
-  hours: string;
-  services: string[];
-}
+  MapPin, 
+  Headphones, 
+  Clock, 
+  Star, 
+  MessageSquare, 
+  Send, 
+  Users, 
+  Briefcase,
+  FileText,
+  Phone,
+  Mail
+} from 'lucide-react';
+import HeaderBanner from '../../components/landing/HeaderBanner';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
-    organization: '',
-    inquiryType: '',
-    farmerId: '',
+    email: '',
+    subject: '',
     message: ''
   });
 
-  const [formSubmitted, setFormSubmitted] = useState(false);
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = (e?: FormEvent) => {
-    e?.preventDefault();
-    setFormSubmitted(true);
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        organization: '',
-        inquiryType: '',
-        farmerId: '',
-        message: ''
-      });
-    }, 3000);
+  const handleSubmit = () => {
+    console.log('HR Form submitted:', formData);
+    // Add form submission logic here
   };
 
-  const contactMethods: ContactMethod[] = [
-    {
-      icon: <Phone className="w-8 h-8" />,
-      title: "Aquaculture Support Line",
-      description: "Speak directly with our aquaculture specialists",
-      info: ["+250 788 123 456", "+250 788 654 321"],
-      action: "Call Support",
-      availability: "Mon-Fri: 8 AM - 6 PM"
-    },
-    {
-      icon: <Mail className="w-8 h-8" />,
-      title: "Email Support",
-      description: "Send us your aquaculture queries anytime",
-      info: ["info@finefish.rw", "support@finefish.rw"],
-      action: "Send Email",
-      availability: "Response within 24 hours"
-    },
-    {
-      icon: <MessageCircle className="w-8 h-8" />,
-      title: "WhatsApp Support",
-      description: "Get instant help via WhatsApp",
-      info: ["WhatsApp: +250 788 123 456"],
-      action: "Start Chat",
-      availability: "8 AM - 5 PM"
-    }
-  ];
-
-  const officeLocations: OfficeLocation[] = [
-    {
-      name: "Rwamagana Hatchery & Feed Plant",
-      address: "Industrial Area, Rwamagana District",
-      city: "Eastern Province, Rwanda",
-      phone: "+250 788 123 456",
-      hours: "Mon - Fri: 8:00 AM - 5:00 PM",
-      services: ["Fingerling Production", "Fish Feed Supply", "Aquaculture Training"]
-    },
-    {
-      name: "Lake Kivu Operations",
-      address: "Lake Shores, Rubavu District",
-      city: "Northern Province, Rwanda",
-      phone: "+250 788 654 321",
-      hours: "Mon - Fri: 8:00 AM - 6:00 PM",
-      services: ["Cage Fish Farming", "Technical Consulting", "Partnership Inquiries"]
-    }
-  ];
-
-  const inquiryTypes = [
-    "Fingerling Order",
-    "Fish Feed Inquiry",
-    "Aquaculture Training",
-    "Partnership Request",
-    "Technical Support",
-    "Market Access",
-    "Sustainability Consulting",
-    "General Inquiry",
-    "Complaint",
-    "Other"
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-100">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-32 h-32 bg-primary-100 rounded-full opacity-20"></div>
-        <div className="absolute bottom-20 left-10 w-24 h-24 bg-primary-200 rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-primary-300 rounded-full opacity-15"></div>
-      </div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
+    
       <HeaderBanner
         title="Contact Us"
         subtitle="Home / Contact Us"
         backgroundStyle="image"
-        icon={<Fish className="w-10 h-10" />}
+        icon={<Briefcase className="w-10 h-10" />}
       />
 
-      <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8 relative py-5">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-primary-500 to-gray-800 bg-clip-text text-transparent mb-6">
-            Connect with Fine Fish Ltd
-          </h1>
-          <p className="text-md md:text-lg text-gray-600 mx-auto leading-relaxed mb-6">
-            Have questions about tilapia farming, fingerling supply, or partnerships? Our team is here to support farmers, cooperatives, and stakeholders with expert aquaculture solutions in Rwamagana, Rubavu, and beyond.
-          </p>
-          
-          {/* Quick contact badges */}
-          <div className="flex flex-wrap justify-center gap-4 mt-4">
-            <div className="flex items-center bg-primary-50 text-primary-700 px-4  rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-              <Phone size={16} className="mr-2" />
-              <span className="font-medium">+250 788 123 456</span>
-            </div>
-            <div className="flex items-center bg-primary-50 text-primary-700 px-4  rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-              <Mail size={16} className="mr-2" />
-              <span className="font-medium">info@finefish.rw</span>
-            </div>
-            <div className="flex items-center bg-primary-50 text-primary-700 px-4  rounded-full shadow-sm hover:shadow-md transition-all duration-300">
-              <Clock size={16} className="mr-2" />
-              <span className="font-medium">Mon-Fri 8AM-6PM</span>
-            </div>
+      <div className="text-center mb-6 pt-5">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-teal-600 to-gray-800 bg-clip-text text-transparent mb-6">
+          HR Consulting & Talent Solutions
+        </h1>
+        <p className="text-md md:text-lg text-gray-600 mx-auto leading-relaxed mb-6 max-w-3xl">
+          Partner with Rwanda's leading HR consultancy in Kigali! Connect with our expert team for strategic HR solutions, executive search, talent management, and organizational development at Abysphere.
+        </p>
+        
+        {/* Quick HR contact badges */}
+        <div className="flex flex-wrap justify-center gap-4 mt-4">
+          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+            <Users size={16} className="mr-2" />
+            <span className="font-medium">HR Consulting</span>
+          </div>
+          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+            <Phone size={16} className="mr-2" />
+            <span className="font-medium">+250 788 123 456</span>
+          </div>
+          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+            <Mail size={16} className="mr-2" />
+            <span className="font-medium">info@abysphere.com</span>
+          </div>
+          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+            <Clock size={16} className="mr-2" />
+            <span className="font-medium">Mon-Fri 8AM-6PM</span>
+          </div>
+          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+            <Briefcase size={16} className="mr-2" />
+            <span className="font-medium">Kigali Office</span>
           </div>
         </div>
       </div>
 
-      {/* Contact Methods */}
-      <section className="py-4">
-        <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Preferred Way</h3>
-            <p className="text-xl text-gray-600  mx-auto">
-              Multiple ways to reach our aquaculture team - pick what works best for you
+      {/* Header Info Cards */}
+      <div className="w-full mx-auto px-4 lg:px-16 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* HR Office Located */}
+          <div className="bg-teal-600 text-white rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <MapPin className="w-8 h-8" />
+              <h3 className="text-xl font-bold">Consulting Headquarters</h3>
+            </div>
+            <p className="text-teal-100">
+              Kigali Innovation City<br/>
+              Nyarugenge District, Kigali, Rwanda
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {contactMethods.map((method, index) => (
-              <div key={index} className="group bg-gradient-to-br from-primary-50 to-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-primary-100 hover:border-primary-300 hover:-translate-y-2">
-                <div className="text-primary-600 mb-6 group-hover:scale-110 transition-transform duration-300">
-                  {method.icon}
+          {/* HR Support */}
+          <div className="bg-blue-100 rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <Headphones className="w-8 h-8 text-teal-600" />
+              <h3 className="text-xl font-bold text-gray-800">Consulting Support</h3>
+            </div>
+            <p className="text-gray-600">
+              +250 788 123 456<br/>
+              info@abysphere.com
+            </p>
+          </div>
+
+          {/* Working Hours */}
+          <div className="bg-white border-2 border-teal-600 rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <Clock className="w-8 h-8 text-teal-600" />
+              <h3 className="text-xl font-bold text-gray-800">Consulting Hours</h3>
+            </div>
+            <p className="text-gray-600">
+              Mon - Fri: 8AM - 6PM<br/>
+              Sat: 9AM - 2PM
+            </p>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* HR Contact Form */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <Users className="w-8 h-8 text-teal-600" />
+              <h2 className="text-3xl font-bold text-gray-800">HR Consulting Inquiry</h2>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Connect with our expert consultants for strategic HR solutions, executive search, or organizational development
+            </p>
+            
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    placeholder="Your full name"
+                  />
                 </div>
-                <h4 className="text-2xl font-bold text-gray-900 mb-3">{method.title}</h4>
-                <p className="text-gray-600 mb-6">{method.description}</p>
-                <div className="space-y-2 mb-6">
-                  {method.info.map((info, idx) => (
-                    <p key={idx} className="text-gray-700 font-medium">{info}</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Headphones className="w-4 h-4" />
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    placeholder="+250 788 XXX XXX"
+                  />
+                </div>
+              </div>
+
+              <div className="gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    placeholder="your.email@company.com"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Subject *
+                </label>
+                <input
+                  type="text"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                  placeholder="HR consulting needs, executive search, etc."
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  Message *
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows="6"
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors resize-none"
+                  placeholder="Describe your HR consulting needs or organizational challenge..."
+                ></textarea>
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer shadow-lg hover:shadow-xl"
+              >
+                <Send className="w-5 h-5" />
+                Submit Inquiry
+              </button>
+            </div>
+          </div>
+
+          {/* HR Office Map Section */}
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-teal-600" />
+              Abysphere HQ - Kigali Innovation City
+            </h3>
+            
+            {/* Google Maps Embed for Kigali Innovation City */}
+            <div className="bg-gray-100 rounded-xl overflow-hidden h-96 relative mb-4">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3980.074614!2d30.1275!3d-1.9494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca3f4b7d5e6f7%3A0x1234567890abcdef!2sKigali%2C%20Rwanda!5e0!3m2!1sen!2srw!4v1690000000000!5m2!1sen!2srw"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Abysphere HR Consulting - Kigali Location"
+              />
+            </div>
+            
+            <div className="bg-teal-50 rounded-lg p-4">
+              <h4 className="font-bold text-teal-800 mb-2">HR Consulting Headquarters</h4>
+              <p className="text-sm text-gray-600 mb-2">
+                Kigali Innovation City<br/>
+                Nyarugenge District<br/>
+                Kigali, Rwanda
+              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-semibold text-teal-600">4.9</span>
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <div className="mb-6">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-700">
-                    <Clock className="w-4 h-4 mr-2" />
-                    {method.availability}
-                  </span>
-                </div>
-                <button className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 group-hover:bg-primary-700">
-                  <span>{method.action}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Form & Offices Section */}
-      <section className="py-10">
-        <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">Send Us a Message</h3>
-              <p className="text-gray-600 mb-8">Fill out the form and we'll get back to you within 24 hours</p>
-
-              {formSubmitted ? (
-                <div className="text-center py-12">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h4>
-                  <p className="text-gray-600">Thank you for contacting Fine Fish Ltd. We'll respond soon.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        <User className="w-4 h-4 inline mr-2" />
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        placeholder="Your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        <Mail className="w-4 h-4 inline mr-2" />
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        placeholder="your@email.rw"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        <Phone className="w-4 h-4 inline mr-2" />
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        placeholder="+250 788 123 456"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        <Fish className="w-4 h-4 inline mr-2" />
-                        Organization/Cooperative
-                      </label>
-                      <input
-                        type="text"
-                        name="organization"
-                        value={formData.organization}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        placeholder="Your organization or cooperative"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      <MessageCircle className="w-4 h-4 inline mr-2" />
-                      Message *
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
-                      placeholder="Tell us about your aquaculture inquiry or concern..."
-                    ></textarea>
-                  </div>
-
-                  <div
-                    onClick={handleSubmit}
-                    className="w-full bg-primary-600 text-white py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 text-lg shadow-lg hover:shadow-xl cursor-pointer"
-                  >
-                    <Send className="w-5 h-5" />
-                    <span>Send Message</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Office Locations */}
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-8">Visit Our Facilities</h3>
-                {officeLocations.map((office, index) => (
-                  <div key={index} className="bg-white rounded-2xl shadow-lg p-6 mb-6 hover:shadow-xl transition-shadow duration-300">
-                    <h4 className="text-xl font-bold text-primary-700 mb-3">{office.name}</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-start space-x-3">
-                        <MapPin className="w-5 h-5 text-primary-500 mt-1" />
-                        <div>
-                          <p className="text-gray-700 font-medium">{office.address}</p>
-                          <p className="text-gray-600">{office.city}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-5 h-5 text-primary-500" />
-                        <p className="text-gray-700">{office.phone}</p>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-5 h-5 text-primary-500" />
-                        <p className="text-gray-700">{office.hours}</p>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-sm text-gray-600 mb-2">Services Available:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {office.services.map((service, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">
-                            {service}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="text-xs text-teal-600 mb-2">Client Satisfaction Rating</div>
+              <a href="#map" className="text-xs text-teal-600 hover:underline flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                Get Directions
+              </a>
             </div>
           </div>
         </div>
-      </section>
+
+        {/* Bottom HR CTA Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* HR Chat Widget */}
+          <div className="bg-teal-600 text-white rounded-2xl p-8 shadow-lg">
+            <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <MessageSquare className="w-6 h-6" />
+              TRANSFORM YOUR ORGANIZATION!
+            </h3>
+            <p className="text-teal-100 mb-4">
+              Partner with Rwanda's premier HR consultancy for strategic talent solutions and organizational excellence
+            </p>
+            <div className="flex items-center gap-3 mb-4 opacity-90">
+              <div className="flex -space-x-2">
+                <div className="w-10 h-10 rounded-full bg-blue-300 border-2 border-white"></div>
+                <div className="w-10 h-10 rounded-full bg-green-300 border-2 border-white"></div>
+                <div className="w-10 h-10 rounded-full bg-purple-300 border-2 border-white"></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mb-6">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+              ))}
+            </div>
+            <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase cursor-pointer shadow-lg hover:shadow-xl">
+              Book Consultation
+              <Briefcase className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* HR Team Image */}
+          <div className="rounded-2xl overflow-hidden shadow-lg h-80 relative">
+            <img
+              src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop"
+              alt="Abysphere HR Consulting Team Kigali"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
+              <p className="text-sm font-medium text-gray-800">
+                Our expert consultants driving HR excellence across Rwanda
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* HR Services Section */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
+            <Users className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <h4 className="text-xl font-bold text-gray-800 mb-2">Talent Strategy</h4>
+            <p className="text-gray-600">Workforce planning & executive search solutions</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
+            <FileText className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <h4 className="text-xl font-bold text-gray-800 mb-2">Consulting Services</h4>
+            <p className="text-gray-600">Organizational design & process optimization</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
+            <Briefcase className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <h4 className="text-xl font-bold text-gray-800 mb-2">Leadership Solutions</h4>
+            <p className="text-gray-600">Development programs & retention strategies</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

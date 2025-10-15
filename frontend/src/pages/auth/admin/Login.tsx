@@ -224,8 +224,6 @@ const AdminLogin: React.FC = () => {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     try {
-      //  const from = location.state?.from?.pathname 
-        
       loginWithGoogle(false); // Use popup-based Google login
     } catch (error: any) {
       setErrors({ general: "Google login failed. Please try again." });
@@ -242,63 +240,67 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary-300 rounded-full opacity-20 blur-xl"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-primary-200 rounded-full opacity-30 blur-lg"></div>
-        <div className="absolute bottom-32 left-20 w-40 h-40 bg-primary-300 rounded-full opacity-15 blur-2xl"></div>
-        <div className="absolute bottom-20 right-10 w-20 h-20 bg-primary-200 rounded-full opacity-25 blur-lg"></div>
-      </div>
-
+    <div className="min-h-screen flex bg-gray-50">
       {/* Left side - Brand and illustration */}
-      <div
-        className="w-5/12 flex items-center justify-center p-8 relative z-10 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url("https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80")`,
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-600/75 to-primary-500/85"></div>
-        <div className="max-w-lg text-white relative z-10">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-2xl">
-            <h1 className="text-4xl font-bold mb-6 text-white">
-              Empowering people through seamless FiNE FiSH Management system .
-            </h1>
-            <div className="mb-6 flex justify-center">
-              <div className="relative">
-                <div className="flex items-center space-x-4 p-6">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                    <Users className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                    <Building2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
+      <div className="w-5/12 bg-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-700"></div>
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: `url("https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80")`,
+          }}
+        ></div>
+        <div className="relative z-10 flex items-center justify-center p-8 h-full">
+          <div className="max-w-lg text-white">
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 shadow-2xl">
+              {/* Header with Blog Design */}
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center gap-2 text-primary-200 text-sm font-semibold mb-4">
+                  <span className="text-yellow-400">✓</span>
+                  <span>ADMIN PORTAL</span>
                 </div>
-                <div className="absolute -top-4 -right-4 w-8 h-8 bg-primary-300/80 rounded-full animate-pulse"></div>
-                <div className="absolute -bottom-2 -left-6 w-4 h-4 bg-primary-200/70 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <h1 className="text-4xl font-bold mb-4">
+                  HR Excellence Dashboard
+                </h1>
+                <p className="text-primary-100 text-lg">
+                  Empower organizations through strategic talent management
+                </p>
               </div>
+
+              <div className="mb-8 flex justify-center">
+                <div className="relative">
+                  <div className="flex items-center space-x-4 p-6">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <Users className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <Building2 className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="absolute -top-4 -right-4 w-8 h-8 bg-yellow-400/80 rounded-full animate-pulse"></div>
+                  <div className="absolute -bottom-2 -left-6 w-4 h-4 bg-primary-200/70 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                </div>
+              </div>
+              
+              <p className="text-primary-100 text-lg leading-relaxed">
+                Strategic HR consulting • Executive search • Talent development • Organizational excellence
+              </p>
             </div>
-            <p className="text-primary-100 text-lg leading-relaxed">
-                   Simplify workforce management, empower growth, and foster harmony across your organization.
-     
-            </p>
           </div>
         </div>
       </div>
 
       {/* Right side - Login or OTP form */}
-      <div className="w-7/12 bg-white flex flex-col justify-center p-8 relative z-10">
+      <div className="w-7/12 bg-gray-50 flex flex-col justify-center p-8">
         <div className="w-full max-w-xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-            <img src={Logo} alt="" className="h-32 -mb-10" />
+              <img src={Logo} alt="Abysphere" className="h-32 -mb-10" />
             </div>
-        
-      
           </div>
 
           {/* Error message */}
@@ -327,11 +329,11 @@ const AdminLogin: React.FC = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`w-full px-4 py-3 rounded-lg border transition-colors duration-200 ${
+                    className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
                       errors.email
                         ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20"
-                        : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/20"
-                    } focus:outline-none focus:ring-4`}
+                        : "border-gray-200 focus:border-primary-600 focus:ring-primary-600/20 bg-white"
+                    } focus:outline-none focus:ring-2 shadow-sm`}
                     placeholder="Enter your email"
                     disabled={isLoading || authLoading}
                   />
@@ -356,11 +358,11 @@ const AdminLogin: React.FC = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      className={`w-full px-4 py-3 pr-12 rounded-lg border transition-colors duration-200 ${
+                      className={`w-full px-4 py-3 pr-12 rounded-xl border transition-colors duration-200 ${
                         errors.password
                           ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20"
-                          : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/20"
-                      } focus:outline-none focus:ring-4`}
+                          : "border-gray-200 focus:border-primary-600 focus:ring-primary-600/20 bg-white"
+                      } focus:outline-none focus:ring-2 shadow-sm`}
                       placeholder="Enter your password"
                       disabled={isLoading || authLoading}
                     />
@@ -410,11 +412,11 @@ const AdminLogin: React.FC = () => {
                     value={formData.otp}
                     onChange={handleInputChange}
                     onBlur={handleBlur}
-                    className={`w-full px-4 py-3 rounded-lg border transition-colors duration-200 ${
+                    className={`w-full px-4 py-3 rounded-xl border transition-colors duration-200 ${
                       errors.otp
                         ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20"
-                        : "border-gray-300 focus:border-primary-500 focus:ring-primary-500/20"
-                    } focus:outline-none focus:ring-4`}
+                        : "border-gray-200 focus:border-primary-600 focus:ring-primary-600/20 bg-white"
+                    } focus:outline-none focus:ring-2 shadow-sm`}
                     placeholder="Enter 6-digit OTP"
                     disabled={isLoading || authLoading}
                     maxLength={6}
@@ -442,7 +444,7 @@ const AdminLogin: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading || authLoading || !isFormValid()}
-              className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-4 focus:ring-primary-500/30 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg"
+              className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-xl font-medium hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {isLoading || authLoading ? (
                 <div className="flex items-center justify-center">
@@ -460,10 +462,10 @@ const AdminLogin: React.FC = () => {
             {!isOTPRequired && (
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
                 </div>
               </div>
             )}
@@ -474,7 +476,7 @@ const AdminLogin: React.FC = () => {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isLoading || authLoading}
-                className="w-full flex items-center border justify-center bg-gray-100  text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200/70 focus:outline-none  transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed "
+                className="w-full flex items-center justify-center border border-gray-200 bg-white text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 focus:outline-none transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
               >
                 <svg
                   className="w-5 h-5 mr-2"
@@ -514,7 +516,7 @@ const AdminLogin: React.FC = () => {
           {/* Footer */}
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500">
-              Copyright © 2024 - FINE FISH 
+              Copyright © 2025 - ABYSPHERE HR CONSULTING
             </p>
           </div>
         </div>
