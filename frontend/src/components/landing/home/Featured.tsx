@@ -1,106 +1,188 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Fish, Sprout, Waves, BookOpen } from 'lucide-react';
+import { Check, Star, ArrowUpRight } from 'lucide-react';
 
-
-const Services: React.FC = () => {
-  const services = [
-    {
-      icon: <Fish className="w-12 h-12 text-primary-600" />,
-      title: "Fingerling Supply",
-      description: "High-quality tilapia fingerlings from our Rwamagana hatchery, ensuring healthy stock for farmers and cooperatives.",
-      details: [
-        "Genetically selected for growth and resilience",
-        "Available for delivery across Rwanda",
-        "Trusted by local aquaculture communities"
-      ]
-    },
-    {
-      icon: <Sprout className="w-12 h-12 text-primary-600" />,
-      title: "Fish Feed Production",
-      description: "Nutritious, sustainable fish feed produced in Rwamagana to support optimal tilapia growth and eco-friendly farming.",
-      details: [
-        "Formulated for maximum nutrition",
-        "Reduces water pollution",
-        "Available for bulk orders"
-      ]
-    },
-    {
-      icon: <Waves className="w-12 h-12 text-primary-600" />,
-      title: "Cage Farming Support",
-      description: "Expert support for cage farming on Lake Kivu and Lake Muhazi, including setup, maintenance, and technical guidance.",
-      details: [
-        "Sustainable cage designs",
-        "Water quality monitoring",
-        "On-site technical assistance"
-      ]
-    },
-    {
-      icon: <BookOpen className="w-12 h-12 text-primary-600" />,
-      title: "Aquaculture Training",
-      description: "Training programs in partnership with Karongi TVET to empower farmers with skills for sustainable aquaculture.",
-      details: [
-        "Hands-on workshops",
-        "Focus on modern techniques",
-        "Open to farmers and cooperatives"
-      ]
-    }
-  ];
-
+export default function SuccessStoriesHero() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-primary-100">
-      {/* Decorative Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-32 h-32 bg-primary-100 rounded-full opacity-20"></div>
-        <div className="absolute bottom-20 left-10 w-24 h-24 bg-primary-200 rounded-full opacity-30"></div>
-        <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-primary-300 rounded-full opacity-15"></div>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-16 py-0 flex items-center justify-center">
+      <div className="  grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left Section */}
+        <div className="lg:col-span-5 relative">
+          {/* 50+ Years Card - Larger, behind */}
+          <div className="relative bg-gradient-to-br from-primary-900 to-primary-700 rounded-3xl overflow-hidden shadow-lg w-full h-[500px]">
+            <div className="absolute inset-0 opacity-20">
+              <img 
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop" 
+                alt="" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center">
+              <div className="text-8xl font-bold text-white/30 mb-2">50+</div>
+              <div className="text-6xl font-bold text-white/30">Years</div>
+            </div>
+          </div>
 
-      {/* Header Banner */}
-    
-
-      {/* Services Section */}
-      <section className="py-20">
-        <div className="w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Aquaculture Solutions</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Discover how Fine Fish Ltd supports Rwanda’s aquaculture industry with high-quality fingerlings, sustainable feed, cage farming expertise, and comprehensive training.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
-                viewport={{ once: true }}
-                className="bg-white p-6 rounded-2xl shadow-lg border border-primary-100 hover:border-primary-300 transition-all duration-300"
-              >
-                <div className="flex justify-center mb-4">{service.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
-                <p className="text-gray-600 mb-4 leading-relaxed">{service.description}</p>
-                <ul className="list-disc list-inside text-gray-600 text-sm space-y-2">
-                  {service.details.map((detail, idx) => (
-                    <li key={idx}>{detail}</li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
+          {/* Header Card - Overlapping on top */}
+          <div className="absolute -top-1/4 shodow-xl -left-[5%] bg-gradient-to-br from-gray-100 to-white rounded-3xl p-8 shadow-lg max-w-md z-10">
+            <div className="flex items-center gap-2 text-primary-700 text-sm font-semibold mb-3">
+              <span className="text-primary-600">✓</span>
+              <span>SOLUTIONS WE PROVIDE</span>
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 leading-tight">
+              Success Stories that Inspire
+            </h1>
           </div>
         </div>
-      </section>
+
+        {/* Center Section - Professional Image */}
+        <div className="lg:col-span-4 flex flex-col items-center">
+          <div className="relative">
+            <div className="w-80 h-96 rounded-full overflow-hidden bg-white shadow-xl">
+              <img 
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=top" 
+                alt="Professional" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Decorative dots */}
+            <div className="absolute -top-4 -right-4 space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex gap-3">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="w-2 h-2 rounded-full bg-gray-300"></div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Chart Card */}
+          <div className="mt-6 bg-white rounded-3xl p-6 shadow-sm w-full max-w-sm">
+            <div className="flex items-center gap-6">
+              {/* Donut Chart */}
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  {/* Customer Growth - primary */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#0d9488"
+                    strokeWidth="20"
+                    strokeDasharray="150 251"
+                  />
+                  {/* Business Transformation - Yellow */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth="20"
+                    strokeDasharray="60 251"
+                    strokeDashoffset="-150"
+                  />
+                  {/* Company Development - primary Dark */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#14b8a6"
+                    strokeWidth="20"
+                    strokeDasharray="41 251"
+                    strokeDashoffset="-210"
+                  />
+                </svg>
+              </div>
+
+              {/* Legend */}
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary-600"></div>
+                  <span className="text-gray-700">Customer Growth</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                  <span className="text-gray-700">Business Transformation</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary-500"></div>
+                  <span className="text-gray-700">Company Development</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Employer Branding Card */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <div className="flex items-start gap-3 mb-3">
+              <Check className="w-5 h-5 text-primary-600 mt-1" />
+              <h3 className="text-xl font-bold text-gray-900">Employer Branding</h3>
+            </div>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              A strong employer brand helps attract top talent, improve employee retention.
+            </p>
+          </div>
+
+          {/* Industry Knowledge Card */}
+          <div className="bg-white rounded-3xl p-6 shadow-sm">
+            <div className="flex items-start gap-3 mb-3">
+              <Check className="w-5 h-5 text-primary-600 mt-1" />
+              <h3 className="text-xl font-bold text-gray-900">Industry Knowledge</h3>
+            </div>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Related to workforce management, organizational development, and compliance.
+            </p>
+          </div>
+
+          {/* Make Appointment Card */}
+          <div className="bg-gradient-to-br from-primary-800 to-primary-900 rounded-3xl p-8 shadow-lg text-center">
+            <h3 className="text-white text-2xl font-bold mb-6">MAKE APPOINTMENT</h3>
+            
+            {/* Trustpilot Rating */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="flex gap-2">
+                <div className="w-10 h-10 rounded-full bg-white overflow-hidden border-2 border-white">
+                  <img 
+                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
+                    alt="User 1" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="w-10 h-10 rounded-full bg-white overflow-hidden border-2 border-white -ml-3">
+                  <img 
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" 
+                    alt="User 2" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+                  <span className="text-white font-semibold text-sm">Trustpilot</span>
+                </div>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Button */}
+            <button className="w-full bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors">
+              CONTACT US
+              <ArrowUpRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Services;
+}

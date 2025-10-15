@@ -2,39 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { 
   Menu, 
   X, 
-  User,
   Phone,
   Mail,
-  Users
+  MapPin
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/tran.png'
-
-type NavLink = {
-  name: string;
-  path: string;
-};
-
-const Navbar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [scrolled, setScrolled] = useState<boolean>(false);
-  const navigate = useNavigate();
-  const handleNavigate = (path?: string) => {
+import tranLogo from '../../assets/tran.png';
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const navigate  = useNavigate();  
+  const handleNavigate = (path:string) => {
     setIsOpen(false);
-    if (!path) return;
-    navigate(path);
+    if(!path) return;
+  navigate(path)
   };
   
-  const links: NavLink[] = [
+  const links = [
     { name: 'Home', path: "/" },
     { name: 'About', path: "/about" },
     { name: 'Services', path: "/solutions" },
-    { name: 'Blogs', path: "/blogs" },
+   
     { name: 'Jobs', path: "/jobs" },
+    { name: 'Blogs', path: "/blogs" },
     { name: 'Contact', path: "/contact" },
   ];
-
-  // Handle navigation
 
   // Scroll effect
   useEffect(() => {
@@ -48,36 +40,39 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Top bar */}
-      <div className="bg-gray-900 text-white py-2 px-4 text-sm hidden lg:block">
-        <div className="w-full mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Phone size={14} />
-              <span>+250 123 456 789</span>
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-3 px-4 text-sm hidden lg:block">
+        <div className="w-full mx-auto px-4 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-2 text-gray-300">
+              <Phone size={16} className="text-primary-400" />
+              <span>+(250) 788-123-456</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Mail size={14} />
-              <span>info@abyhr.com</span>
+            <div className="flex items-center space-x-2 text-gray-300">
+              <Mail size={16} className="text-primary-400" />
+              <span>info@abysphere.com</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-300">
+              <MapPin size={16} className="text-primary-400" />
+              <span>Kigali, Rwanda</span>
             </div>
           </div>
-          <div>Streamlining HR Operations Across Rwanda</div>
+          <div className="text-gray-300">
+            Streamlining HR Operations Across Rwanda
+          </div>
         </div>
       </div>
 
       {/* Main Navigation */}
       <nav 
-        className={`bg-white shadow-lg sticky top-0 z-50 transition-all duration-300 ${
-          scrolled ? 'shadow-xl bg-white/95 backdrop-blur-sm' : 'shadow-lg'
+        className={`bg-white sticky top-0 z-50 transition-all duration-300 ${
+          scrolled ? 'shadow-xl bg-white/98 backdrop-blur-sm' : 'shadow-md'
         }`}
       >
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-              <div className="flex items-center space-x-3">
-                <img src={logo} className='h-28 w-28 ' alt="" />
-               
-              </div>
+<img src={tranLogo} className='w-32 h-32  scale-125' alt="" />
             </div>
 
             {/* Desktop Navigation */}
@@ -87,7 +82,7 @@ const Navbar: React.FC = () => {
                   <button
                     key={index}
                     onClick={() => handleNavigate(item.path)}
-                    className="relative px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm transition-all duration-300 rounded-lg group"
+                    className="relative px-5 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm transition-all duration-300 rounded-lg group"
                   >
                     <span className="relative z-10">{item.name}</span>
                     <div className="absolute inset-0 bg-primary-50 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
@@ -97,18 +92,18 @@ const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Button */}
             <div className="hidden md:flex items-center space-x-4">
               <button
-                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
+                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
                 onClick={() => handleNavigate('/contact')}
               >
-                Get in Touch
+                Get Started
               </button>
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-300"
@@ -120,8 +115,8 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        <div className={`lg:hidden transition-all duration-300 ease-in-out ${
+          isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         } overflow-hidden bg-white border-t border-gray-100`}>
           <div className="px-4 py-6 space-y-3">
             {links.map((item, index) => (
@@ -134,13 +129,13 @@ const Navbar: React.FC = () => {
               </button>
             ))}
             
-            {/* Mobile Action Buttons */}
-            <div className="pt-4 border-t border-gray-100 space-y-3">
+            {/* Mobile Action Button */}
+            <div className="pt-4 border-t border-gray-100">
               <button
-                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg font-medium"
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg font-semibold"
                 onClick={() => handleNavigate('/contact')}
               >
-                Get in Touch
+                Get Started
               </button>
             </div>
           </div>

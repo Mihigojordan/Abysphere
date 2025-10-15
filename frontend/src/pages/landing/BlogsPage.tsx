@@ -9,7 +9,9 @@ import {
   Heart,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  Briefcase
 } from 'lucide-react';
 import HeaderBanner from '../../components/landing/HeaderBanner';
 import { blogs, blogsCategories, type BlogPost } from '../../store/Blogs';
@@ -20,9 +22,7 @@ const HRBlogsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const postsPerPage = 6;
-
   const navigate = useNavigate();
-
   const categories: string[] = blogsCategories;
   const blogPosts: BlogPost[] = blogs;
 
@@ -43,16 +43,16 @@ const HRBlogsPage: React.FC = () => {
   const currentPosts = filteredPosts.slice(startIndex, startIndex + postsPerPage);
 
   const popularTags: string[] = [
-    "Sustainable Aquaculture",
-    "Farmer Training",
-    "Community Empowerment",
-    "Tilapia Production",
-    "Lake Kivu",
-    "Rwamagana Hatchery",
-    "Eco-Friendly Practices",
-    "Vision 2050",
-    "Technical Support",
-    "Farmer Cooperatives"
+    "HR Best Practices",
+    "Recruitment Strategies",
+    "Employee Development",
+    "Workplace Culture",
+    "Career Growth",
+    "Talent Management",
+    "Leadership Development",
+    "Employee Engagement",
+    "Performance Reviews",
+    "Diversity & Inclusion"
   ];
 
   const handelViewMore = (id: number) => {
@@ -69,34 +69,42 @@ const HRBlogsPage: React.FC = () => {
       </div>
 
       <HeaderBanner
-        title="Fine Fish Blogs"
-        subtitle="Home / Aquaculture Blogs"
+        title="HR Management Insights"
+        subtitle="Home / HR & Careers Blog"
         backgroundStyle="image"
-        icon={<BookOpen className="w-10 h-10" />}
+        icon={<Users className="w-10 h-10" />}
       />
 
       {/* Search and Filter */}
       <section className="py-8 relative">
         <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-primary-600 to-gray-800 bg-clip-text text-transparent mb-4">
+                HR & Career Development
+              </h1>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Expert insights on recruitment, employee development, workplace culture, and career growth in the aquaculture industry
+              </p>
+            </div>
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search aquaculture insights, farming tips, or authors..."
+                  placeholder="Search HR strategies, career advice, recruitment tips..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 />
               </div>
-
               <div className="lg:w-64">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 >
+                  <option value="All">All HR Topics</option>
                   {categories.map(category => (
                     <option key={category} value={category}>{category}</option>
                   ))}
@@ -111,7 +119,10 @@ const HRBlogsPage: React.FC = () => {
       {featuredPosts.length > 0 && (
         <section className="py-8 relative">
           <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Aquaculture Insights</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center justify-center">
+              <Briefcase className="w-8 h-8 text-primary-600 mr-3" />
+              Featured HR Insights
+            </h2>
             <div className="grid lg:grid-cols-2 gap-8">
               {featuredPosts.slice(0, 2).map(post => (
                 <div key={post.id} className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 cursor-pointer">
@@ -128,13 +139,11 @@ const HRBlogsPage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">
                       {post.title}
                     </h3>
                     <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
-
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
@@ -153,7 +162,6 @@ const HRBlogsPage: React.FC = () => {
                         })}
                       </div>
                     </div>
-
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
@@ -185,12 +193,14 @@ const HRBlogsPage: React.FC = () => {
       <section className="py-8 relative">
         <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Latest Aquaculture Insights</h2>
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              <BookOpen className="w-8 h-8 text-primary-600 mr-3" />
+              Latest HR & Career Articles
+            </h2>
             <div className="text-sm text-gray-600">
               Showing {currentPosts.length} of {filteredPosts.length} articles
             </div>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {currentPosts.map(post => (
               <div key={post.id} className="bg-white rounded-2xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer">
@@ -202,13 +212,11 @@ const HRBlogsPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-
                 <div className="p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors line-clamp-2">
                     {post.title}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
-
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                       <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
@@ -220,7 +228,6 @@ const HRBlogsPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -231,7 +238,6 @@ const HRBlogsPage: React.FC = () => {
                       {post.readTime}
                     </span>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
@@ -262,20 +268,19 @@ const HRBlogsPage: React.FC = () => {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-
               {[...Array(totalPages)].map((_, i) => (
                 <button
                   key={i + 1}
                   onClick={() => setCurrentPage(i + 1)}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${currentPage === i + 1
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-primary-50'
-                    }`}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    currentPage === i + 1
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-primary-50'
+                  }`}
                 >
                   {i + 1}
                 </button>
               ))}
-
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
@@ -285,6 +290,26 @@ const HRBlogsPage: React.FC = () => {
               </button>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Popular HR Tags */}
+      <section className="py-8 bg-primary-50">
+        <div className="w-12/12 mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            Popular HR Topics
+          </h3>
+          <div className="flex flex-wrap justify-center gap-3">
+            {popularTags.slice(0, 8).map((tag, index) => (
+              <span
+                key={index}
+                className="bg-white text-primary-600 px-4 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-primary-100 transition-colors shadow-sm"
+                onClick={() => setSearchTerm(tag)}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
     </div>

@@ -1,470 +1,256 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Users, Fish, Globe, Handshake, ArrowUp, Award, Target, Leaf, Droplets } from 'lucide-react';
-import Testimonials from '../../components/landing/home/Testimonials';
-import HeaderBanner from '../../components/landing/HeaderBanner';
-import img1 from '../../assets/images/fish1.jpg'
-import img2 from '../../assets/images/fish2.jpg'
-import img3 from '../../assets/images/fish3.jpg'
-import img4 from '../../assets/images/fish4.jpg'
-import img5 from '../../assets/images/fish5.jpg'
-import img6 from '../../assets/images/fish6.jpg'
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Check, Users, Target, Award, TrendingUp, Star, Briefcase, ChevronRight } from 'lucide-react';
+import TestimonialSection from '../../components/landing/home/Testimonials';
 
-import farm from '../../assets/farm.jpg'
+export default function AboutUsSection() {
+  const [hoveredService, setHoveredService] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-interface Partner {
-  name: string;
-  logo: string;
-}
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
-interface Stat {
-  number: string;
-  label: string;
-  icon: React.FC<{ className?: string }>;
-}
-
-interface Feature {
-  icon: React.FC<{ className?: string }>;
-  title: string;
-  description: string;
-}
-
-interface Value {
-  icon: React.FC<{ className?: string }>;
-  title: string;
-  description: string;
-  image: string;
-}
-
-const AboutPage: React.FC = () => {
-  const [currentClientsSlide, setCurrentClientsSlide] = useState<number>(0);
-
-  // Partner organizations
-  const partners: Partner[] = [
-    { name: "Rwanda Agriculture Board", logo: "https://placehold.co/150x50?text=RAB&bg=1e3a8a&fg=ffffff" },
-    { name: "Karongi TVET", logo: "https://placehold.co/150x50?text=Karongi+TVET&bg=1e3a8a&fg=ffffff" },
-    { name: "Ministry of Agriculture", logo: "https://placehold.co/150x50?text=MinAgri&bg=1e3a8a&fg=ffffff" },
-    { name: "Lake Kivu Fisheries", logo: "https://placehold.co/150x50?text=Kivu+Fisheries&bg=1e3a8a&fg=ffffff" },
-    { name: "Rwamagana Cooperatives", logo: "https://placehold.co/150x50?text=Rwamagana+Coop&bg=1e3a8a&fg=ffffff" },
-    { name: "Great Lakes Africa", logo: "https://placehold.co/150x50?text=Great+Lakes&bg=1e3a8a&fg=ffffff" },
-  ];
-
-  // Statistics data
-  const stats: Stat[] = [
-    { number: "90T+", label: "Tilapia/Month", icon: Fish },
-    { number: "2M+", label: "Fingerlings/Year", icon: Droplets },
-    { number: "200+", label: "Cages on Kivu", icon: Globe },
-    { number: "100+", label: "Jobs Created", icon: Users },
-  ];
-
-  // Features data
-  const features: Feature[] = [
+  const services = [
     {
-      icon: Leaf,
-      title: "Eco-Friendly Farming",
-      description: "Sustainable cage farming preserves Lake Kivu’s ecosystem while delivering premium tilapia.",
-    },
-    {
-      icon: Fish,
-      title: "Certified Hatchery",
-      description: "Our Rwamagana hatchery supplies millions of healthy fingerlings to farmers nationwide.",
+      icon: Users,
+      title: "Talent Acquisition",
+      description: "Strategic recruitment solutions to find and attract top talent that aligns with your organizational culture and goals."
     },
     {
       icon: Target,
-      title: "Community Training",
-      description: "Partnering with Karongi TVET to empower youth with aquaculture skills.",
+      title: "Performance Management",
+      description: "Comprehensive systems for goal-setting, continuous feedback, and employee development planning."
     },
     {
       icon: Award,
-      title: "Industry Leader",
-      description: "Driving Rwanda’s secondary economy with innovative, sustainable practices.",
+      title: "Compensation & Benefits",
+      description: "Competitive packages designed to attract, retain, and motivate your most valuable assets."
     },
+    {
+      icon: TrendingUp,
+      title: "HR Analytics",
+      description: "Data-driven insights for strategic workforce planning and organizational effectiveness."
+    }
   ];
 
-  // Core values
-  const values: Value[] = [
-    {
-      icon: Leaf,
-      title: "Sustainability",
-      description: "Protecting Lake Kivu through eco-friendly farming and responsible resource use.",
-      image: img6,
-    },
-    {
-      icon: Fish,
-      title: "Quality Excellence",
-      description: "Producing premium tilapia and fingerlings meeting global standards.",
-      image: img3,
-    },
-    {
-      icon: Users,
-      title: "Community Impact",
-      description: "Creating jobs and training opportunities to uplift Karongi and beyond.",
-      image: img4,
-    },
+  const stats = [
+    { value: "20+", label: "Years Experience" },
+    { value: "500+", label: "Happy Clients" },
+    { value: "98%", label: "Success Rate" },
+    { value: "50+", label: "HR Experts" }
   ];
 
-  // Clients slideshow functions
-  const nextClientsSlide = () => {
-    setCurrentClientsSlide((prev) => (prev + 1) % Math.ceil(partners.length / 3));
-  };
-
-  const prevClientsSlide = () => {
-    setCurrentClientsSlide((prev) => (prev - 1 + Math.ceil(partners.length / 3)) % Math.ceil(partners.length / 3));
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Animation variants
-  const sectionVariants:any = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  };
+  const features = [
+    "ISO 9001:2015 Certified",
+    "Award-Winning HR Solutions",
+    "24/7 Support Available",
+    "Global Reach, Local Expertise"
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header Banner */}
-    <HeaderBanner 
-    title='About Fine Fish Ltd'
-    subtitle='Home / About'
-    backgroundStyle='image'
-    />
-
-      {/* Main About Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-gradient-to-br from-primary-50 via-white to-secondary-50"
-      >
-        <div className="w-12/12 px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pb-12">
-            <div>
-              <div className="text-primary-600 text-sm font-semibold tracking-wide uppercase mb-4">
-                OUR COMPANY
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                Leading Rwanda’s
-                <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent"> secondary Economy</span>
-              </h2>
-              <div className="space-y-4 text-lg text-gray-700 leading-relaxed">
-                <p>
-                  Fine Fish Ltd, based in Karongi on Lake Kivu, is Rwanda’s premier aquaculture company. Founded by Themistocle Munyangeyo, we produce premium Nile tilapia and high-quality fingerlings, driving food security and sustainability.
-                </p>
-                <p>
-                  With 200+ floating cages and a certified hatchery in Rwamagana, we deliver 90+ tonnes of tilapia monthly and supply millions of fingerlings yearly, empowering farmers and strengthening Rwanda’s aquaculture sector.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="space-y-6"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1568727349458-1bb59fb3fb63?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8ZmlzaCUyMGZhcm1pbmd8ZW58MHx8MHx8fDA%3D"
-                  alt="Fish farming cages on Lake Kivu"
-                  className="rounded-2xl shadow-lg w-full h-72 object-cover"
-                />
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="space-y-6 pt-12"
-              >
-                <img
-                  src={img1}
-                  alt="Premium tilapia production"
-                  className="rounded-2xl shadow-lg w-full h-72 object-cover"
-                />
-              </motion.div>
-            </div>
+    <div className="bg-white py-24 px-6 md:px-16 overflow-hidden">
+      <div className=" mx-auto">
+        {/* Header Section */}
+        <div className={`text-center mb-20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <div className="inline-flex items-center gap-2 px-5 py-2 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-6">
+            <Star className="w-4 h-4 fill-primary-600" />
+            <span>ABOUT OUR COMPANY</span>
           </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-lg p-6 border border-primary-100 hover:border-primary-600 transition-all duration-300 shadow-md hover:shadow-xl group"
-              >
-                <div className="p-3 bg-primary-100 rounded-lg w-fit mb-4 group-hover:bg-primary-600 transition-colors">
-                  <stat.icon className="w-6 h-6 text-primary-600 group-hover:text-white" />
-                </div>
-                <div className="text-3xl font-bold text-primary-600 mb-2">{stat.number}</div>
-                <div className="text-gray-600 text-sm">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+          <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Your Strategic HR
+            <span className="text-primary-600"> Partner</span>
+          </h2>
+          <p className="text-gray-600 text-xl max-w-3xl mx-auto leading-relaxed">
+            Empowering organizations worldwide with innovative HR solutions that transform workplaces and drive business success.
+          </p>
         </div>
-      </motion.div>
 
-      {/* Mission & Vision Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-white"
-      >
-        <div className="w-12/12 mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Our <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Mission & Vision</span>
-            </h2>
-            <p className="text-lg text-gray-600  mx-auto">
-              Advancing sustainable aquaculture for Rwanda’s future.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="bg-gradient-to-br from-primary-50 to-secondary-50 p-8 rounded-3xl shadow-lg border-l-4 border-primary-600 hover:shadow-xl transition-all duration-300"
-            >
-              <div className="bg-gradient-to-br from-primary-600 to-secondary-600 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-6">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
-              <p className="text-gray-700 text-base leading-relaxed">
-                To lead Rwanda’s aquaculture sector by producing sustainable, high-quality tilapia and fingerlings, empowering local farmers, and reducing fish imports.
-              </p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="bg-gradient-to-br from-secondary-50 to-primary-50 p-8 rounded-3xl shadow-lg border-l-4 border-primary-600 hover:shadow-xl transition-all duration-300"
-            >
-              <div className="bg-gradient-to-br from-secondary-600 to-primary-600 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-6">
-                <Fish className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
-              <p className="text-gray-700 text-base leading-relaxed">
-                To be East Africa’s benchmark for sustainable aquaculture, supporting Rwanda’s Vision 2050 through innovative fish production and community empowerment.
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center group bg-white p-6 rounded-lg border border-primary-100 hover:border-primary-600 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="bg-gradient-to-br from-primary-600 to-secondary-600 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:shadow-xl transition-shadow">
-                  <feature.icon className="w-8 h-8 text-white" />
-                </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h4>
-                <p className="text-gray-600 text-base leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Core Values Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-gradient-to-br from-primary-50 to-white"
-      >
-        <div className="w-12/12 mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Our <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Core Values</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {values.map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-3xl overflow-hidden border border-primary-100 shadow-md hover:shadow-xl hover:border-primary-600 transition-all duration-300 group"
-              >
-                <div className="relative w-full h-56 overflow-hidden">
-                  <img
-                    src={value.image}
-                    alt={value.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-primary-100 rounded-lg group-hover:bg-primary-600 transition-colors">
-                      <value.icon className="w-6 h-6 text-primary-600 group-hover:text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900">{value.title}</h3>
-                  </div>
-                  <p className="text-gray-600 text-base leading-relaxed">{value.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Story Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-white"
-      >
-        <div className="w-12/12 mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div whileHover={{ scale: 1.03 }} className="order-2 lg:order-1">
+        {/* Main Content Section */}
+        <div className="grid lg:grid-cols-2 gap-16 mb-24 items-center">
+          {/* Left - Image Section with Overlays */}
+          <div className="relative">
+            <div className="relative rounded-3xl  shadow-2xl">
               <img
-                src={img5}
-                alt="Fish farming community in Karongi"
-                className="rounded-3xl shadow-xl w-full h-96 object-cover hover:shadow-2xl transition-shadow duration-300"
+                src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=900&fit=crop"
+                alt="Professional HR Team"
+                className="w-full h-[600px] object-cover rounded-3xl "
               />
-            </motion.div>
-            <div className="order-1 lg:order-2">
-              <div className="text-primary-600 text-sm font-semibold tracking-wide uppercase mb-4">
-                OUR STORY
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                From Vision to <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Aquaculture Excellence</span>
-              </h2>
-              <div className="space-y-4 text-base text-gray-700">
-                <p>
-                  Founded by Themistocle Munyangeyo, Fine Fish Ltd began with a bold vision to revolutionize Rwanda’s fish production. Starting with a small hatchery in Rwamagana, we’ve grown into a leader in sustainable aquaculture.
-                </p>
-                <p>
-                  Our 200+ cages on Lake Kivu and Muhazi produce over 90 tonnes of tilapia monthly, while our hatchery supplies millions of fingerlings to farmers. We’ve created over 100 jobs and partnered with Karongi TVET to train the next generation.
-                </p>
-                <p>
-                  Today, we’re proud to drive Rwanda’s secondary economy, aligning with Vision 2050 to deliver sustainable, high-quality fish while protecting our lakes.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Leadership Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-gradient-to-br from-primary-50 to-white"
-      >
-        <div className="w-12/12 mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Our <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Leadership</span>
-            </h2>
-          </div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-white rounded-3xl p-8 border border-primary-100 shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-shrink-0">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center shadow-lg">
-                  <Users className="w-16 h-16 text-white" />
+              
+              {/* Floating Stats Card */}
+              <div className="absolute -bottom-8 -left-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl p-8 shadow-2xl max-w-xs">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Briefcase className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-4xl font-bold text-white">500+</div>
+                    <div className="text-white/90 text-sm font-medium">Projects Completed</div>
+                  </div>
+                </div>
+                <div className="border-t border-white/20 pt-4">
+                  <div className="flex items-center gap-2 text-white/90 text-sm">
+                    <Check className="w-4 h-4" />
+                    <span>Trusted by Leading Companies</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex-grow">
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Themistocle Munyangeyo</h3>
-                <p className="text-primary-600 font-semibold text-lg mb-4">Founder & CEO</p>
-                <p className="text-gray-700 text-base leading-relaxed">
-                  Themistocle Munyangeyo’s vision has transformed Fine Fish Ltd into Rwanda’s leading aquaculture company. His commitment to sustainability and community empowerment drives our mission to deliver high-quality tilapia while supporting Rwanda’s Vision 2050.
-                </p>
+
+              {/* Satisfaction Badge */}
+              <div className="absolute top-8 right-8 bg-white rounded-2xl p-6 shadow-xl text-center">
+                <div className="text-5xl font-bold text-primary-600 mb-1">98%</div>
+                <div className="text-sm text-gray-700 font-semibold">Client Satisfaction</div>
+                <div className="flex gap-1 mt-2 justify-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </motion.div>
 
-      {/* Partners Section */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        className="py-10 bg-white"
-      >
-        <div className="w-12/12 mx-auto px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Our <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">Partners</span>
-            </h2>
-            <p className="text-lg text-gray-600">
-              Collaborating to advance Rwanda’s aquaculture industry.
+            {/* Decorative Element */}
+            <div className="absolute -z-10 top-8 left-8 w-full h-full bg-primary-100 rounded-3xl"></div>
+          </div>
+
+          {/* Right - Content Section */}
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+                Transforming HR Management for the Modern Workplace
+              </h3>
+              <p className="text-gray-600 text-lg leading-relaxed mb-6">
+                With over two decades of industry expertise, we've helped hundreds of organizations streamline their HR operations, build high-performing teams, and create workplace cultures where employees thrive.
+              </p>
+              <p className="text-gray-600 text-lg leading-relaxed">
+                Our comprehensive approach combines cutting-edge technology with proven HR strategies to deliver measurable results. From recruitment to retention, we're with you every step of the way.
+              </p>
+            </div>
+
+            {/* Features List */}
+            <div className="grid grid-cols-2 gap-4">
+              {features.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 text-gray-700">
+                  <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary-600" />
+                  </div>
+                  <span className="font-medium">{feature}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA Button */}
+            <div className="pt-4">
+              <button className="group px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all flex items-center gap-3 shadow-lg hover:shadow-xl">
+                Discover Our Solutions
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-12 mb-24">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-5xl font-bold text-white mb-2">{stat.value}</div>
+                <div className="text-gray-400 font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Services Section */}
+        <div className="mb-24">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-5 py-2 bg-primary-50 text-primary-600 rounded-full text-sm font-semibold mb-6">
+              <Target className="w-4 h-4" />
+              <span>OUR SERVICES</span>
+            </div>
+            <h3 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Comprehensive HR Solutions
+            </h3>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              End-to-end services designed to manage every aspect of your human resources operations
             </p>
           </div>
 
-          <div className="relative bg-gradient-to-r from-primary-50 to-white p-8 rounded-3xl border border-primary-100">
-            <AnimatePresence>
-              <motion.div
-                key={currentClientsSlide}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.4 }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4"
-              >
-                {partners.slice(currentClientsSlide * 3, (currentClientsSlide + 1) * 3).map((partner, index) => (
-                  <motion.div
-                    key={index}
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center justify-center bg-white p-4 rounded-xl border border-primary-100 hover:border-primary-600 transition-all duration-300"
-                  >
-                    <img
-                      src={partner.logo}
-                      alt={partner.name}
-                      className="w-full h-16 object-contain"
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </AnimatePresence>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {services.map((service, index) => {
+              const Icon = service.icon;
+              const isHovered = hoveredService === index;
+              
+              return (
+                <div
+                  key={index}
+                  className={`relative bg-white rounded-2xl p-8 border-2 transition-all duration-300 cursor-pointer group ${
+                    isHovered 
+                      ? 'border-primary-600 shadow-xl -translate-y-2' 
+                      : 'border-gray-100 shadow-sm hover:shadow-lg'
+                  }`}
+                  onMouseEnter={() => setHoveredService(index)}
+                  onMouseLeave={() => setHoveredService(null)}
+                >
+                  {/* Icon */}
+                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ${
+                    isHovered 
+                      ? 'bg-primary-600 scale-110' 
+                      : 'bg-primary-50'
+                  }`}>
+                    <Icon className={`w-8 h-8 transition-colors duration-300 ${
+                      isHovered ? 'text-white' : 'text-primary-600'
+                    }`} />
+                  </div>
 
-            {Math.ceil(partners.length / 3) > 1 && (
-              <>
-                <button
-                  onClick={prevClientsSlide}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 bg-primary-600 hover:bg-primary-700 text-white p-3 rounded-full shadow-lg transition-all duration-300"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={nextClientsSlide}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 bg-primary-600 hover:bg-primary-700 text-white p-3 rounded-full shadow-lg transition-all duration-300"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
-            )}
+                  {/* Content */}
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">
+                    {service.title}
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    {service.description}
+                  </p>
+
+                  {/* Learn More Link */}
+                  <div className={`flex items-center gap-2 text-primary-600 font-semibold transition-all duration-300 ${
+                    isHovered ? 'opacity-100' : 'opacity-0'
+                  }`}>
+                    <span className="text-sm">Learn More</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+
+                  {/* Hover Border Effect */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 opacity-0 transition-opacity duration-300 -z-10 ${
+                    isHovered ? 'opacity-5' : ''
+                  }`}></div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </motion.div>
 
-      {/* Impact Section */}
-     <Testimonials />
-      {/* Floating Action Button */}
-      <motion.button
-        onClick={scrollToTop}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5 }}
-        className="fixed bottom-8 right-8 bg-gradient-to-r from-primary-600 to-secondary-600 text-white p-4 rounded-full shadow-2xl hover:shadow-xl transform hover:scale-110 transition-all duration-300 z-50"
-      >
-        <ArrowUp className="w-6 h-6" />
-      </motion.button>
+        <TestimonialSection />
+
+        {/* Bottom CTA */}
+        <div className="relative rounded-3xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800"></div>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="relative px-12 py-16 text-center">
+            <h3 className="text-4xl font-bold text-white mb-4">
+              Ready to Transform Your HR Operations?
+            </h3>
+            <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
+              Schedule a consultation with our HR experts and discover how we can help your organization thrive.
+            </p>
+            <button className="group px-10 py-5 bg-white hover:bg-gray-100 text-primary-600 font-bold rounded-xl transition-all flex items-center gap-3 mx-auto shadow-xl text-lg">
+              Schedule Consultation
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default AboutPage;
+}
