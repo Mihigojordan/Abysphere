@@ -69,11 +69,11 @@ const Footer = () => {
               viewport={{ once: true }}
             >
               {/* Logo */}
-              <div className="flex items-center space-x-3 mb-6">
-                    <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-<img src={tranLogo} className='w-32 h-32  scale-150' alt="" />
+         
+               <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
+<img src={tranLogo} className='w-32 h-32  scale-125' alt="" />
             </div>
-              </div>
+      
               
               <p className="text-gray-300 mb-8 leading-relaxed max-w-md">
                 At the heart of our philosophy lies the belief that a thriving workplace is rooted in trust, respect, commitment to continuous growth.
