@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import parentEggMigrationService, { ParentEggMigrationStatus, type ParentEggMigration, type CreateParentEggMigrationInput, type UpdateParentEggMigrationInput } from '../../../services/parentEggMigrationService';
 import parentFishPoolService, { type ParentFishPool } from '../../../services/parentFishPoolService';
-import laboratoryBoxService, { type LaboratoryBox } from '../../../services/laboratoryBoxService';
+import laboratoryBoxService, { type LaboratoryBox } from '../../../services/LaboratoryBoxService';
 import Swal from 'sweetalert2';
 
 interface CreateUpdateParentEggMigrationModalProps {
