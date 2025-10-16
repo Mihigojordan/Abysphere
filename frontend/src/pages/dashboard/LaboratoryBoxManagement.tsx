@@ -17,7 +17,7 @@ import {
   Package,
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import laboratoryBoxService, { type LaboratoryBox, type LaboratoryBoxData } from '../../services/laboratoryBoxService';
+import laboratoryBoxService, { type LaboratoryBox, type LaboratoryBoxData } from '../../services/LaboratoryBoxService';
 import { useSocketEvent } from '../../context/SocketContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 
