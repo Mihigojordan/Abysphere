@@ -14,6 +14,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 import HeaderBanner from '../../components/landing/HeaderBanner';
+import img1 from "../../assets/contact.jpg"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -300,7 +301,7 @@ export default function ContactPage() {
           {/* HR Team Image */}
           <div className="rounded-2xl overflow-hidden shadow-lg h-80 relative">
             <img
-              src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop"
+              src={img1}
               alt="Abysphere HR Consulting Team Kigali"
               className="w-full h-full object-cover"
             />
