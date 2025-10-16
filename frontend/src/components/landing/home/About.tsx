@@ -68,15 +68,11 @@ const AboutUsSection = () => {
                   <span className="text-sm tracking-widest uppercase font-semibold">About Us</span>
                 </div>
                 
-                <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-8">
-                  Transforming Workplaces Through Innovative HR Solutions
+                <h2 className="text-4xl lg:text-3xl font-bold text-slate-900 leading-tight -mb-4">
+                  Transforming Workplaces Through Innovative Hr Solutions
                 </h2>
 
-                {/* Contact Button */}
-                <button className="px-8 py-4 bg-secondary-400 text-slate-900 font-semibold rounded hover:bg-secondary-500 transition-all duration-300 flex items-center gap-2 group">
-                  CONTACT US
-                  <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                </button>
+             
               </div>
 
               {/* Features List */}
@@ -108,7 +104,7 @@ const AboutUsSection = () => {
 
             {/* Right Image */}
             <div className="relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[550px]">
                 <img
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070"
                   alt="Team collaboration"
