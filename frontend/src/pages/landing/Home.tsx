@@ -12,8 +12,9 @@ const Home = () => {
     <main>
         
         <HeroSection />
+          <AboutSection />
         <Categories />  
-        <AboutSection />
+      
         <Featured />
         <Testimonials />
         <WhyChooseUsSection />

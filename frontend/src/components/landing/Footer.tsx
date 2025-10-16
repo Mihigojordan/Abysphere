@@ -14,13 +14,13 @@ import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
   const quickLinks = [
-    { label: 'Home', path: "/" },
-    { label: 'About', path: "/about" },
-    { label: 'Services', path: "/solutions" },
+    { label: 'Home page', path: "/" },
+    { label: 'About page', path: "/about" },
+    { label: 'Services page', path: "/solutions" },
 
-    { label: 'Jobs', path: "/jobs" },
-    { label: 'Blogs', path: "/blogs" },
-    { label: 'Contact', path: "/contact" },
+    { label: 'Jobs page', path: "/jobs" },
+    { label: 'Blogs page', path: "/blogs" },
+    { label: 'Contact page ', path: "/contact" },
   ];
   const navigate  = useNavigate();
   const handleNavigate = (path:string) => {
@@ -46,9 +46,9 @@ const Footer = () => {
   return (
     <footer className="relative bg-gray-900 text-white w-full overflow-hidden">
       {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/100 via-gray-800/100 to-gray-900/100">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/100 via-gray-800/100 to-gray-900/100 px-4">
         <div 
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0 opacity-5 h-[10px] border-2"
           style={{
             backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2074')`,
             backgroundSize: 'cover',
@@ -203,7 +203,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="text-gray-400 text-sm"
             >
-              © Copyright 2025. All rights reserved. <span className="text-primary-400">Abysphere</span>. Designed by <span className="text-gray-300">Zozothemes</span>
+              © Copyright 2025. All rights reserved. <span className="text-primary-400">Abysphere</span>. Designed by <span className="text-gray-300">Abytech hub team</span>
             </motion.p>
             
             <motion.div

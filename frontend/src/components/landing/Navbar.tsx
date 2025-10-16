@@ -68,7 +68,7 @@ const Navbar = () => {
           scrolled ? 'shadow-xl bg-white/98 backdrop-blur-sm' : 'shadow-md'
         }`}
       >
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 sm:px-10 lg:px-14">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
@@ -98,7 +98,7 @@ const Navbar = () => {
                 className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
                 onClick={() => handleNavigate('/contact')}
               >
-                Get Started
+                Get Quote
               </button>
             </div>
 
