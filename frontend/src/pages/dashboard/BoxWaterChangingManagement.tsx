@@ -21,7 +21,7 @@ import {
   Settings,
 } from 'lucide-react';
 import laboratoryBoxWaterChangingService from '../../services/boxWaterChangingService';
-import laboratoryBoxService from '../../services/laboratoryBoxService';
+import laboratoryBoxService from '../../services/LaboratoryBoxService';
 import { useSocketEvent } from '../../context/SocketContext';
 
 type LaboratoryBoxWaterChanging = {
