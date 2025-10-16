@@ -29,8 +29,8 @@ const Footer = () => {
   }
 
   const services = [
-    { label: 'Workforce Planning & Strategy', path: '/solutions?service=Workforce+Planning+&+Strategy' },
-    { label: 'Design & Optimization', path: '/solutions?service=Design+&+Optimization' },
+    { label: 'Workforce Planning & Strategy', path: '/solutions?service=Workforce+Planning+%26+Strategy' },
+    { label: 'Design & Optimization', path: '/solutions?service=Design+%26+Optimization' },
     { label: 'Workplace Safety', path: '/solutions?service=Workplace+Safety' },
     { label: 'Retention Strategies', path: '/solutions?service=Retention+Strategies' },
     { label: 'Executive Search', path: '/solutions?service=Executive+Search' },
