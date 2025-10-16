@@ -29,12 +29,12 @@ const Footer = () => {
   }
 
   const services = [
-    { label: 'Workforce Planning & Strategy', path: '/services/workforce-planning' },
-    { label: 'Design & Optimization', path: '/services/design-optimization' },
-    { label: 'Workplace Safety', path: '/services/workplace-safety' },
-    { label: 'Retention Strategies', path: '/services/retention' },
-    { label: 'Executive Search', path: '/services/executive-search' },
-    { label: 'Leadership Development', path: '/services/leadership' }
+    { label: 'Workforce Planning & Strategy', path: '/solutions?service=Workforce Planning & Strategy' },
+    { label: 'Design & Optimization', path: '/solutions?service=Design & Optimization' },
+    { label: 'Workplace Safety', path: '/solutions?service=Workplace Safety' },
+    { label: 'Retention Strategies', path: '/solutions?service=Retention Strategies' },
+    { label: 'Executive Search', path: '/solutions?service=Executive Search' },
+    { label: 'Leadership Development', path: '/solutions?service=Leadership Development' }
   ];
 
   const socialLinks = [
