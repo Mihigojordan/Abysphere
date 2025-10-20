@@ -45,7 +45,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2 text-gray-300">
               <Phone size={16} className="text-primary-400" />
-              <span>+(250) 788-123-456</span>
+              <span>+(250) 792-888-980</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <Mail size={16} className="text-primary-400" />
@@ -64,7 +64,7 @@ const Navbar = () => {
 
       {/* Main Navigation */}
       <nav 
-        className={`bg-white sticky top-0 z-50 transition-all duration-300 ${
+        className={`bg-white sticky top-0 z-50 overflow-hidden transition-all duration-300 ${
           scrolled ? 'shadow-xl bg-white/98 backdrop-blur-sm' : 'shadow-md'
         }`}
       >

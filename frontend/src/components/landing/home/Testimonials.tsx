@@ -1,7 +1,7 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation } from 'swiper/modules';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, User } from 'lucide-react';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -9,55 +9,56 @@ import 'swiper/css/navigation';
 
 export default function TestimonialSection() {
   const testimonials = [
-    {
-      id: 1,
-      text: "Our HR team transformed completely after implementing these strategies. Employee engagement scores increased by 45% in just six months. The data-driven approach made all the difference in our recruitment process.",
-      rating: 5,
-      author: "Sarah Mitchell",
-      role: "HR Director",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop"
-    },
-    {
-      id: 2,
-      text: "The performance management framework helped us align our team goals with business objectives seamlessly. We've seen a 30% improvement in employee productivity and satisfaction. Highly recommend these insights!",
-      rating: 5,
-      author: "Michael Chen",
-      role: "Chief People Officer",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
-    },
-    {
-      id: 3,
-      text: "Implementing the learning and development programs outlined here revolutionized our upskilling initiatives. Our retention rate improved by 35%, and employees feel more valued than ever before.",
-      rating: 5,
-      author: "Jennifer Rodriguez",
-      role: "L&D Manager",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop"
-    },
-    {
-      id: 4,
-      text: "The compensation and benefits strategies helped us become more competitive in the talent market. We reduced time-to-hire by 50% and significantly improved our offer acceptance rate. Game-changer for our recruitment!",
-      rating: 5,
-      author: "David Park",
-      role: "Talent Acquisition Lead",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
-    },
-    {
-      id: 5,
-      text: "The workplace culture insights transformed our remote work experience. Employee satisfaction scores reached an all-time high, and our team collaboration improved dramatically despite being distributed globally.",
-      rating: 5,
-      author: "Emily Watson",
-      role: "Culture & Engagement Manager",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop"
-    },
-    {
-      id: 6,
-      text: "The HR technology recommendations streamlined our entire HR operations. We automated 60% of administrative tasks, allowing our team to focus on strategic initiatives that truly move the needle.",
-      rating: 5,
-      author: "Robert Johnson",
-      role: "HRIS Manager",
-      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop"
-    }
-  ];
+  {
+    id: 1,
+    text: "After adopting these HR tools, our onboarding process became much smoother. New hires adapt 40% faster, and our engagement scores skyrocketed. It’s been a game-changer for our HR team.",
+    rating: 5,
+    author: "Aline Uwase",
+    role: "Head of Human Resources",
+    image: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=200&h=200&fit=crop"
+  },
+  {
+    id: 2,
+    text: "The leadership insights strengthened team communication and trust. Our productivity grew by 28% within three months, and employees now feel more confident in their roles.",
+    rating: 5,
+    author: "Eric Ndayishimiye",
+    role: "Operations Manager",
+    image: "https://images.unsplash.com/photo-1603415526960-f7e0328d2b5b?w=200&h=200&fit=crop"
+  },
+  {
+    id: 3,
+    text: "Our learning culture improved dramatically. With the new training roadmap, 90% of staff completed skill goals ahead of schedule. Employee innovation and confidence are at an all-time high.",
+    rating: 5,
+    author: "Sandrine Mukamana",
+    role: "Learning & Development Lead",
+    image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop"
+  },
+  {
+    id: 4,
+    text: "Recruitment has become faster and smarter since we implemented data-driven approaches. We cut our hiring cycle in half and attracted top candidates who fit our culture perfectly.",
+    rating: 5,
+    author: "Jean Claude Habimana",
+    role: "Talent Acquisition Manager",
+    image: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=200&h=200&fit=crop"
+  },
+  {
+    id: 5,
+    text: "Our remote-first culture is thriving. The collaboration strategies helped our teams stay connected and motivated — even when working from different locations.",
+    rating: 5,
+    author: "Beata Iradukunda",
+    role: "Employee Experience Specialist",
+    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop"
+  },
+  {
+    id: 6,
+    text: "The automation solutions saved us countless hours. Reporting, payroll, and feedback tracking are now streamlined, letting our HR team focus on strategic initiatives.",
+    rating: 5,
+    author: "Patrick Habiyaremye",
+    role: "HR Systems Analyst",
+    image: "https://images.unsplash.com/photo-1554151228-14d9def656e4?w=200&h=200&fit=crop"
+  }
+];
+
 
   return (
     <div className="bg-gray-50 py-10 px-8 md:px-16 relative overflow-hidden">
@@ -128,11 +129,12 @@ export default function TestimonialSection() {
                   
                   {/* Author Info */}
                   <div className="flex items-center gap-4 pl-4">
-                    <img
+                    {/* <img
                       src={testimonial.image}
                       alt={testimonial.author}
                       className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
-                    />
+                    /> */}
+                    <User className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md text-gray-400 p-3 bg-gray-100" />
                     <div>
                       <h4 className="text-xl font-bold text-primary-700">
                         {testimonial.author}

@@ -169,8 +169,8 @@ const Footer = () => {
             <div className="space-y-6">
               <div>
                 <p className="text-secondary-400 text-sm mb-2">Inquiry</p>
-                <a href="tel:+250788123456" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
-                  +(250) 788-123-456
+                <a href="tel:+250792888980" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
+                  +(250) 792-888-980
                 </a>
               </div>
               
