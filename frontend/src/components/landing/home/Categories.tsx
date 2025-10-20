@@ -78,7 +78,7 @@ const HRServicesSection = () => {
   ];
 
   return (
-    <div className="bg-slate-50 py-20 px-8 md:px-16">
+    <div className="bg-slate-50 py-10 px-8 md:px-16">
       <div className=" mx-auto">
         {/* Header */}
         <div className="text-center mb-16">

@@ -19,13 +19,143 @@ const ServicesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   
   const serviceCategories = [
-    { title: "Workforce Planning & Strategy", active: false },
-    { title: "Design & Optimization", active: false },
-    { title: "Workplace Safety", active: false },
-    { title: "Retention Strategies", active: true },
-    { title: "Executive Search", active: false },
-    { title: "Leadership Development", active: false },
-  ];
+  { title: "Workforce Planning & Strategy", active: false },
+  { title: "Organizational Design & Optimization", active: false },
+  { title: "Workplace Safety & Compliance", active: false },
+  { title: "Employee Retention Strategies", active: true },
+  { title: "Executive Search & Recruitment", active: false },
+  { title: "Leadership Development & Training", active: false },
+];
+
+const serviceContent = {
+  0: {
+    title: "Workforce Planning & Strategy",
+    description:
+      "Abyshere helps organizations across Rwanda align their human capital with strategic business goals through advanced workforce analytics, forecasting, and capacity planning.",
+    image:
+      "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Workforce Analysis",
+        description:
+          "We assess your current workforce composition, skills, and future needs to ensure sustainable business growth.",
+      },
+      {
+        step: "02",
+        title: "Strategic Planning",
+        description:
+          "We develop long-term HR strategies that align staffing, talent pipelines, and succession plans with your organizational vision.",
+      },
+    ],
+  },
+  1: {
+    title: "Organizational Design & Optimization",
+    description:
+      "Abyshere partners with businesses to design efficient organizational structures, improve workflows, and enhance employee performance across all departments.",
+    image:
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Structure Design",
+        description:
+          "We create functional, agile organizational structures tailored to your company’s size and operations.",
+      },
+      {
+        step: "02",
+        title: "Process Optimization",
+        description:
+          "We streamline HR and operational processes to increase productivity and reduce administrative bottlenecks.",
+      },
+    ],
+  },
+  2: {
+    title: "Workplace Safety & Compliance",
+    description:
+      "We help Rwandan businesses maintain safe and compliant workplaces through effective safety programs, employee training, and risk management frameworks.",
+    image:
+      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Risk Assessment",
+        description:
+          "Identify, evaluate, and mitigate potential workplace hazards through professional assessments and audits.",
+      },
+      {
+        step: "02",
+        title: "Safety Implementation",
+        description:
+          "Develop safety protocols, conduct compliance training, and establish a culture of wellbeing and accountability.",
+      },
+    ],
+  },
+  3: {
+    title: "Employee Retention Strategies",
+    description:
+      "Abyshere designs data-driven retention programs that improve employee engagement, reduce turnover, and strengthen workplace culture across Rwandan organizations.",
+    image:
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Engagement Analysis",
+        description:
+          "We gather insights through surveys and feedback to understand what motivates and retains your workforce.",
+      },
+      {
+        step: "02",
+        title: "Retention Programs",
+        description:
+          "We build tailored retention solutions—benefits, recognition systems, and growth paths—to keep your best talent.",
+      },
+    ],
+  },
+  4: {
+    title: "Executive Search & Recruitment",
+    description:
+      "Our executive recruitment team identifies and secures top-tier leadership talent in Rwanda and across the region to drive long-term organizational success.",
+    image:
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Leadership Profiling",
+        description:
+          "We define the ideal leadership profile aligned with your company culture and growth objectives.",
+      },
+      {
+        step: "02",
+        title: "Talent Sourcing",
+        description:
+          "We conduct targeted searches using our regional networks, databases, and headhunting expertise.",
+      },
+    ],
+  },
+  5: {
+    title: "Leadership Development & Training",
+    description:
+      "Through Abyshere’s leadership programs, we empower managers and executives with the skills to lead effectively, inspire teams, and drive innovation.",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Leadership Assessment",
+        description:
+          "We evaluate leadership capabilities, identify potential, and uncover areas for development.",
+      },
+      {
+        step: "02",
+        title: "Development Programs",
+        description:
+          "We deliver tailored coaching, mentorship, and leadership workshops designed to strengthen organizational impact.",
+      },
+    ],
+  },
+};
+
 
   
   // Get active service from URL or default to first active one
@@ -44,111 +174,7 @@ const ServicesPage = () => {
   }, [searchParams]);
 
 
-  // Service-specific content
-  const serviceContent = {
-    0: {
-      title: "Workforce Planning & Strategy",
-      description: "Strategic workforce planning to align human capital with business objectives through data-driven forecasting and organizational design.",
-      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Workforce Analysis",
-          description: "Comprehensive assessment of current workforce capabilities and future needs.",
-        },
-        {
-          step: "02",
-          title: "Strategic Planning",
-          description: "Develop long-term workforce strategies aligned with business goals.",
-        },
-      ],
-    },
-    1: {
-      title: "Design & Optimization",
-      description: "Organizational design and process optimization to enhance efficiency and employee performance through streamlined structures.",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Structure Design",
-          description: "Create optimal organizational structures for maximum efficiency.",
-        },
-        {
-          step: "02",
-          title: "Process Optimization",
-          description: "Streamline workflows to boost productivity and reduce costs.",
-        },
-      ],
-    },
-    2: {
-      title: "Workplace Safety",
-      description: "Comprehensive safety programs ensuring compliance and creating secure work environments that protect employees.",
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Risk Assessment",
-          description: "Identify and evaluate workplace hazards and risks.",
-        },
-        {
-          step: "02",
-          title: "Safety Implementation",
-          description: "Deploy comprehensive safety training and protocols.",
-        },
-      ],
-    },
-    3: {
-      title: "Retention Strategies",
-      description: "Proven retention programs that reduce turnover and maximize employee engagement through targeted initiatives.",
-      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Engagement Analysis",
-          description: "Identify key retention drivers through employee surveys.",
-        },
-        {
-          step: "02",
-          title: "Retention Programs",
-          description: "Implement customized retention strategies and benefits.",
-        },
-      ],
-    },
-    4: {
-      title: "Executive Search",
-      description: "Targeted executive recruitment to secure top-tier leadership talent for strategic organizational growth.",
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Leadership Profiling",
-          description: "Define ideal executive competencies and cultural fit.",
-        },
-        {
-          step: "02",
-          title: "Talent Sourcing",
-          description: "Executive search across global networks and databases.",
-        },
-      ],
-    },
-    5: {
-      title: "Leadership Development",
-      description: "Customized leadership programs to build high-performing executives and future-ready leaders.",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Leadership Assessment",
-          description: "Evaluate current leadership capabilities and gaps.",
-        },
-        {
-          step: "02",
-          title: "Development Programs",
-          description: "Tailored coaching and training for leadership excellence.",
-        },
-      ],
-    },
-  };
+  
 
   const currentService = serviceContent[activeServiceIndex];
   const processSteps = currentService ? currentService.steps : [];
@@ -233,7 +259,7 @@ const ServicesPage = () => {
                       <div className="w-12 h-12 bg-teal-700 rounded-full flex items-center justify-center">
                         <Phone className="w-5 h-5 text-white" />
                       </div>
-                      <span>+(250) 788-123-456</span>
+                      <span>+(250) 792-888-980</span>
                     </a>
                     <a href="mailto:info@abysphere.com" className="flex items-center gap-3 text-gray-900 font-semibold transition-all hover:gap-4">
                       <div className="w-12 h-12 bg-teal-700 rounded-full flex items-center justify-center">
