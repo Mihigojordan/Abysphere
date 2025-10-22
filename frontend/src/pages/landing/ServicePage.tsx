@@ -2,36 +2,160 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Users,
-  Briefcase,
-  TrendingUp,
   Settings,
   ArrowRight,
   Phone,
   Mail,
-  Shield,
-  Clock,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 
 // Import HeaderBanner (adjust path as needed)
 import HeaderBanner from "../../components/landing/HeaderBanner";
+import img1 from "../../assets/hr_photo.jpg"
 
 
 
 const ServicesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [openFaq, setOpenFaq] = useState(0);
   
   const serviceCategories = [
-    { title: "Workforce Planning & Strategy", active: false },
-    { title: "Design & Optimization", active: false },
-    { title: "Workplace Safety", active: false },
-    { title: "Retention Strategies", active: true },
-    { title: "Executive Search", active: false },
-    { title: "Leadership Development", active: false },
-  ];
+  { title: "Workforce Planning & Strategy", active: false },
+  { title: "Organizational Design & Optimization", active: false },
+  { title: "Workplace Safety & Compliance", active: false },
+  { title: "Employee Retention Strategies", active: true },
+  { title: "Executive Search & Recruitment", active: false },
+  { title: "Leadership Development & Training", active: false },
+];
+
+const serviceContent = {
+  0: {
+    title: "Workforce Planning & Strategy",
+    description:
+      "Abyshere helps organizations across Rwanda align their human capital with strategic business goals through advanced workforce analytics, forecasting, and capacity planning.",
+    image:
+      "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Workforce Analysis",
+        description:
+          "We assess your current workforce composition, skills, and future needs to ensure sustainable business growth.",
+      },
+      {
+        step: "02",
+        title: "Strategic Planning",
+        description:
+          "We develop long-term HR strategies that align staffing, talent pipelines, and succession plans with your organizational vision.",
+      },
+    ],
+  },
+  1: {
+    title: "Organizational Design & Optimization",
+    description:
+      "Abyshere partners with businesses to design efficient organizational structures, improve workflows, and enhance employee performance across all departments.",
+    image:
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Structure Design",
+        description:
+          "We create functional, agile organizational structures tailored to your company’s size and operations.",
+      },
+      {
+        step: "02",
+        title: "Process Optimization",
+        description:
+          "We streamline HR and operational processes to increase productivity and reduce administrative bottlenecks.",
+      },
+    ],
+  },
+  2: {
+    title: "Workplace Safety & Compliance",
+    description:
+      "We help Rwandan businesses maintain safe and compliant workplaces through effective safety programs, employee training, and risk management frameworks.",
+    image:
+      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Risk Assessment",
+        description:
+          "Identify, evaluate, and mitigate potential workplace hazards through professional assessments and audits.",
+      },
+      {
+        step: "02",
+        title: "Safety Implementation",
+        description:
+          "Develop safety protocols, conduct compliance training, and establish a culture of wellbeing and accountability.",
+      },
+    ],
+  },
+  3: {
+    title: "Employee Retention Strategies",
+    description:
+      "Abyshere designs data-driven retention programs that improve employee engagement, reduce turnover, and strengthen workplace culture across Rwandan organizations.",
+    image:
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Engagement Analysis",
+        description:
+          "We gather insights through surveys and feedback to understand what motivates and retains your workforce.",
+      },
+      {
+        step: "02",
+        title: "Retention Programs",
+        description:
+          "We build tailored retention solutions—benefits, recognition systems, and growth paths—to keep your best talent.",
+      },
+    ],
+  },
+  4: {
+    title: "Executive Search & Recruitment",
+    description:
+      "Our executive recruitment team identifies and secures top-tier leadership talent in Rwanda and across the region to drive long-term organizational success.",
+    image:
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Leadership Profiling",
+        description:
+          "We define the ideal leadership profile aligned with your company culture and growth objectives.",
+      },
+      {
+        step: "02",
+        title: "Talent Sourcing",
+        description:
+          "We conduct targeted searches using our regional networks, databases, and headhunting expertise.",
+      },
+    ],
+  },
+  5: {
+    title: "Leadership Development & Training",
+    description:
+      "Through Abyshere’s leadership programs, we empower managers and executives with the skills to lead effectively, inspire teams, and drive innovation.",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop",
+    steps: [
+      {
+        step: "01",
+        title: "Leadership Assessment",
+        description:
+          "We evaluate leadership capabilities, identify potential, and uncover areas for development.",
+      },
+      {
+        step: "02",
+        title: "Development Programs",
+        description:
+          "We deliver tailored coaching, mentorship, and leadership workshops designed to strengthen organizational impact.",
+      },
+    ],
+  },
+};
+
 
   
   // Get active service from URL or default to first active one
@@ -50,111 +174,7 @@ const ServicesPage = () => {
   }, [searchParams]);
 
 
-  // Service-specific content
-  const serviceContent = {
-    0: {
-      title: "Workforce Planning & Strategy",
-      description: "Strategic workforce planning to align human capital with business objectives through data-driven forecasting and organizational design.",
-      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Workforce Analysis",
-          description: "Comprehensive assessment of current workforce capabilities and future needs.",
-        },
-        {
-          step: "02",
-          title: "Strategic Planning",
-          description: "Develop long-term workforce strategies aligned with business goals.",
-        },
-      ],
-    },
-    1: {
-      title: "Design & Optimization",
-      description: "Organizational design and process optimization to enhance efficiency and employee performance through streamlined structures.",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Structure Design",
-          description: "Create optimal organizational structures for maximum efficiency.",
-        },
-        {
-          step: "02",
-          title: "Process Optimization",
-          description: "Streamline workflows to boost productivity and reduce costs.",
-        },
-      ],
-    },
-    2: {
-      title: "Workplace Safety",
-      description: "Comprehensive safety programs ensuring compliance and creating secure work environments that protect employees.",
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Risk Assessment",
-          description: "Identify and evaluate workplace hazards and risks.",
-        },
-        {
-          step: "02",
-          title: "Safety Implementation",
-          description: "Deploy comprehensive safety training and protocols.",
-        },
-      ],
-    },
-    3: {
-      title: "Retention Strategies",
-      description: "Proven retention programs that reduce turnover and maximize employee engagement through targeted initiatives.",
-      image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Engagement Analysis",
-          description: "Identify key retention drivers through employee surveys.",
-        },
-        {
-          step: "02",
-          title: "Retention Programs",
-          description: "Implement customized retention strategies and benefits.",
-        },
-      ],
-    },
-    4: {
-      title: "Executive Search",
-      description: "Targeted executive recruitment to secure top-tier leadership talent for strategic organizational growth.",
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Leadership Profiling",
-          description: "Define ideal executive competencies and cultural fit.",
-        },
-        {
-          step: "02",
-          title: "Talent Sourcing",
-          description: "Executive search across global networks and databases.",
-        },
-      ],
-    },
-    5: {
-      title: "Leadership Development",
-      description: "Customized leadership programs to build high-performing executives and future-ready leaders.",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop",
-      steps: [
-        {
-          step: "01",
-          title: "Leadership Assessment",
-          description: "Evaluate current leadership capabilities and gaps.",
-        },
-        {
-          step: "02",
-          title: "Development Programs",
-          description: "Tailored coaching and training for leadership excellence.",
-        },
-      ],
-    },
-  };
+  
 
   const currentService = serviceContent[activeServiceIndex];
   const processSteps = currentService ? currentService.steps : [];
@@ -178,60 +198,6 @@ const ServicesPage = () => {
   const handleNavClick = (index:number) => {
     handleServiceClick(index);
   };
-
-  const whyChooseFeatures = [
-    {
-      icon: Shield,
-      title: "Trusted Expertise",
-      description: `15+ years specializing in ${currentService?.title || "HR solutions"}`,
-    },
-    {
-      icon: TrendingUp,
-      title: "Proven Results",
-      description: "95% client satisfaction with measurable ROI",
-    },
-    {
-      icon: Users,
-      title: "Expert Team",
-      description: "50+ certified professionals in your industry",
-    },
-    {
-      icon: Clock,
-      title: "Timely Solutions",
-      description: `Rapid implementation for ${currentService?.title || "your needs"}`,
-    },
-  ];
-
-  const faqs = [
-    {
-      question: `How does ${currentService?.title || "HR"} benefit my organization?`,
-      answer: `${currentService?.title || "This service"} drives organizational success by aligning human capital with strategic objectives, improving efficiency, and creating sustainable growth.`
-    },
-    {
-      question: `What is included in ${currentService?.title || "HR"} services?`,
-      answer: `Comprehensive ${currentService?.title?.toLowerCase() || "HR"} solutions including assessment, strategy development, implementation, and ongoing support tailored to your business needs.`
-    },
-    {
-      question: `How long does ${currentService?.title || "implementation"} take?`,
-      answer: `Typical implementation ranges from 4-12 weeks depending on scope, with immediate value delivered through our proven methodologies.`
-    },
-    {
-      question: `What results can I expect from ${currentService?.title || "our services"}?`,
-      answer: `Clients typically see 20-40% improvement in key metrics like retention, productivity, or compliance within the first year.`
-    },
-    {
-      question: `Is ${currentService?.title || "this service"} customizable?`,
-      answer: `Absolutely! Every program is tailored to your organization's size, industry, and specific challenges for maximum impact.`
-    },
-    {
-      question: `How do we measure ${currentService?.title || "success"}?`,
-      answer: `We use KPIs aligned with your goals - ROI, engagement scores, compliance rates, or leadership effectiveness metrics.`
-    },
-    {
-      question: `What's the first step for ${currentService?.title || "getting started"}?`,
-      answer: `Schedule a free consultation where we assess your needs and create a customized roadmap for success.`
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -293,7 +259,7 @@ const ServicesPage = () => {
                       <div className="w-12 h-12 bg-teal-700 rounded-full flex items-center justify-center">
                         <Phone className="w-5 h-5 text-white" />
                       </div>
-                      <span>+(250) 788-123-456</span>
+                      <span>+(250) 792-888-980</span>
                     </a>
                     <a href="mailto:info@abysphere.com" className="flex items-center gap-3 text-gray-900 font-semibold transition-all hover:gap-4">
                       <div className="w-12 h-12 bg-teal-700 rounded-full flex items-center justify-center">
@@ -304,7 +270,7 @@ const ServicesPage = () => {
                   </div>
 
                   <img
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop"
+                    src={img1}
                     alt="HR Expert"
                     className="rounded-2xl shadow-xl w-full h-64 object-cover"
                   />
@@ -355,75 +321,10 @@ const ServicesPage = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Why Choose Us Section */}
-              <div className="py-20 px-6">
-                <div className="max-w-7xl mx-auto">
-                  <div className="text-center mb-16">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                      Why Choose <span className="text-teal-700">Abysphere</span> for {currentService?.title}?
-                    </h3>
-                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                      Industry-leading expertise with proven results in {currentService?.title || "HR solutions"}
-                    </p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-8">
-                    {whyChooseFeatures.map((feature, index) => {
-                      const Icon = feature.icon;
-                      return (
-                        <div
-                          key={index}
-                          className="bg-white rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 group cursor-pointer hover:-translate-y-2 border border-gray-100"
-                        >
-                          <div className="w-20 h-20 bg-gradient-to-br from-teal-700 to-teal-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                            <Icon className="w-10 h-10 text-white" />
-                          </div>
-                          <h4 className="text-xl font-bold text-gray-900 mb-3">
-                            {feature.title}
-                          </h4>
-                          <p className="text-gray-600 leading-relaxed">
-                            {feature.description}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
               {/* FAQ Section */}
               <div className="bg-white p-8 rounded-3xl">
-                <h1 className="text-4xl font-bold text-gray-900 mb-8">
-                  FAQs: {currentService?.title || "HR Services"}
-                </h1>
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div key={index} className="border-b border-gray-200 pb-4">
-                      <button
-                        onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                        className="w-full flex items-center justify-between text-left group"
-                      >
-                        <h2 className="text-lg font-semibold text-gray-700 group-hover:text-teal-700 transition-colors">
-                          {faq.question}
-                        </h2>
-                        {openFaq === index ? (
-                          <ChevronUp className="w-5 h-5 text-teal-700" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-teal-700" />
-                        )}
-                      </button>
-                      {openFaq === index && (
-                        <div className="mt-3 pl-4">
-                          <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
                 {/* DYNAMIC PREVIOUS/NEXT NAVIGATION */}
-                <div className="mt-8 flex gap-4">
+                <div className="mt-3 flex gap-4">
                   {prevServiceIndex !== null && (
                     <button
                       onClick={() => handleNavClick(prevServiceIndex)}

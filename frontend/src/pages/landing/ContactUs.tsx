@@ -14,6 +14,7 @@ import {
   PhoneCall
 } from 'lucide-react';
 import HeaderBanner from '../../components/landing/HeaderBanner';
+import img1 from "../../assets/contact.jpg"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ export default function ContactPage() {
           </div>
           <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Phone size={16} className="mr-2" />
-            <span className="font-medium">+250 788 123 456</span>
+            <span className="font-medium">+250 792 888 980</span>
           </div>
           <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Mail size={16} className="mr-2" />
@@ -101,7 +102,7 @@ export default function ContactPage() {
               <h3 className="text-xl font-bold text-gray-800">Consulting Support</h3>
             </div>
             <p className="text-gray-600">
-              +250 788 123 456<br/>
+              +250 792 888 980<br/>
               info@abysphere.com
             </p>
           </div>
@@ -182,21 +183,6 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Subject *
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
-                  placeholder="HR consulting needs, executive search, etc."
-                />
-              </div>
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -300,7 +286,7 @@ export default function ContactPage() {
           {/* HR Team Image */}
           <div className="rounded-2xl overflow-hidden shadow-lg h-80 relative">
             <img
-              src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop"
+              src={img1}
               alt="Abysphere HR Consulting Team Kigali"
               className="w-full h-full object-cover"
             />
