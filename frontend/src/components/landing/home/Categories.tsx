@@ -82,11 +82,11 @@ const HRServicesSection = () => {
       <div className=" mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="flex items-center justify-center gap-2 text-teal-600 mb-4">
+          <div className="flex items-center justify-center gap-2 text-primary-600 mb-4">
             <div className="flex gap-1">
-              <div className="w-2 h-2 bg-teal-600 rounded-full"></div>
-              <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-              <div className="w-2 h-2 bg-teal-300 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary-300 rounded-full"></div>
             </div>
             <span className="text-sm tracking-widest uppercase font-semibold">Our Services</span>
           </div>
@@ -143,7 +143,7 @@ const HRServicesSection = () => {
                     />
                     {/* Icon Badge */}
                     <div className="absolute z-10 bottom-2 right-0 w-20 h-20 p-1.5 bg-white rounded-full flex justify-center shadow-xl">
-                      <div className="w-full h-full bg-teal-700 flex items-center justify-center rounded-full group-hover:bg-teal-600 transition-colors">
+                      <div className="w-full h-full bg-primary-700 flex items-center justify-center rounded-full group-hover:bg-primary-600 transition-colors">
                         <service.icon className="w-8 h-8 text-white" />
                       </div>
                     </div>
@@ -152,17 +152,17 @@ const HRServicesSection = () => {
                   {/* Content */}
                   <div className="p-8">
                     {/* Tag */}
-                    <div className="text-teal-600 text-sm font-semibold mb-3">
+                    <div className="text-primary-600 text-sm font-semibold mb-3">
                       {service.tag}
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-slate-900 mb-4 leading-tight group-hover:text-teal-700 transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 mb-4 leading-tight group-hover:text-primary-700 transition-colors">
                       {service.title}
                     </h3>
 
                     {/* Divider */}
-                    <div className="w-16 h-0.5 bg-slate-300 mb-4 group-hover:bg-teal-600 group-hover:w-24 transition-all duration-300"></div>
+                    <div className="w-16 h-0.5 bg-slate-300 mb-4 group-hover:bg-primary-600 group-hover:w-24 transition-all duration-300"></div>
 
                     {/* Description */}
                     <p className="text-slate-600 text-sm leading-relaxed">
@@ -190,7 +190,7 @@ const HRServicesSection = () => {
                 }
               }}
               className={`rounded-full transition-all duration-300 ${
-                activeIndex === index ? 'bg-teal-600 w-8 h-3' : 'bg-slate-300 w-3 h-3'
+                activeIndex === index ? 'bg-primary-600 w-8 h-3' : 'bg-slate-300 w-3 h-3'
               }`}
               aria-label={`Go to page ${index + 1}`}
             />
