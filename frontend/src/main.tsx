@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import { AdminAuthContextProvider } from './context/AdminAuthContext.tsx'
 import { EmployeeAuthProvider } from './context/EmployeeAuthContext.tsx'
+import { SuperAdminAuthContextProvider } from './context/SuperAdminAuthContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <SuperAdminAuthContextProvider>
     <AdminAuthContextProvider>
       <EmployeeAuthProvider>
     <App />
       </EmployeeAuthProvider>
     </AdminAuthContextProvider>
+    </SuperAdminAuthContextProvider>
   </StrictMode>,
 )

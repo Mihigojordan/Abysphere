@@ -36,6 +36,7 @@ import { GrownEggPondFeedingModule } from './modules/grown-egg-pond-feeding/grow
 import { FeedCageModule } from './modules/feed/feed-cage.module';
 import { PondWaterChangingModule } from './modules/pond-water-changing-management/pond-water-changing.module';
 import { PondMedicationModule } from './modules/pond-medication-management/pond-medication.module';
+import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-admin.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { PondMedicationModule } from './modules/pond-medication-management/pond-
     GrownEggPondFeedingModule,
     PondWaterChangingModule,
     PondMedicationModule,
+    SuperAdminModule
   ],
   controllers: [AppController],
 })
