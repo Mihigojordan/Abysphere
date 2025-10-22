@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-import Header from '../../components/dashboard/Header';
+import Header from '../../components/dashboard/superAdmin/Header';
 
-import Sidebar from '../../components/dashboard/Sidebar';
+import Sidebar from '../../components/dashboard/superAdmin/Sidebar';
 
 import { Outlet } from 'react-router-dom';
 
-const DashboardLayout = ({role}:{role:string}) => {
+const SuperDashboardLayout = ({role}:{role:string}) => {
 
     const [isOpen, setIsOpen] = useState(false)
  
@@ -27,4 +27,4 @@ const DashboardLayout = ({role}:{role:string}) => {
   );
 };
 
-export default DashboardLayout;
+export default SuperDashboardLayout;

@@ -38,6 +38,7 @@ import { PondWaterChangingModule } from './modules/pond-water-changing-managemen
 import { PondMedicationModule } from './modules/pond-medication-management/pond-medication.module';
 import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-admin.module';
 import { CompanyModule } from './modules/company-management/company.module';
+import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeatures-management/system-features.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { CompanyModule } from './modules/company-management/company.module';
     PondMedicationModule,
     SuperAdminModule,
     CompanyModule,
+    SystemFeaturesModule
   ],
   controllers: [AppController],
 })
