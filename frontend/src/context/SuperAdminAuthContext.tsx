@@ -283,7 +283,7 @@ export const SuperAdminAuthContextProvider: React.FC<AdminAuthContextProviderPro
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export default function useAdminAuth(): AdminAuthContextType {
+export default function useSuperAdminAuth(): AdminAuthContextType {
   const context = useContext(AdminAuthContext);
   if (!context) {
     throw new Error('useAdminAuth must be used within AdminAuthContextProvider');

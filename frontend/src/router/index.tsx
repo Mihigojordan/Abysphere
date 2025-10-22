@@ -20,6 +20,8 @@ import EggToPondMigrationManagement from "../pages/dashboard/EggToPondMigrationM
 import GrownEggPondFeedingManagement from "../pages/dashboard/GrownEggPondFeedingManagement";
 import SuperAdminLogin from "../pages/auth/SuperAdmin/SuperLogin";
 import SuperAdminUnlockScreen from "../pages/auth/SuperAdmin/SuperUnlockScreen";
+import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
+import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -264,7 +266,7 @@ const routes = createBrowserRouter([
           },
            {
             path: 'dashboard',
-            element: <DashboardLayout role='super-admin' />,
+            element: <SuperDashboardLayout role='super-admin' />,
             children: [
               {
                 path: '',
@@ -279,6 +281,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <AdminProfile  />
+                  </SuspenseWrapper>
+                ),
+              },
+                 {
+                path: 'system-feature',
+                element: (
+                  <SuspenseWrapper>
+                    <SystemFeaturesDashboard role={"super-admin"} />
                   </SuspenseWrapper>
                 ),
               },

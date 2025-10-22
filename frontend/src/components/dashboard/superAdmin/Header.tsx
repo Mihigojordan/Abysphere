@@ -9,37 +9,25 @@ import {
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useAdminAuth from "../../context/AdminAuthContext";
-import useEmployeeAuth from "../../context/EmployeeAuthContext"; // Import employee auth context
-import { API_URL } from "../../api/api";
+import useSuperAdminAuth from "../../../context/SuperAdminAuthContext";
+import { API_URL } from "../../../api/api";
 
 interface HeaderProps {
   onToggle: () => void;
-  role: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
+const Header: React.FC<HeaderProps> = ({ onToggle }) => {
   const navigate = useNavigate();
-  const { user: adminUser, logout: adminLogout, lockAdmin } = useAdminAuth();
-  const { user: employeeUser, logout: employeeLogout, lockEmployee } = useEmployeeAuth();
-
-  // Use the appropriate user and logout function based on role
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const user = role === "admin" ? adminUser : employeeUser;
-  const logout = role === "admin" ? adminLogout : employeeLogout;
-  const lock = role === "admin" ? lockAdmin : lockEmployee;
+  const { user, logout, lockAdmin } = useSuperAdminAuth();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [isLocking, setIsLocking] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-
-
   const onLogout = async () => {
     try {
       await logout();
       setIsDropdownOpen(false);
-   
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -48,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
   const handleLock = async () => {
     setIsLocking(true);
     try {
-      await lock();
+      await lockAdmin();
       setIsDropdownOpen(false);
     } catch (error) {
       console.error("Lock error:", error);
@@ -57,23 +45,16 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     }
   };
 
-  // Get display name based on role
   const getDisplayName = (): string => {
-    if (role === "admin") {
-      return adminUser?.adminName || "Admin";
-    }
-    return employeeUser?.first_name
-      ? `${employeeUser.first_name} ${employeeUser.last_name || ""}`.trim()
-      : "Employee";
+    return user?.adminName || "Super Admin";
   };
 
-  // Get profile image and email based on role
   const getProfileImage = (): string | undefined => {
-    return role === "admin" ? adminUser?.profileImage : employeeUser?.profile_image ;
+    return user?.profileImage;
   };
 
   const getEmail = (): string | undefined => {
-    return role === "admin" ? adminUser?.adminEmail : employeeUser?.email;
+    return user?.adminEmail;
   };
 
   // Close dropdown when clicking outside
@@ -87,12 +68,10 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close dropdown when pressing Escape key
+  // Close dropdown when pressing Escape
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsDropdownOpen(false);
-      }
+      if (event.key === "Escape") setIsDropdownOpen(false);
     };
     document.addEventListener("keydown", handleEscapeKey);
     return () => document.removeEventListener("keydown", handleEscapeKey);
@@ -111,7 +90,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                 <Menu className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900">
-                Welcome to Dashboard Management
+                Welcome to Super Admin Dashboard
               </h1>
             </div>
           </div>
@@ -124,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
               <Settings className="w-5 h-5" />
             </button>
 
-            {/* User Profile Dropdown */}
+            {/* User Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -144,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                 </div>
                 <div className="text-left">
                   <div className="text-sm font-medium text-gray-700">{getDisplayName()}</div>
-                  <div className="text-xs text-primary-600">{role === "admin" ? "Administrator" : "Employee"}</div>
+                  <div className="text-xs text-primary-600">Super Admin</div>
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
@@ -153,37 +132,35 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                 />
               </button>
 
-              {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                   <div className="py-1">
-                    {/* User Info Header */}
+                    {/* User Info */}
                     <div className="px-4 py-3 border-b border-gray-100 bg-primary-50">
                       <div className="text-sm font-medium text-gray-900">{getDisplayName()}</div>
                       <div className="text-xs text-gray-600">{getEmail()}</div>
-                      <div className="text-xs font-medium text-primary-600">
-                        {role === "admin" ? "Administrator" : "Employee"}
-                      </div>
+                      <div className="text-xs font-medium text-primary-600">Super Admin</div>
                     </div>
 
-                    {/* Menu Items */}
+                    {/* Menu */}
                     <div className="py-1">
-                      <button
-                        onClick={() => {
-                          navigate(role === "admin" ? "/admin/dashboard/profile" : "/employee/dashboard/profile");
-                          setIsDropdownOpen(false);
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 transition-colors"
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        My Profile
-                      </button>
+                      {/* Dashboard link (main link, easy to add others later) */}
+               
+                   
+                               <button
+                                              onClick={() => {
+                                                navigate("/super-admin/dashboard/profile");
+                                                setIsDropdownOpen(false);
+                                              }}
+                                              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 transition-colors"
+                                            >
+                                              <User className="w-4 h-4 mr-2" />
+                                              My Profile
+                                            </button>
+                      
 
                       <button
-                        onClick={() => {
-                          handleLock();
-                          setIsDropdownOpen(false);
-                        }}
+                        onClick={handleLock}
                         disabled={isLocking}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -194,10 +171,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                       <div className="border-t border-gray-100 my-1"></div>
 
                       <button
-                        onClick={() => {
-                          onLogout();
-                          setIsDropdownOpen(false);
-                        }}
+                        onClick={onLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4 mr-2" />
