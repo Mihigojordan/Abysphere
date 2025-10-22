@@ -14,6 +14,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model SuperAdmin {
+  id         String   @id @unique @default(uuid())
+  adminName  String?
+  adminEmail String?  @unique
+  phone     String?
+  password   String?
+  profileImage  String?
+  status       AdminStatus    @default(ACTIVE)
+  google_id    String?  @unique
+  is2FA   Boolean? @default(false)
+  isLocked   Boolean? @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+
 model Admin {
   id         String   @id @unique @default(uuid())
   adminName  String?

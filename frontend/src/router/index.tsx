@@ -6,6 +6,7 @@ import AuthLayout from "../layout/AuthLayout";
 import DashboardLayout from "../layout/DashboardLayout";
 import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdminRoute";
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
+import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/fine_fish_logo.png";
 import FeedstockDashboard from "../pages/dashboard/FeedstockDashboard";
 import ParentFishPoolManagement from "../pages/dashboard/ParentFishPoolManagement";
@@ -17,6 +18,8 @@ import EggFishFeedingManagement from "../pages/dashboard/EggFishFeedingManagemen
 import GrownEggPondManagement from "../pages/dashboard/GrownEggPondManagement";
 import EggToPondMigrationManagement from "../pages/dashboard/EggToPondMigrationManagement";
 import GrownEggPondFeedingManagement from "../pages/dashboard/GrownEggPondFeedingManagement";
+import SuperAdminLogin from "../pages/auth/SuperAdmin/SuperLogin";
+import SuperAdminUnlockScreen from "../pages/auth/SuperAdmin/SuperUnlockScreen";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -245,6 +248,47 @@ const routes = createBrowserRouter([
           },
         ],
       },
+      {
+           path: 'super-admin',
+        element: (
+          <SuspenseWrapper>
+            <ProtectPrivateSuperAdminRoute>
+              <Outlet />
+            </ProtectPrivateSuperAdminRoute>
+          </SuspenseWrapper>
+        ),
+        children:[
+            {
+            index: true,
+            element: <Navigate to="/super-admin/dashboard" replace />,
+          },
+           {
+            path: 'dashboard',
+            element: <DashboardLayout role='super-admin' />,
+            children: [
+              {
+                path: '',
+                element: (
+                  <SuspenseWrapper>
+                    <DashboardHome role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+                   {
+                path: 'profile',
+                element: (
+                  <SuspenseWrapper>
+                    <AdminProfile  />
+                  </SuspenseWrapper>
+                ),
+              },
+            ]
+            
+            }
+        ]
+
+      },
+
       {
         path: 'admin',
         element: (
@@ -1024,6 +1068,22 @@ const routes = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <AdminLogin />
+          </SuspenseWrapper>
+        ),
+      },
+         {
+        path: 'super-admin/login',
+        element: (
+          <SuspenseWrapper>
+            <SuperAdminLogin />
+          </SuspenseWrapper>
+        ),
+      },
+         {
+        path: 'super-admin/unlock',
+        element: (
+          <SuspenseWrapper>
+            <SuperAdminUnlockScreen />
           </SuspenseWrapper>
         ),
       },
