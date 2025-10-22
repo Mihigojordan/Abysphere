@@ -37,6 +37,7 @@ import { FeedCageModule } from './modules/feed/feed-cage.module';
 import { PondWaterChangingModule } from './modules/pond-water-changing-management/pond-water-changing.module';
 import { PondMedicationModule } from './modules/pond-medication-management/pond-medication.module';
 import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-admin.module';
+import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeatures-management/system-features.module';
 
 @Module({
   imports: [
@@ -74,7 +75,8 @@ import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-adm
     GrownEggPondFeedingModule,
     PondWaterChangingModule,
     PondMedicationModule,
-    SuperAdminModule
+    SuperAdminModule,
+    SystemFeaturesModule
   ],
   controllers: [AppController],
 })
