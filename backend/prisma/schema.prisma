@@ -39,6 +39,14 @@ model Admin {
   profileImage  String?
   status       AdminStatus    @default(ACTIVE)
   google_id    String?  @unique
+
+  website             String?
+  address             String?
+  city                String?
+  country             String?
+
+  description         String?
+
   is2FA   Boolean? @default(false)
   isLocked   Boolean? @default(false)
   createdAt  DateTime @default(now())
@@ -61,6 +69,8 @@ enum AdminStatus{
     ACTIVE
     INACTIVE
 }
+
+
 
 model Department {
   id          String     @id @unique @default(uuid())

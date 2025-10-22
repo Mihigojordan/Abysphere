@@ -46,6 +46,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
+import { headWeb } from "../../utils/web-head";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -369,6 +370,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         ],
       },
 
+       {
+            id: "company-management",
+            label: "Company Management",
+            icon:Beaker,
+            path: `${basePath}/company-management`,
+            allowedRoles: ['super-admin'],
+          },
+
+
     ];
   };
 
@@ -552,7 +562,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             </div>
             <div>
               <h2 className="font-bold text-base text-primary-800">
-                Aby Hr Management
+                {headWeb.title}
               </h2>
               <p className="text-xs text-primary-500">{portalTitle}</p>
             </div>
