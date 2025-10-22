@@ -93,9 +93,9 @@ const EnvironmentalCompliance: React.FC = () => {
               <br />
               <strong>Fine Fish Ltd</strong><br />
               Industrial Area, Rwamagana District, Eastern Province, Rwanda<br />
-              Phone: +250 788 123 456<br />
+              Phone: +250 792 888 980<br />
               Email: <a href="mailto:info@finefish.rw" className="text-primary-600 hover:underline">info@finefish.rw</a><br />
-              WhatsApp: +250 788 123 456<br />
+              WhatsApp: +250 792 888 980<br />
               Hours: Monday–Friday, 8:00 AM–6:00 PM
             </p>
           </motion.div>

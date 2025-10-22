@@ -27,12 +27,12 @@ const Footer = () => {
   }
 
   const services = [
-    { label: 'Workforce Planning & Strategy', path: '/services/workforce-planning' },
-    { label: 'Design & Optimization', path: '/services/design-optimization' },
-    { label: 'Workplace Safety', path: '/services/workplace-safety' },
-    { label: 'Retention Strategies', path: '/services/retention' },
-    { label: 'Executive Search', path: '/services/executive-search' },
-    { label: 'Leadership Development', path: '/services/leadership' }
+    { label: 'Workforce Planning & Strategy', path: '/solutions?service=Workforce+Planning+%26+Strategy' },
+    { label: 'Design & Optimization', path: '/solutions?service=Design+%26+Optimization' },
+    { label: 'Workplace Safety', path: '/solutions?service=Workplace+Safety' },
+    { label: 'Retention Strategies', path: '/solutions?service=Retention+Strategies' },
+    { label: 'Executive Search', path: '/solutions?service=Executive+Search' },
+    { label: 'Leadership Development', path: '/solutions?service=Leadership+Development' }
   ];
 
   const socialLinks = [
@@ -67,11 +67,11 @@ const Footer = () => {
               viewport={{ once: true }}
             >
               {/* Logo */}
-              <div className="flex items-center space-x-3 mb-6">
-                    <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-<img src={tranLogo} className='w-32 h-32  scale-150' alt="" />
+         
+               <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
+<img src={tranLogo} className='w-32 h-32  scale-125' alt="" />
             </div>
-              </div>
+      
               
               <p className="text-gray-300 mb-8 leading-relaxed max-w-md">
                 At the heart of our philosophy lies the belief that a thriving workplace is rooted in trust, respect, commitment to continuous growth.
@@ -167,8 +167,8 @@ const Footer = () => {
             <div className="space-y-6">
               <div>
                 <p className="text-secondary-400 text-sm mb-2">Inquiry</p>
-                <a href="tel:+250788123456" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
-                  +(250) 788-123-456
+                <a href="tel:+250792888980" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
+                  +(250) 792-888-980
                 </a>
               </div>
               
