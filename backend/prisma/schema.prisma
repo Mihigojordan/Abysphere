@@ -38,6 +38,7 @@ model SystemFeature {
 }
 
 
+<<<<<<< HEAD
 model DemoRequest {
   id                 Int      @id @default(autoincrement())
   fullName           String
@@ -53,6 +54,8 @@ model DemoRequest {
 
 
 
+=======
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
 model Admin {
   id         String   @id @unique @default(uuid())
   adminName  String?
@@ -62,6 +65,17 @@ model Admin {
   profileImage  String?
   status       AdminStatus    @default(ACTIVE)
   google_id    String?  @unique
+<<<<<<< HEAD
+=======
+
+  website             String?
+  address             String?
+  city                String?
+  country             String?
+
+  description         String?
+
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
   is2FA   Boolean? @default(false)
   isLocked   Boolean? @default(false)
   createdAt  DateTime @default(now())
@@ -85,6 +99,11 @@ enum AdminStatus{
     INACTIVE
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
 model Department {
   id          String     @id @unique @default(uuid())
   name        String?

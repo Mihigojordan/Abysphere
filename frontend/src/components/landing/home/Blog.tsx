@@ -33,8 +33,13 @@ export default function FeaturedNewsSection() {
       <div className=" mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
+<<<<<<< HEAD
           <div className="flex items-center justify-center gap-2 text-teal-700 text-sm font-semibold mb-4">
             <span className="text-teal-600">✓</span>
+=======
+          <div className="flex items-center justify-center gap-2 text-primary-700 text-sm font-semibold mb-4">
+            <span className="text-primary-600">✓</span>
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
             <span>NEWS & UPDATES</span>
           </div>
           <h2 className="text-5xl font-bold text-gray-900 mb-4">
@@ -78,7 +83,11 @@ export default function FeaturedNewsSection() {
                 </p>
                 <button 
                 onClick={()=> navigate(`/blogs/${featuredPost.id}`)}
+<<<<<<< HEAD
                 className="text-teal-600 font-semibold text-sm hover:text-teal-700 border-b-2 border-teal-600 hover:border-teal-700 transition-colors">
+=======
+                className="text-primary-600 font-semibold text-sm hover:text-primary-700 border-b-2 border-primary-600 hover:border-primary-700 transition-colors">
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
                   READ MORE
                 </button>
               </div>
@@ -120,7 +129,11 @@ export default function FeaturedNewsSection() {
                   </p>
                   <button 
                   onClick={()=> navigate(`/blogs/${post.id}`)}
+<<<<<<< HEAD
                   className="text-teal-600 font-semibold text-xs hover:text-teal-700 border-b-2 border-teal-600 hover:border-teal-700 transition-colors self-start">
+=======
+                  className="text-primary-600 font-semibold text-xs hover:text-primary-700 border-b-2 border-primary-600 hover:border-primary-700 transition-colors self-start">
+>>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
                     READ MORE
                   </button>
                 </div>

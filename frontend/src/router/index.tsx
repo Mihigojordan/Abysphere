@@ -20,6 +20,9 @@ import EggToPondMigrationManagement from "../pages/dashboard/EggToPondMigrationM
 import GrownEggPondFeedingManagement from "../pages/dashboard/GrownEggPondFeedingManagement";
 import SuperAdminLogin from "../pages/auth/SuperAdmin/SuperLogin";
 import SuperAdminUnlockScreen from "../pages/auth/SuperAdmin/SuperUnlockScreen";
+import CompanyManagement from "../pages/dashboard/CompanyManagement";
+import CompanyViewPage from "../components/dashboard/company/CompanyViewPage";
+import CompanyForm from "../components/dashboard/company/CompanyForm";
 import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
 import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
 
@@ -273,6 +276,38 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <DashboardHome role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'company-management',
+                element: (
+                  <SuspenseWrapper>
+                    <CompanyManagement role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'company-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CompanyForm role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'company-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <CompanyForm role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'company-management/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <CompanyViewPage role='super-admin'/>
                   </SuspenseWrapper>
                 ),
               },
