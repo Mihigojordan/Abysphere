@@ -39,6 +39,23 @@ model SystemFeature {
   admins      Admin[]      @relation("AdminFeatures")
 }
 
+model DemoRequest {
+  id                 Int      @id @default(autoincrement())
+  fullName           String
+  email              String
+  phone              String
+  companyName        String
+  companyWebsite     String?  // Optional
+  companyDescription String?  // Optional
+  companySize        String?
+  message            String?
+  status             String   @default("pending") // New field for approval status
+  createdAt          DateTime @default(now())
+}
+
+
+
+
 model Admin {
   id            String          @id @unique @default(uuid())
   adminName     String?

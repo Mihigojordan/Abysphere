@@ -26,6 +26,8 @@ import CompanyForm from "../components/dashboard/company/CompanyForm";
 import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
 import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
 import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPage";
+import Demomanagement from "../pages/dashboard/SuperAdmin/Demo-management";
+import DemoRequestsDashboard from "../pages/dashboard/SuperAdmin/Demo-management";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -74,7 +76,7 @@ const TermsOfService = lazy(() => import("../pages/landing/TermsOfService"));
 const ServiceAgreement = lazy(() => import("../pages/landing/ServiceAgreement"));
 const DataProtection = lazy(() => import("../pages/landing/DataProtection"));
 const EnvironmentalCompliance = lazy(() => import("../pages/landing/EnvironmentalCompliance"));
-
+const DemoRequest = lazy(()=>import("../pages/landing/DemoRequest"))
 const ProductPage = lazy(() => import('../pages/landing/FeaturesPage'));
 const ServicesPage = lazy(() => import('../pages/landing/ServicePage'));
 const ContactPage = lazy(() => import('../pages/landing/ContactUs'));
@@ -193,6 +195,14 @@ const routes = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <ContactPage />
+              </SuspenseWrapper>
+            ),
+          },
+           {
+            path: 'demo-request',
+            element: (
+              <SuspenseWrapper>
+                <DemoRequest />
               </SuspenseWrapper>
             ),
           },
@@ -333,6 +343,15 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <SystemFeaturesDashboard role={"super-admin"} />
+                  </SuspenseWrapper>
+                ),
+              },
+
+                {
+                path: 'demo-management',
+                element: (
+                  <SuspenseWrapper>
+                    <Demomanagement role={""}  />
                   </SuspenseWrapper>
                 ),
               },

@@ -39,6 +39,7 @@ import { PondMedicationModule } from './modules/pond-medication-management/pond-
 import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-admin.module';
 import { CompanyModule } from './modules/company-management/company.module';
 import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeatures-management/system-features.module';
+import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequest.module';
 
 @Module({
   imports: [
@@ -78,7 +79,8 @@ import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeat
     PondMedicationModule,
     SuperAdminModule,
     CompanyModule,
-    SystemFeaturesModule
+    SystemFeaturesModule,
+    DemoRequestModule
   ],
   controllers: [AppController],
 })

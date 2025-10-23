@@ -3,9 +3,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Users, Handshake, TrendingUp } from 'lucide-react';
 
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
+// // Import Swiper styles
+// import 'swiper/css';
+// import 'swiper/css/pagination';
 
 const HRServicesSection = () => {
   const [activeIndex, setActiveIndex] = useState(1);
