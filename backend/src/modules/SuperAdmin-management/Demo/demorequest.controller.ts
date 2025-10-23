@@ -29,4 +29,16 @@ export class DemoRequestController {
   remove(@Param('id') id: string) {
     return this.demoRequestService.remove(Number(id));
   }
+
+  // --- Approve a demo request ---
+  @Put(':id/approve')
+  approve(@Param('id') id: string) {
+    return this.demoRequestService.approve(Number(id));
+  }
+
+  // --- Reject a demo request ---
+  @Put(':id/reject')
+  reject(@Param('id') id: string) {
+    return this.demoRequestService.reject(Number(id));
+  }
 }

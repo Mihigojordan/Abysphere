@@ -2,37 +2,16 @@ import React, { useState, useEffect } from "react";
 import {
   MapPin,
   Plane,
-  Users,
+
   TrendingUp,
   User,
   X,
   Building,
-  Briefcase,
-  Cog,
-  Grid,
-  ShoppingBasket,
-  Inbox,
-  PackageSearch,
-  History,
-  Store,
 
-  FolderTree,
   ChevronDown,
-  Layers,
-  MapPinned,
-  FlaskConical,
-  FishSymbol,
-  Database,
-  Droplet,
+
   Beaker,
-  Microscope,
-  Egg,
-  Waves,
-  Soup,
-  MoveRight,
-  ClipboardCheck,
-  SoupIcon,
-  Milk,
+
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useSuperAdminAuth from "../../../context/SuperAdminAuthContext";
@@ -82,6 +61,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle }) => {
       icon: Building,
       path: `${basePath}/system-feature`,
     },
+      {
+      id: "Demo Request",
+      label: "Demo Requests Management",
+      icon: Building,
+      path: `${basePath}/demo-management`,
+    },
+       {
+                id: "company-management",
+                label: "Company Management",
+                icon:Beaker,
+                path: `${basePath}/company-management`,
+            
+              },
+    
     
     
   ];

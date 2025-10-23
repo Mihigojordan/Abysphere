@@ -82,7 +82,7 @@ const Navbar = () => {
                   <button
                     key={index}
                     onClick={() => handleNavigate(item.path)}
-                    className="relative px-5 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm transition-all duration-300 rounded-lg group"
+                    className="relative px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm transition-all duration-300 rounded-lg group"
                   >
                     <span className="relative z-10">{item.name}</span>
                     <div className="absolute inset-0 bg-primary-50 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
@@ -96,9 +96,9 @@ const Navbar = () => {
             <div className="hidden md:flex items-center space-x-4">
               <button
                 className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
-                onClick={() => handleNavigate('/contact')}
+                onClick={() => handleNavigate('/demo-request')}
               >
-                Get Quote
+               Request Demo
               </button>
             </div>
 

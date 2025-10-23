@@ -27,4 +27,20 @@ export class DemoRequestService {
   remove(id: number) {
     return this.prisma.demoRequest.delete({ where: { id } });
   }
+
+  // --- Approve a request ---
+  approve(id: number) {
+    return this.prisma.demoRequest.update({
+      where: { id },
+      data: { status: 'approved' },
+    });
+  }
+
+  // --- Reject a request ---
+  reject(id: number) {
+    return this.prisma.demoRequest.update({
+      where: { id },
+      data: { status: 'rejected' },
+    });
+  }
 }

@@ -38,24 +38,23 @@ model SystemFeature {
 }
 
 
-<<<<<<< HEAD
 model DemoRequest {
   id                 Int      @id @default(autoincrement())
   fullName           String
   email              String
   phone              String
   companyName        String
-  companyWebsite     String?  // New field
-  companyDescription String?  // New field (what your company does)
+  companyWebsite     String?  // Optional
+  companyDescription String?  // Optional
   companySize        String?
   message            String?
+  status             String   @default("pending") // New field for approval status
   createdAt          DateTime @default(now())
 }
 
 
 
-=======
->>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
+
 model Admin {
   id         String   @id @unique @default(uuid())
   adminName  String?
@@ -65,8 +64,6 @@ model Admin {
   profileImage  String?
   status       AdminStatus    @default(ACTIVE)
   google_id    String?  @unique
-<<<<<<< HEAD
-=======
 
   website             String?
   address             String?
@@ -75,7 +72,6 @@ model Admin {
 
   description         String?
 
->>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
   is2FA   Boolean? @default(false)
   isLocked   Boolean? @default(false)
   createdAt  DateTime @default(now())
@@ -99,11 +95,8 @@ enum AdminStatus{
     INACTIVE
 }
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 04fc224b5765f0869275b6a96e1b69ae81870bc3
 model Department {
   id          String     @id @unique @default(uuid())
   name        String?

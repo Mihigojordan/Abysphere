@@ -37,6 +37,7 @@ import { FeedCageModule } from './modules/feed/feed-cage.module';
 import { PondWaterChangingModule } from './modules/pond-water-changing-management/pond-water-changing.module';
 import { PondMedicationModule } from './modules/pond-medication-management/pond-medication.module';
 import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-admin.module';
+import { CompanyModule } from './modules/company-management/company.module';
 import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeatures-management/system-features.module';
 import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequest.module';
 
@@ -77,6 +78,7 @@ import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequ
     PondWaterChangingModule,
     PondMedicationModule,
     SuperAdminModule,
+    CompanyModule,
     SystemFeaturesModule,
     DemoRequestModule
   ],
