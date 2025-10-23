@@ -25,6 +25,7 @@ import CompanyViewPage from "../components/dashboard/company/CompanyViewPage";
 import CompanyForm from "../components/dashboard/company/CompanyForm";
 import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
 import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
+import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPage";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -308,6 +309,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <CompanyViewPage role='super-admin'/>
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'company-management/assign-features/:companyId',
+                element: (
+                  <SuspenseWrapper>
+                    <AssignFeaturesPage />
                   </SuspenseWrapper>
                 ),
               },

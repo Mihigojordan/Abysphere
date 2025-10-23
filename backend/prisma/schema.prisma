@@ -28,55 +28,53 @@ model SuperAdmin {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
-
 model SystemFeature {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
+  // 🔹 Relation with Admin
+  admins      Admin[]      @relation("AdminFeatures")
+}
 
 model Admin {
-  id         String   @id @unique @default(uuid())
-  adminName  String?
-  adminEmail String?  @unique
-  phone     String?
-  password   String?
+  id            String          @id @unique @default(uuid())
+  adminName     String?
+  adminEmail    String?         @unique
+  phone         String?
+  password      String?
   profileImage  String?
-  status       AdminStatus    @default(ACTIVE)
-  google_id    String?  @unique
+  status        AdminStatus     @default(ACTIVE)
+  google_id     String?         @unique
+  website       String?
+  address       String?
+  city          String?
+  country       String?
+  description   String?
+  is2FA         Boolean?        @default(false)
+  isLocked      Boolean?        @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
-  website             String?
-  address             String?
-  city                String?
-  country             String?
+  medications   Medication[]
+  requestedBy   Request[]       @relation("RequestedByAdmin")
+  closedBy      Request[]       @relation("ClosedByAdmin")
+  issuedBy      Request[]       @relation("IssuedByAdmin")
+  rejectedBy    Request[]       @relation("rejectedByAdmin")
+  stockHistoriesCreated StockHistory[]
+  Activity      Activity[]
 
-  description         String?
-
-  is2FA   Boolean? @default(false)
-  isLocked   Boolean? @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-   medications      Medication[]
-
-  // 🔹 Requests
-   requestedBy    Request[] @relation("RequestedByAdmin")
-  closedBy       Request[] @relation("ClosedByAdmin")
-  issuedBy       Request[] @relation("IssuedByAdmin")
-  rejectedBy       Request[] @relation("rejectedByAdmin")
-  // 🔹 StockHistory
-  stockHistoriesCreated StockHistory[] 
-
-   Activity Activity[]
+  // 🔹 Relation with SystemFeature
+  features      SystemFeature[] @relation("AdminFeatures")
 }
 
-enum AdminStatus{
-    ACTIVE
-    INACTIVE
+enum AdminStatus {
+  ACTIVE
+  INACTIVE
 }
+
 
 
 

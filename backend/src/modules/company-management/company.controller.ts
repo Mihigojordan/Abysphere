@@ -9,6 +9,10 @@ export class CompanyController {
     private readonly companyGateway: CompanyGateway,
   ) {}
 
+  // ============================
+  // 🔹 COMPANY CRUD OPERATIONS
+  // ============================
+
   @Post()
   async create(@Body() body: any) {
     const company = await this.companyService.create(body);
@@ -38,5 +42,67 @@ export class CompanyController {
     const deleted = await this.companyService.remove(id);
     this.companyGateway.emitCompanyDeleted(id);
     return deleted;
+  }
+
+  // ========================================
+  // 🔹 ADMIN ↔ FEATURE RELATION MANAGEMENT
+  // ========================================
+
+  /**
+   * ✅ Assign one or more features to an admin
+   * POST /company/:adminId/assign-features
+   */
+  @Post(':adminId/assign-features')
+  async assignFeatures(
+    @Param('adminId') adminId: string,
+    @Body('featureIds') featureIds: string[],
+  ) {
+    const result = await this.companyService.assignFeaturesToCompany(adminId, featureIds);
+
+    // 🔔 Notify clients in real-time
+    this.companyGateway.server.emit('featureAssigned', {
+      adminId,
+      assignedFeatures: result.features,
+    });
+
+    return result;
+  }
+
+  /**
+   * 🚫 Remove one or more features from an admin
+   * POST /company/:adminId/remove-features
+   */
+  @Post(':adminId/remove-features')
+  async removeFeatures(
+    @Param('adminId') adminId: string,
+    @Body('featureIds') featureIds: string[],
+  ) {
+    const result = await this.companyService.removeFeaturesFromCompany(adminId, featureIds);
+
+    // 🔔 Notify clients in real-time
+    this.companyGateway.server.emit('featureRemoved', {
+      adminId,
+      remainingFeatures: result.features,
+    });
+
+    return result;
+  }
+
+  /**
+   * 🔍 Get all features assigned to an admin
+   * GET /company/:adminId/features
+   */
+  @Get(':adminId/features')
+  async getCompanyFeatures(@Param('adminId') adminId: string) {
+    return this.companyService.getCompanyFeatures(adminId);
+  }
+
+  /**
+   * 👑 Get all admins that have a specific feature
+   * GET /company/feature/:featureId/admins
+   */
+  @Get('feature/:featureId/admins')
+  async getFeatureCompanys(@Param('featureId') featureId: string) {
+    return this.companyService.getFeatureCompanys(featureId);
   }
 }

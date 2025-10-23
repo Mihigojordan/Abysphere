@@ -33,4 +33,14 @@ export class CompanyGateway {
   emitCompanyDeleted(companyId: string) {
     this.server.emit('companyDeleted', { id: companyId });
   }
+
+  // company.gateway.ts
+emitCompanyAssigned(data: any) {
+  this.server.emit('companyAssigned', data);
+}
+
+emitCompanyUnassigned(data: any) {
+  this.server.emit('companyUnassigned', data);
+}
+
 }

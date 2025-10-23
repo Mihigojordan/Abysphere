@@ -17,11 +17,13 @@ import {
   XCircle,
   AlertCircle,
   Lock,
+  Zap,
+  Edit,
 } from "lucide-react";
 import DOMPurify from "dompurify";
 import Quill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import companyService, { type Company, type CompanyStatus } from "../../../services/companyService";
+import companyService, { type Company, type CompanyStatus, type SystemFeature } from "../../../services/companyService";
 import { API_URL } from "../../../api/api";
 
 interface OperationStatus {
@@ -29,12 +31,17 @@ interface OperationStatus {
   message: string;
 }
 
+const FEATURES_PER_PAGE = 6;
+
 const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
   const { id: companyId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [companyFeatures, setCompanyFeatures] = useState<SystemFeature[]>([]);
+  const [featuresLoading, setFeaturesLoading] = useState<boolean>(false);
+  const [featuresCurrentPage, setFeaturesCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showFullDescription, setShowFullDescription] = useState<boolean>(false);
@@ -48,8 +55,7 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     action: "deactivate";
   } | null>(null);
 
-  const url =
-   `/${role}/dashboard/company-management/` ;
+  const url = `/${role}/dashboard/company-management/`;
 
   // Fetch companies
   useEffect(() => {
@@ -60,7 +66,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
 
         const companiesData = await companyService.getAllCompanies();
         if (companiesData && companiesData.length > 0) {
-          // Sort by createdAt descending (most recent first)
           const sortedCompanies = companiesData.sort(
             (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
           );
@@ -80,11 +85,32 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     loadCompanies();
   }, []);
 
-  // Reset page to 1 when search term changes
+  // Fetch company features when selected company changes
+  useEffect(() => {
+    const loadCompanyFeatures = async () => {
+      if (!selectedCompany?.id) return;
+
+      try {
+        setFeaturesLoading(true);
+        const features = await companyService.getCompanyFeatures(selectedCompany.id);
+        setCompanyFeatures(features || []);
+        setFeaturesCurrentPage(1);
+      } catch (err: any) {
+        console.error("Error loading features:", err);
+        setCompanyFeatures([]);
+      } finally {
+        setFeaturesLoading(false);
+      }
+    };
+
+    loadCompanyFeatures();
+  }, [selectedCompany?.id]);
+
   useEffect(() => {
     setSidebarCurrentPage(1);
   }, [searchTerm]);
-   const filteredCompanies = useMemo(() => {
+
+  const filteredCompanies = useMemo(() => {
     if (!searchTerm.trim()) return companies;
 
     return companies.filter((company) =>
@@ -97,8 +123,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     );
   }, [companies, searchTerm]);
 
-
-  // Select company based on URL parameter
   useEffect(() => {
     if (companies.length > 0) {
       if (companyId) {
@@ -106,7 +130,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
         if (foundCompany) {
           setSelectedCompany(foundCompany);
           setShowFullDescription(false);
-          // Calculate the page for the selected company
           const indexInFiltered = filteredCompanies.findIndex((company) => company.id === companyId);
           if (indexInFiltered !== -1) {
             const targetPage = Math.floor(indexInFiltered / sidebarItemsPerPage) + 1;
@@ -116,7 +139,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
           setError("Company not found");
         }
       } else {
-        // Select the first company if no companyId is provided
         setSelectedCompany(companies[0]);
         setShowFullDescription(false);
         navigate(`${url}${companies[0].id}`);
@@ -186,7 +208,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     }
   };
 
-  // Truncate text to a specified length
   const stripHtml = (html: string): string => {
     const div = document.createElement("div");
     div.innerHTML = html;
@@ -199,17 +220,24 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     return plainText.substring(0, maxLength) + "...";
   };
 
-  // Filtered companies for search
- 
+  // Features pagination
+  const featuresTotalPages = Math.ceil(companyFeatures.length / FEATURES_PER_PAGE);
+  const featuresStartIndex = (featuresCurrentPage - 1) * FEATURES_PER_PAGE;
+  const featuresEndIndex = featuresStartIndex + FEATURES_PER_PAGE;
+  const currentPageFeatures = companyFeatures.slice(featuresStartIndex, featuresEndIndex);
+
   // Sidebar pagination calculations
   const sidebarTotalPages = Math.ceil(filteredCompanies.length / sidebarItemsPerPage);
   const sidebarStartIndex = (sidebarCurrentPage - 1) * sidebarItemsPerPage;
   const sidebarEndIndex = sidebarStartIndex + sidebarItemsPerPage;
   const currentSidebarCompanies = filteredCompanies.slice(sidebarStartIndex, sidebarEndIndex);
 
-  // Handle sidebar page change
   const handleSidebarPageChange = (page: number) => {
     setSidebarCurrentPage(page);
+  };
+
+  const handleFeaturesPageChange = (page: number) => {
+    setFeaturesCurrentPage(page);
   };
 
   if (loading) {
@@ -322,7 +350,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                 </div>
               ))}
             </div>
-            {/* Sidebar Pagination */}
             {sidebarTotalPages > 1 && (
               <div className="p-4 border-t flex justify-center space-x-2">
                 <button
@@ -360,7 +387,6 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                     className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
-                      e.target.parentElement!.innerHTML += '<p className="text-xs text-gray-500">Image not available</p>';
                     }}
                   />
                 ) : (
@@ -466,6 +492,98 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Assigned Features Section */}
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-primary-600" />
+                <h3 className="text-lg font-medium text-gray-900">Assigned Features</h3>
+                <span className="text-sm text-gray-500">({companyFeatures.length})</span>
+              </div>
+              <button
+                onClick={() => navigate(`/${role}/dashboard/company-management/assign-features/${selectedCompany.id}`)}
+                className="flex items-center space-x-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Manage Features</span>
+              </button>
+            </div>
+
+            {featuresLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-2 text-gray-600">Loading features...</span>
+              </div>
+            ) : companyFeatures.length === 0 ? (
+              <div className="text-center py-8">
+                <Zap className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500">No features assigned to this company yet.</p>
+                <button
+                  onClick={() => navigate(`/${role}/dashboard/company-management/${selectedCompany.id}/assign-features`)}
+                  className="mt-4 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+                >
+                  Assign Features
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentPageFeatures.map((feature) => (
+                    <div
+                      key={feature.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Zap className="w-4 h-4 text-primary-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">
+                            {feature.name}
+                          </h4>
+                          {feature.description && (
+                            <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                              {feature.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Features Pagination */}
+                {featuresTotalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between border-t pt-4">
+                    <div className="text-sm text-gray-700">
+                      Showing {featuresStartIndex + 1} to {Math.min(featuresEndIndex, companyFeatures.length)} of{' '}
+                      {companyFeatures.length} features
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleFeaturesPageChange(featuresCurrentPage - 1)}
+                        disabled={featuresCurrentPage === 1}
+                        className="p-2 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <span className="text-sm text-gray-700">
+                        Page {featuresCurrentPage} of {featuresTotalPages}
+                      </span>
+                      <button
+                        onClick={() => handleFeaturesPageChange(featuresCurrentPage + 1)}
+                        disabled={featuresCurrentPage === featuresTotalPages}
+                        className="p-2 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Description */}

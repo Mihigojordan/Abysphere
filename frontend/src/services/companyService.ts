@@ -24,6 +24,13 @@ export interface Company {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface SystemFeature {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export type CreateCompanyInput = Omit<Company, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateCompanyInput = Partial<CreateCompanyInput>;
@@ -134,6 +141,69 @@ class CompanyService {
       throw new Error(errorMessage);
     }
   }
+
+    /** ✅ Assign features to an admin */
+  async assignFeaturesToCompany(adminId: string, featureIds: string[]): Promise<any> {
+    try {
+      const response: AxiosResponse<any> = await this.api.post(
+        `/company/${adminId}/assign-features`,
+        { featureIds }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error assigning features:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to assign features';
+      throw new Error(errorMessage);
+    }
+  }
+
+  /** 🚫 Remove features from an admin */
+  async removeFeaturesFromCompany(adminId: string, featureIds: string[]): Promise<any> {
+    try {
+      const response: AxiosResponse<any> = await this.api.post(
+        `/company/${adminId}/remove-features`,
+        { featureIds }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error removing features:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to remove features';
+      throw new Error(errorMessage);
+    }
+  }
+
+  /** 🔍 Get all features assigned to an admin */
+  async getCompanyFeatures(adminId: string): Promise<SystemFeature[]> {
+    try {
+      const response: AxiosResponse<SystemFeature[]> = await this.api.get(
+        `/company/${adminId}/features`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching admin features:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to fetch admin features';
+      throw new Error(errorMessage);
+    }
+  }
+
+  /** 👑 Get all admins that have a specific feature */
+  async getFeatureCompanys(featureId: string): Promise<Company[]> {
+    try {
+      const response: AxiosResponse<Company[]> = await this.api.get(
+        `/company/feature/${featureId}/admins`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching feature admins:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to fetch feature admins';
+      throw new Error(errorMessage);
+    }
+  }
+
 
   /**
    * Validate company data before sending to backend

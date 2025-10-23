@@ -10,7 +10,7 @@ export class CompanyService {
     constructor(
         private prisma: PrismaService,
         private email: EmailService,
-    ) { }
+    ) {}
 
     // ====== Inline DTOs ======
     private createCompanyDto = class {
@@ -42,7 +42,7 @@ export class CompanyService {
         const { hash, password } = await this.generateAndHashPassword();
 
         if (data.adminEmail) {
-            //send email to company with generated password
+            // send email to company with generated password
             const subject = 'Your Company Account Created';
 
             await this.email.sendEmail(
@@ -59,7 +59,6 @@ export class CompanyService {
                 }
             );
         }
-
 
         return this.prisma.admin.create({
             data: {
@@ -100,5 +99,71 @@ export class CompanyService {
         if (!exists) throw new NotFoundException('Company not found');
 
         return this.prisma.admin.delete({ where: { id } });
+    }
+
+    // =====================================================
+    // 🔹 FEATURE MANAGEMENT METHODS (Company ↔ SystemFeature)
+    // =====================================================
+
+    /**
+     * ✅ Assign one or more features to an admin
+     */
+    async assignFeaturesToCompany(adminId: string, featureIds: string[]) {
+        const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
+        if (!admin) throw new NotFoundException('Company not found');
+
+        return this.prisma.admin.update({
+            where: { id: adminId },
+            data: {
+                features: {
+                    connect: featureIds.map((id) => ({ id })),
+                },
+            },
+            include: { features: true },
+        });
+    }
+
+    /**
+     * 🚫 Remove one or more features from an admin
+     */
+    async removeFeaturesFromCompany(adminId: string, featureIds: string[]) {
+        const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
+        if (!admin) throw new NotFoundException('Company not found');
+
+        return this.prisma.admin.update({
+            where: { id: adminId },
+            data: {
+                features: {
+                    disconnect: featureIds.map((id) => ({ id })),
+                },
+            },
+            include: { features: true },
+        });
+    }
+
+    /**
+     * 🔍 Get all features assigned to an admin
+     */
+    async getCompanyFeatures(adminId: string) {
+        const admin = await this.prisma.admin.findUnique({
+            where: { id: adminId },
+            include: { features: true },
+        });
+        if (!admin) throw new NotFoundException('Company not found');
+
+        return admin.features;
+    }
+
+    /**
+     * 👑 Get all admins that have a specific feature
+     */
+    async getFeatureCompanys(featureId: string) {
+        const feature = await this.prisma.systemFeature.findUnique({
+            where: { id: featureId },
+            include: { admins: true },
+        });
+        if (!feature) throw new NotFoundException('Feature not found');
+
+        return feature.admins;
     }
 }
