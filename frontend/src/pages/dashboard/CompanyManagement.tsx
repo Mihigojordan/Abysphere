@@ -19,7 +19,8 @@ import {
     Eye,
     Calendar,
     ChevronDown,
-    MoreHorizontal
+    MoreHorizontal,
+    Settings
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import companyService, { type CreateCompanyInput, type UpdateCompanyInput, type Company, type CompanyStatus } from '../../services/companyService';
@@ -357,6 +358,13 @@ const CompanyManagement = ({ role }: { role: string }) => {
                                     <Eye className="w-3 h-3 mr-1" />
                                     View
                                 </button>
+                                 <button
+                                            onClick={() => navigate(`/${role}/dashboard/company-management/assign-features/${company.id}`)}
+                                            className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                          >
+                                            <Settings className="w-4 h-4" />
+                                            feature
+                                          </button>
                                 <button
                                     onClick={() => {
                                         handleEditCompany(company);
@@ -521,6 +529,13 @@ const CompanyManagement = ({ role }: { role: string }) => {
                                         >
                                             <Edit className="w-3 h-3" />
                                         </button>
+                                         <button
+                                            onClick={() => navigate(`/${role}/dashboard/company-management/assign-features/${company.id}`)}
+                                            className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
+                                          >
+                                            <Settings className="w-4 h-4" />
+                                            
+                                          </button>
                                         <button
                                             onClick={() => handleDeleteCompany(company)}
                                             disabled={operationLoading}
@@ -591,6 +606,13 @@ const CompanyManagement = ({ role }: { role: string }) => {
                             >
                                 <Eye className="w-4 h-4" />
                             </button>
+                              <button
+                                            onClick={() => navigate(`/${role}/dashboard/company-management/assign-features/${company.id}`)}
+                                            className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                          >
+                                            <Settings className="w-4 h-4" />
+                                            
+                                          </button>
                             <button
                                 onClick={() => handleEditCompany(company)}
                                 disabled={operationLoading}

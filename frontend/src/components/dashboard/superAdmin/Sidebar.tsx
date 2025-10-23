@@ -76,13 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle }) => {
               },
     
     
-           {
-                id: "company-management",
-                label: "Company Management",
-                icon:Beaker,
-                path: `${basePath}/company-management`,
-                // allowedRoles: ['super-admin'],
-              },
+        
    
     
   ];
