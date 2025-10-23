@@ -38,6 +38,21 @@ model SystemFeature {
 }
 
 
+model DemoRequest {
+  id                 Int      @id @default(autoincrement())
+  fullName           String
+  email              String
+  phone              String
+  companyName        String
+  companyWebsite     String?  // New field
+  companyDescription String?  // New field (what your company does)
+  companySize        String?
+  message            String?
+  createdAt          DateTime @default(now())
+}
+
+
+
 model Admin {
   id         String   @id @unique @default(uuid())
   adminName  String?
