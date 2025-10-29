@@ -261,11 +261,11 @@ const serviceContent = {
                       </div>
                       <span>+(250) 792-888-980</span>
                     </a>
-                    <a href="mailto:info@abysphere.com" className="flex items-center gap-3 text-gray-900 font-semibold transition-all hover:gap-4">
+                    <a href="mailto:info@zubasystem.com" className="flex items-center gap-3 text-gray-900 font-semibold transition-all hover:gap-4">
                       <div className="w-12 h-12 bg-teal-700 rounded-full flex items-center justify-center">
                         <Mail className="w-5 h-5 text-white" />
                       </div>
-                      <span>info@abysphere.com</span>
+                      <span>info@zubasystem.com</span>
                     </a>
                   </div>
 

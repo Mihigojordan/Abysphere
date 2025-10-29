@@ -36,9 +36,9 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: 'https://www.facebook.com/abysphere', name: 'Facebook' },
-    { icon: Twitter, href: 'https://www.twitter.com/abysphere', name: 'Twitter' },
-    { icon: Linkedin, href: 'https://www.linkedin.com/company/abysphere', name: 'LinkedIn' }
+    { icon: Facebook, href: 'https://www.facebook.com/zubasystem', name: 'Facebook' },
+    { icon: Twitter, href: 'https://www.twitter.com/zubasystem', name: 'Twitter' },
+    { icon: Linkedin, href: 'https://www.linkedin.com/company/zubasystem', name: 'LinkedIn' }
   ];
 
   return (
@@ -168,14 +168,14 @@ const Footer = () => {
               <div>
                 <p className="text-secondary-400 text-sm mb-2">Inquiry</p>
                 <a href="tel:+250792888980" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
-                  +(250) 792-888-980
+                  +(250) 791-813-289
                 </a>
               </div>
               
               <div className="border-t border-gray-700 pt-6">
                 <p className="text-secondary-400 text-sm mb-2">Email</p>
-                <a href="mailto:info@abysphere.com" className="text-white hover:text-primary-400 transition-colors">
-                  info@abysphere.com
+                <a href="mailto:info@zubasystem.com" className="text-white hover:text-primary-400 transition-colors">
+                  info@zubasystem.com
                 </a>
               </div>
               
@@ -201,7 +201,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="text-gray-400 text-sm"
             >
-              © Copyright 2025. All rights reserved. <span className="text-primary-400">Abysphere</span>. Designed by <span className="text-gray-300">Abytech hub team</span>
+              © Copyright 2025. All rights reserved. <span className="text-primary-400">Zubasystem</span>. Designed by <span className="text-gray-300">Abytech hub team</span>
             </motion.p>
             
             <motion.div

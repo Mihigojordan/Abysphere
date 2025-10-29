@@ -45,11 +45,11 @@ const Navbar = () => {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2 text-gray-300">
               <Phone size={16} className="text-primary-400" />
-              <span>+(250) 792-888-980</span>
+              <span>+(250) 791-813-289</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <Mail size={16} className="text-primary-400" />
-              <span>info@abysphere.com</span>
+              <span>info@zubasystem.com</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <MapPin size={16} className="text-primary-400" />
@@ -72,7 +72,7 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-<img src={tranLogo} className='w-32 h-32  scale-125' alt="" />
+<img src={tranLogo} className='w-20 h-20  object-contain ' alt="" />
             </div>
 
             {/* Desktop Navigation */}

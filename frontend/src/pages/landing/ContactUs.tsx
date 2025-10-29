@@ -52,7 +52,7 @@ export default function ContactPage() {
           HR Consulting & Talent Solutions
         </h1>
         <p className="text-md md:text-lg text-gray-600 mx-auto leading-relaxed mb-6 max-w-3xl">
-          Partner with Rwanda's leading HR consultancy in Kigali! Connect with our expert team for strategic HR solutions, executive search, talent management, and organizational development at Abysphere.
+          Partner with Rwanda's leading HR consultancy in Kigali! Connect with our expert team for strategic HR solutions, executive search, talent management, and organizational development at Zubasystem.
         </p>
         
         {/* Quick HR contact badges */}
@@ -63,11 +63,11 @@ export default function ContactPage() {
           </div>
           <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Phone size={16} className="mr-2" />
-            <span className="font-medium">+250 792 888 980</span>
+            <span className="font-medium">+250 791-813-289</span>
           </div>
           <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Mail size={16} className="mr-2" />
-            <span className="font-medium">info@abysphere.com</span>
+            <span className="font-medium">info@zubasystem.com</span>
           </div>
           <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Clock size={16} className="mr-2" />
@@ -102,8 +102,8 @@ export default function ContactPage() {
               <h3 className="text-xl font-bold text-gray-800">Consulting Support</h3>
             </div>
             <p className="text-gray-600">
-              +250 792 888 980<br/>
-              info@abysphere.com
+              +250 791-813-289<br/>
+              info@zubasystem.com
             </p>
           </div>
 
@@ -213,7 +213,7 @@ export default function ContactPage() {
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-teal-600" />
-              Abysphere HQ - Kigali Innovation City
+              Zubasystem HQ - Kigali Innovation City
             </h3>
             
             {/* Google Maps Embed for Kigali Innovation City */}
@@ -226,7 +226,7 @@ export default function ContactPage() {
                 allowFullScreen={true}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Abysphere HR Consulting - Kigali Location"
+                title="Zubasystem HR Consulting - Kigali Location"
               />
             </div>
             
@@ -287,7 +287,7 @@ export default function ContactPage() {
           <div className="rounded-2xl overflow-hidden shadow-lg h-80 relative">
             <img
               src={img1}
-              alt="Abysphere HR Consulting Team Kigali"
+              alt="Zubasystem HR Consulting Team Kigali"
               className="w-full h-full object-cover"
             />
             <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
