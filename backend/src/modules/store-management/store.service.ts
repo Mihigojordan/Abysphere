@@ -15,43 +15,30 @@ export class StoreService {
     }
   }
 
-  async findAll(params?: { page?: number; limit?: number; search?: string }) {
+  async findAll(params?: { search?: string; adminId?: string }) {
     try {
-      const { page = 1, limit = 10, search } = params || {};
-      const skip = (page - 1) * limit;
+      const { search, adminId } = params || {};
 
-      const where = search
-        ? {
-            OR: [
-              { name: { contains: search, mode: 'insensitive' } },
-              { location: { contains: search, mode: 'insensitive' } },
-              { code: { contains: search, mode: 'insensitive' } },
-            ],
-          }
-        : {};
-
-      const [stores, total] = await Promise.all([
-        this.prisma.store.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { created_at: 'desc' },
-          include:{
-            manager:true
-          }
-        }),
-        this.prisma.store.count({ where }),
-      ]);
-
-      return {
-        stores,
-        pagination: {
-          current_page: page,
-          total_pages: Math.ceil(total / limit),
-          total_items: total,
-          items_per_page: limit,
-        },
+      const where = {
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { location: { contains: search, mode: 'insensitive' } },
+                { code: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+        ...(adminId ? { adminId } : {}),
       };
+
+      const stores = await this.prisma.store.findMany({
+        where,
+        orderBy: { created_at: 'desc' },
+        include: { manager: true, admin: true },
+      });
+
+      return stores;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to fetch stores');
@@ -61,11 +48,9 @@ export class StoreService {
   async findOne(id: string) {
     try {
       const store = await this.prisma.store.findUnique({
-         where: { id } ,
-          include:{
-            manager:true
-          }
-       });
+        where: { id },
+        include: { manager: true, admin: true },
+      });
       if (!store) throw new NotFoundException('Store not found');
       return store;
     } catch (error) {
@@ -75,16 +60,16 @@ export class StoreService {
         : new InternalServerErrorException('Failed to fetch store');
     }
   }
+
   async findStoresByManagerId(id: string) {
     try {
-      const store = await this.prisma.store.findMany({ where: 
-        { managerId: id } ,
-         include:{
-            manager:true
-          }
+      const stores = await this.prisma.store.findMany({
+        where: { managerId: id },
+        include: { manager: true, admin: true },
       });
-      if (!store || store?.length  == 0 ) throw new NotFoundException('Store not found');
-      return store;
+      if (!stores || stores.length === 0)
+        throw new NotFoundException('No stores found for this manager');
+      return stores;
     } catch (error) {
       console.error(error);
       throw error instanceof NotFoundException
@@ -98,9 +83,7 @@ export class StoreService {
       return await this.prisma.store.update({
         where: { id },
         data,
-         include:{
-            manager:true
-          }
+        include: { manager: true, admin: true },
       });
     } catch (error) {
       console.error(error);

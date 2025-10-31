@@ -29,6 +29,7 @@ import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPa
 import Demomanagement from "../pages/dashboard/SuperAdmin/Demo-management";
 import DemoRequestsDashboard from "../pages/dashboard/SuperAdmin/Demo-management";
 import CategoryDashboard from "../pages/dashboard/CategoryManagement";
+import SupplierDashboard from "../pages/dashboard/SupplierManagement";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -681,7 +682,15 @@ const routes = createBrowserRouter([
                 path: 'category-management',
                 element: (
                   <SuspenseWrapper>
-                    <CategoryDashboard  />
+                    <CategoryDashboard  role="admin" />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'supplier-management',
+                element: (
+                  <SuspenseWrapper>
+                    <SupplierDashboard  role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -1133,6 +1142,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <PondMedicationManagement  role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+                 {
+                path: 'category-management',
+                element: (
+                  <SuspenseWrapper>
+                    <CategoryDashboard  role="employee" />
                   </SuspenseWrapper>
                 ),
               },

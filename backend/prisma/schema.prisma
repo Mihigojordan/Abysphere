@@ -83,6 +83,8 @@ model Admin {
   stockHistoriesCreated StockHistory[]
   Activity      Activity[]
   category      Category[]
+  suppliers      Supplier[]
+   store  Store[]
 
   // 🔹 Relation with SystemFeature
   features      SystemFeature[] @relation("AdminFeatures")
@@ -371,8 +373,13 @@ model Store {
   name          String
   location      String
   description   String?   @db.Text
+
   managerId    String?
   manager     Employee?    @relation(fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+  adminId  String
+ admin       Admin      @relation(fields: [adminId], references: [id])
+
   contact_phone String?
   contact_email String?
   stockins    StockIn[]
@@ -995,4 +1002,23 @@ model Category {
   admin       Admin?       @relation(fields: [adminId], references: [id])
   employee       Employee?       @relation(fields: [employeeId], references: [id])
   createdAt   DateTime  @default(now())
+}
+
+
+model Supplier {
+  id          String       @id @default(uuid())
+  name        String
+  email       String?   @unique
+  phone       String?   @unique
+  address     String?
+
+   adminId  String
+
+ admin       Admin      @relation(fields: [adminId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([email])
+  @@index([phone])
 }

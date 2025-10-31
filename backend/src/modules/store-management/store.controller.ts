@@ -1,65 +1,57 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { StoreService } from './store.service';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 
 @Controller('stores')
+@UseGuards(AdminJwtAuthGuard) // ✅ Protect all routes with admin guard
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
+  // ✅ Create Store
   @Post()
-  async create(
-    @Body()
-    body: {
-      code: string;
-      name: string;
-      location: string;
-      description?: string;
-      manager_name?: string;
-      contact_phone?: string;
-      contact_email?: string;
-    },
-  ) {
-    return await this.storeService.create(body);
+  async create(@Req() req: RequestWithAdmin, @Body() body: any) {
+    const adminId = req.admin!.id;
+    return await this.storeService.create({ ...body, adminId });
   }
 
+  // ✅ Get All Stores (optionally filtered by search)
   @Get()
-  async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
-  ) {
-    return await this.storeService.findAll({
-      page: Number(page) || 1,
-      limit: Number(limit) || 10,
-      search,
-    });
+  async findAll(@Req() req: RequestWithAdmin, @Query('search') search?: string) {
+    const adminId = req.admin!.id;
+    return await this.storeService.findAll({ search, adminId });
   }
 
+  // ✅ Get One Store by ID
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.storeService.findOne(id);
   }
+
+  // ✅ Get Stores by Manager ID
   @Get('manager/:id')
   async findStoresByManagerId(@Param('id') id: string) {
     return await this.storeService.findStoresByManagerId(id);
   }
 
+  // ✅ Update Store
   @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body()
-    body: {
-      code?: string;
-      name?: string;
-      location?: string;
-      description?: string;
-      manager_name?: string;
-      contact_phone?: string;
-      contact_email?: string;
-    },
-  ) {
+  async update(@Param('id') id: string, @Body() body: any) {
     return await this.storeService.update(id, body);
   }
 
+  // ✅ Delete Store
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return await this.storeService.remove(id);
