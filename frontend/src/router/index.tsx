@@ -28,6 +28,7 @@ import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-featur
 import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPage";
 import Demomanagement from "../pages/dashboard/SuperAdmin/Demo-management";
 import DemoRequestsDashboard from "../pages/dashboard/SuperAdmin/Demo-management";
+import CategoryDashboard from "../pages/dashboard/CategoryManagement";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -64,7 +65,7 @@ const CageForm = lazy(() => import("../components/dashboard/cage/CageForm"));
 const CageViewPage = lazy(() => import("../components/dashboard/cage/CageViewMorePage"));
 const MedicationForm = lazy(() => import("../components/dashboard/cage/MedicationForm"));
 const DailyFeedRecordForm = lazy(() => import("../components/dashboard/cage/DailyFeedRecordForm"));
-const CategoryManagement = lazy(() => import("../pages/dashboard/CategoryManagement"));
+const StockCategoryManagement = lazy(() => import("../pages/dashboard/StockCategoryManagement"));
 const StockManagement = lazy(() => import("../pages/dashboard/StockManagement"));
 const StockInForm = lazy(() => import("../components/dashboard/stock/StockFormPage"));
 const StockInViewPage = lazy(() => import("../components/dashboard/stock/StockInViewPage"));
@@ -669,10 +670,18 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'stock-category-management',
+                element: (
+                  <SuspenseWrapper>
+                    <StockCategoryManagement  role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'category-management',
                 element: (
                   <SuspenseWrapper>
-                    <CategoryManagement  role='admin' />
+                    <CategoryDashboard  />
                   </SuspenseWrapper>
                 ),
               },
@@ -941,13 +950,14 @@ const routes = createBrowserRouter([
                 )
               },
                {
-                path: 'category-management',
+                path: 'stock-category-management',
                 element: (
                   <SuspenseWrapper>
-                    <CategoryManagement  role='employee' />
+                    <StockCategoryManagement  role='employee' />
                   </SuspenseWrapper>
                 ),
               },
+              
               {
                 path: 'stock-management',
                 element: (

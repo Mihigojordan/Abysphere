@@ -5,9 +5,12 @@ import App from './App.tsx'
 import { AdminAuthContextProvider } from './context/AdminAuthContext.tsx'
 import { EmployeeAuthProvider } from './context/EmployeeAuthContext.tsx'
 import { SuperAdminAuthContextProvider } from './context/SuperAdminAuthContext.tsx'
+import { NetworkStatusProvider } from './context/useNetworkContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <NetworkStatusProvider>
+
     <SuperAdminAuthContextProvider>
     <AdminAuthContextProvider>
       <EmployeeAuthProvider>
@@ -15,5 +18,6 @@ createRoot(document.getElementById('root')!).render(
       </EmployeeAuthProvider>
     </AdminAuthContextProvider>
     </SuperAdminAuthContextProvider>
+    </NetworkStatusProvider>
   </StrictMode>,
 )

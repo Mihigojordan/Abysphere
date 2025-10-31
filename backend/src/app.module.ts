@@ -40,6 +40,7 @@ import { SuperAdminModule } from './modules/SuperAdmin-management/Auth/super-adm
 import { CompanyModule } from './modules/company-management/company.module';
 import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeatures-management/system-features.module';
 import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequest.module';
+import { CategoryManagementModule } from './modules/category-management/category-management.module';
 
 @Module({
   imports: [
@@ -80,7 +81,8 @@ import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequ
     SuperAdminModule,
     CompanyModule,
     SystemFeaturesModule,
-    DemoRequestModule
+    DemoRequestModule,
+    CategoryManagementModule
   ],
   controllers: [AppController],
 })

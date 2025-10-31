@@ -178,16 +178,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           },
         ],
       },
+          {
+            id: "category",
+            label: "Category Management",
+            icon: FolderTree,
+            path: `${basePath}/category-management`,
+            allowedRoles: ["admin"],
+          },
       {
         id: "inventory-management",
         label: "Inventory Management",
         icon: PackageSearch,
         items: [
           {
-            id: "category",
-            label: "Categories",
+            id: "stock-category",
+            label: "Stock Categories",
             icon: FolderTree,
-            path: `${basePath}/category-management`,
+            path: `${basePath}/stock-category-management`,
             allowedRoles: ["admin"],
           },
           {
