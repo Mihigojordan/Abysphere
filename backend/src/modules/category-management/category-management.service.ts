@@ -35,7 +35,7 @@ export class CategoryManagementService {
       }
 
       const createdCategory = await this.prismaService.category.create({
-        data: { name, description },
+        data: { name, description , adminId:data.adminId , },
       });
 
       
@@ -49,9 +49,13 @@ export class CategoryManagementService {
     }
   }
 
-  async getAllCategories() {
+  async getAllCategories(id:string) {
     try {
-      const categories = await this.prismaService.category.findMany();
+      const categories = await this.prismaService.category.findMany({
+        where:{
+          adminId:id
+        }
+      });
       return categories;
     } catch (error) {
       console.error('Error getting categories:', error);

@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { CategoryManagementService } from './category-management.service';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 
 @Controller('category')
 export class CategoryManagementController {
@@ -13,8 +15,10 @@ export class CategoryManagementController {
 
   //Get All Categories
   @Get('all')
-  async getAllCategories() {
-    return await this.categoryService.getAllCategories();
+  @UseGuards(AdminJwtAuthGuard)
+  async getAllCategories(@Req() req:RequestWithAdmin) {
+  const adminId =  req.admin!.id
+    return await this.categoryService.getAllCategories(adminId);
   }
 
   // Get Single Category by ID

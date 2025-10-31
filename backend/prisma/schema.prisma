@@ -82,6 +82,7 @@ model Admin {
   rejectedBy    Request[]       @relation("rejectedByAdmin")
   stockHistoriesCreated StockHistory[]
   Activity      Activity[]
+  category      Category[]
 
   // 🔹 Relation with SystemFeature
   features      SystemFeature[] @relation("AdminFeatures")
@@ -152,7 +153,7 @@ enum MaritalStatus {
     is2FA   Boolean? @default(false) 
 
 
-
+  category      Category[]
     activity              Activity[]
     contract              Contract[]
     managedSites    Site[] @relation("ManagerRelation")
@@ -988,5 +989,10 @@ model Category {
   id          String    @id @default(uuid())
   name        String?
   description String?
+  adminId  String?
+  employeeId  String?
+
+  admin       Admin?       @relation(fields: [adminId], references: [id])
+  employee       Employee?       @relation(fields: [employeeId], references: [id])
   createdAt   DateTime  @default(now())
 }
