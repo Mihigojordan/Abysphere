@@ -7,40 +7,14 @@ import {
   User,
   X,
   Building,
-  Briefcase,
+
   User2,
   Cog,
-  Settings,
-  Grid,
-  ShoppingBasket,
-  LucideBoxes,
-  Inbox,
-  PackageSearch,
-  History,
-  Store,
-  ClipboardList,
+
   FolderTree,
-  UserPlus,
+
   ChevronDown,
-  ChevronRight,
-  Layers,
-  MapPinned,
-  Truck,
-  TruckIcon,
-  FlaskConical,
-  FishSymbol,
-  Database,
-  Droplet,
-  Beaker,
-  Microscope,
-  Egg,
-  Waves,
-  Soup,
-  MoveRight,
-  ClipboardCheck,
-  SoupIcon,
-  WheatIcon,
-  Milk,
+  
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
@@ -102,13 +76,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         allowedRoles: ["admin"],
       },
       {
-        id: "recruiting",
-        label: "Recruiting Management",
-        icon: Briefcase,
-        path: `${basePath}/recruiting-management`,
-        allowedRoles: ["admin"],
-      },
-      {
         id: "employees",
         label: "Employees Management",
         icon: Users,
@@ -122,62 +89,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: User2,
         path: `${basePath}/client-management`,
       },
+      
       {
-        id: "asset-group",
-        label: "Asset  Management",
+        id:"Asset",
+       label: "Asset  Management",
         icon: Cog,
-        items: [
-          {
-            id: "assets",
-            label: "Asset Management",
-            icon: Cog,
-            path: `${basePath}/asset-management`,
-          },
-          {
-            id: "assets-request",
-            label: "Asset Request Management",
-            icon: Inbox,
-            path: `${basePath}/asset-request-management`,
-            allowedRoles: ["employee", "admin"],
-          },
-          {
-            id: "requested-assets",
-            label: "Requested Assets Management",
-            icon: Inbox,
-            path: `${basePath}/requestedAssets-management`,
-            allowedRoles: ["admin"],
-          },
-          {
-            id: "procurement",
-            label: "Procurement Management",
-            icon: TruckIcon,
-            path: `${basePath}/procurement-management`,
-            allowedRoles: ["admin"],
-          },
-        ],
+         path: `${basePath}/asset-management`,
       },
 
-      {
-        id: "sites",
-        label: "Site Management",
-        icon: MapPinned,
-        items: [
-          {
-            id: "sites",
-            label: "Sites",
-            icon: MapPin,
-            path: `${basePath}/site-management`,
-            allowedRoles: ["admin"],
-          },
-          {
-            id: "site-assign",
-            label: "Site Assignment",
-            icon: Layers,
-            path: `${basePath}/assign-management`,
-            allowedRoles: ["admin"],
-          },
-        ],
-      },
           {
             id: "category",
             label: "Category Management",
@@ -192,205 +111,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             path: `${basePath}/supplier-management`,
             allowedRoles: ["admin"],
           },
-          {
-            id: "store",
-            label: "Stores",
-            icon: Store,
-            path: `${basePath}/store-management`,
-            allowedRoles: ["admin"],
-          },
-      // {
-      //   id: "inventory-management",
-      //   label: "Inventory Management",
-      //   icon: PackageSearch,
-      //   items: [
-      //     {
-      //       id: "stock-category",
-      //       label: "Stock Categories",
-      //       icon: FolderTree,
-      //       path: `${basePath}/stock-category-management`,
-      //       allowedRoles: ["admin"],
-      //     },
-      //     {
-      //       id: "stock",
-      //       label: "Stock",
-      //       icon: ShoppingBasket,
-      //       path: `${basePath}/stock-management`,
-      //       allowedRoles: ["admin"],
-      //     },
-      //     {
-      //       id: "stock-request",
-      //       label: "Stock Requests",
-      //       icon: ClipboardList,
-      //       path: `${basePath}/stock-request`,
-      //     },
-      //     {
-      //       id: "stock-history",
-      //       label: "Stock History",
-      //       icon: History,
-      //       path: `${basePath}/stock-history`,
-      //       allowedRoles: ["admin"],
-      //     },
-      //   ],
-      // },
-      // {
-      //   id: "cage",
-      //   label: "Cage Management",
-      //   icon: Grid,
-      //   path: `${basePath}/cage-management`,
-      //   allowedRoles: ["admin"],
-      // },
-      // {
-      //   id: "medicine-stock",
-      //   label: "Medicine Stock Management",
-      //   icon: FlaskConical,
-      //   path: `${basePath}/medicine-management`,
-      //   allowedRoles: ["employee", 'admin'],
-      // },
+          
 
-      // {
-      //   id: "feedstock-management",
-      //   label: "Feedstock Management",
-      //   icon: PackageSearch,
-      //   path: `${basePath}/FeedStock-management`,
-      //   allowedRoles: ["admin"],
-      // },
-
-      // // 🐟 Parent & Egg Management Section
-      // {
-      //   id: "parent-fish-management",
-      //   label: "Parent Fish Management",
-      //   icon: FishSymbol,
-      //   items: [
-      //     {
-      //       id: "parent-fish",
-      //       label: "Parent Fish Pool",
-      //       icon: Database,
-      //       path: `${basePath}/parent-fish-management`,
-      //       allowedRoles: ["employee", "admin"],
-      //     },
-      //     {
-      //       id: "parent-water",
-      //       label: "Parent Water Changing",
-      //       icon: Droplet,
-      //       path: `${basePath}/parent-water-changing`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "parent-medicine",
-      //       label: "Parent Fish Medication",
-      //       icon: Beaker,
-      //       path: `${basePath}/Parent-Fish-medication-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "parent-medicine",
-      //       label: "Parent Fish Feeding",
-      //       icon: SoupIcon,
-      //       path: `${basePath}/ParentFish-Feeding`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-
-      //   ],
-      // },
-      // {
-      //   id: "fish-laboratory",
-      //   label: "Laboratory Management",
-      //   icon: FishSymbol,
-      //   items: [
-
-      //     {
-      //       id: "laboratory-box",
-      //       label: "Laboratory Box Management",
-      //       icon: Microscope,
-      //       path: `${basePath}/Laboratory-Box-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "parent-egg-migration",
-      //       label: "Parent Egg Migration",
-      //       icon: Egg,
-      //       path: `${basePath}/parent-egg-migration`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "egg-medicine",
-      //       label: "Egg Medication Management",
-      //       icon: Beaker,
-      //       path: `${basePath}/egg-medication-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "box-water-change",
-      //       label: "Box Water Changing",
-      //       icon: Waves,
-      //       path: `${basePath}/box-water-changing-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "egg-feed",
-      //       label: "Egg Feeding Management",
-      //       icon: Soup,
-      //       path: `${basePath}/egg-feed-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-
-
-      //   ],
-      // },
-      // {
-      //   id: "Pond-manaagement",
-      //   label: "Pond Management",
-      //   icon: FishSymbol,
-      //   items: [
-
-
-      //     {
-      //       id: "grown-egg-pond",
-      //       label: "Grown Egg Pond Management",
-      //       icon: Database,
-      //       path: `${basePath}/grown-egg-pond`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "egg-to-pond-migration",
-      //       label: "Egg to Pond Migration",
-      //       icon: MoveRight,
-      //       path: `${basePath}/egg-to-pond-migration`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "grown-egg-pond-feeding",
-      //       label: "Grown Egg Pond Feeding",
-      //       icon: ClipboardCheck,
-      //       path: `${basePath}/grown-egg-pond-feeding`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "pond-water-changing-management",
-      //       label: "Pond Water Changing",
-      //       icon:Milk,
-      //       path: `${basePath}/pond-water-changing-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-      //     {
-      //       id: "pond-medication-management",
-      //       label: "Pond Medication",
-      //       icon:Beaker,
-      //       path: `${basePath}/pond-medication-management`,
-      //       allowedRoles: ["employee", 'admin'],
-      //     },
-
-      //   ],
-      // },
-
-       {
-            id: "company-management",
-            label: "Company Management",
-            icon:Beaker,
-            path: `${basePath}/company-management`,
-            allowedRoles: ['super-admin'],
-          },
 
 
     ];

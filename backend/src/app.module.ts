@@ -42,6 +42,7 @@ import { SystemFeaturesModule } from './modules/SuperAdmin-management/systemfeat
 import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequest.module';
 import { CategoryManagementModule } from './modules/category-management/category-management.module';
 import { SupplierManagementModule } from './modules/supplier-management/supplier.module';
+import { StockInModule } from './modules/stock-management/stock.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { SupplierManagementModule } from './modules/supplier-management/supplier
     DemoRequestModule,
     CategoryManagementModule,
     SupplierManagementModule,
+    StockInModule
   ],
   controllers: [AppController],
 })

@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -18,7 +15,7 @@ model SuperAdmin {
   id         String   @id @unique @default(uuid())
   adminName  String?
   adminEmail String?  @unique
-  phone     String?
+  phone      String?
   password   String?
   profileImage  String?
   status       AdminStatus    @default(ACTIVE)
@@ -28,6 +25,7 @@ model SuperAdmin {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
 model SystemFeature {
   id          String       @id @default(uuid())
   name        String       @unique
@@ -52,9 +50,6 @@ model DemoRequest {
   status             String   @default("pending") // New field for approval status
   createdAt          DateTime @default(now())
 }
-
-
-
 
 model Admin {
   id            String          @id @unique @default(uuid())
@@ -84,12 +79,14 @@ model Admin {
   Activity      Activity[]
   category      Category[]
   suppliers      Supplier[]
-   store  Store[]
-   employee Employee[]
-   department Department[]
+  store  Store[]
+  employee Employee[]
+  department Department[]
 
   // 🔹 Relation with SystemFeature
   features      SystemFeature[] @relation("AdminFeatures")
+
+  Stock Stock[]
 }
 
 enum AdminStatus {
@@ -97,15 +94,12 @@ enum AdminStatus {
   INACTIVE
 }
 
-
-
-
 model Department {
   id          String     @id @unique @default(uuid())
   name        String?
   description String?    @db.VarChar(1000)
-       adminId  String
- admin       Admin      @relation(fields: [adminId], references: [id])
+  adminId  String
+  admin       Admin      @relation(fields: [adminId], references: [id])
   employee    Employee[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -127,54 +121,53 @@ enum MaritalStatus {
   WIDOWED
 }
 
-  model Employee {
-    id                      String         @id @unique @default(uuid())
-    first_name              String
-    last_name               String
-    gender                  String
-    date_of_birth           DateTime
-    phone                   String
-    email                   String         @unique
-    password                String?
-    address                 String
-    national_id             String         @unique
-    profile_picture         String?
-    bank_account_number     String?
-    bank_name               String?
-    cv                      String?
-    application_letter      String?
-    position                String
-    departmentId            String
-    department              Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-    marital_status          MaritalStatus? @default(SINGLE)
-    date_hired              DateTime
-    status                  EmployeeStatus @default(ACTIVE)
-    experience              Json?
-    emergency_contact_name  String?
-    emergency_contact_phone String?
-    store  Store[]
-      adminId  String
- admin       Admin      @relation(fields: [adminId], references: [id])
-    // security
-    google_id    String?  @unique
-    isLocked   Boolean? @default(false)
-    is2FA   Boolean? @default(false) 
-
+model Employee {
+  id                      String         @id @unique @default(uuid())
+  first_name              String
+  last_name               String
+  gender                  String
+  date_of_birth           DateTime
+  phone                   String
+  email                   String         @unique
+  password                String?
+  address                 String
+  national_id             String         @unique
+  profile_picture         String?
+  bank_account_number     String?
+  bank_name               String?
+  cv                      String?
+  application_letter      String?
+  position                String
+  departmentId            String
+  department              Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  marital_status          MaritalStatus? @default(SINGLE)
+  date_hired              DateTime
+  status                  EmployeeStatus @default(ACTIVE)
+  experience              Json?
+  emergency_contact_name  String?
+  emergency_contact_phone String?
+  store  Store[]
+  adminId  String
+  admin       Admin      @relation(fields: [adminId], references: [id])
+  // security
+  google_id    String?  @unique
+  isLocked   Boolean? @default(false)
+  is2FA   Boolean? @default(false)
 
   category      Category[]
-    activity              Activity[]
-    contract              Contract[]
-    managedSites    Site[] @relation("ManagerRelation")
-    supervisedSites Site[] @relation("SupervisorRelation")
-    medications      Medication[]
-    feeds  FeedCage[]
+  activity              Activity[]
+  contract              Contract[]
+  managedSites    Site[] @relation("ManagerRelation")
+  supervisedSites Site[] @relation("SupervisorRelation")
+  medications      Medication[]
+  feeds  FeedCage[]
 
-    eggToPondMigration  EggToPondMigration[]
-      // Assigned site (one site only)
-    siteId       String?
-    site         Site?    @relation("SiteEmployees", fields: [siteId], references: [id] , onDelete: SetNull, onUpdate: Cascade)
+  eggToPondMigration  EggToPondMigration[]
+  // Assigned site (one site only)
+  siteId       String?
+  site         Site?    @relation("SiteEmployees", fields: [siteId], references: [id] , onDelete: SetNull, onUpdate: Cascade)
 
-     // 🔹 Requests
+  // 🔹 Requests
   requestedBy    Request[] @relation("RequestedByEmployee")
   closedBy       Request[] @relation("ClosedByEmployee")
   issuedBy       Request[] @relation("IssuedByEmployee")
@@ -182,28 +175,26 @@ enum MaritalStatus {
 
   // 🔹 StockHistory
   stockHistoriesCreated StockHistory[] 
-parentFishPools ParentFishPool[]
-parentWaterChanging ParentWaterChanging[]
-parentEggMigration  ParentEggMigration[]
-eggFishFeeding   EggFishFeeding[]
+  parentFishPools ParentFishPool[]
+  parentWaterChanging ParentWaterChanging[]
+  parentEggMigration  ParentEggMigration[]
+  eggFishFeeding   EggFishFeeding[]
 
-grownEggPondFeeding  GrownEggPondFeeding[]
-  
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
+  grownEggPondFeeding  GrownEggPondFeeding[]
 
-    
-  
-    AssetRequest AssetRequest[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
-    ParentFishFeeding ParentFishFeeding[]
-    medicines Medicine[]
+  AssetRequest AssetRequest[]
 
-    ParentFishMedication ParentFishMedication[]
-    EggFishMedication  EggFishMedication[]
-    laboratoryBoxWaterChanging LaboratoryBoxWaterChanging[]
-    PondWaterChanging   PondWaterChanging[]
-    PondMedication   PondMedication[]
+  ParentFishFeeding ParentFishFeeding[]
+  medicines Medicine[]
+
+  ParentFishMedication ParentFishMedication[]
+  EggFishMedication  EggFishMedication[]
+  laboratoryBoxWaterChanging LaboratoryBoxWaterChanging[]
+  PondWaterChanging   PondWaterChanging[]
+  PondMedication   PondMedication[]
 }
 
 model Contract {
@@ -230,6 +221,43 @@ enum ContractType {
   INTERNSHIP
 }
 
+model Stock {
+  id                Int       @id @default(autoincrement())
+  sku               String    @unique   // SKU / Item Code – unique identifier
+  itemName          String    // Item Name – product name or description
+
+  // Category relation (optional)
+  categoryId        String?      // FK to Category.id (String)
+  category          Category? @relation(fields: [categoryId], references: [id])
+
+  // Supplier is flexible optional text (not a strict FK)
+  supplier          String?   // Supplier – optional, not a foreign key (can be text)
+
+  unitOfMeasure     String    // Unit of Measure – e.g., pcs, box, kg, liter
+  receivedQuantity  Int       // Received Quantity – how many units were received
+
+  // Monetary values stored as Decimal for safety
+  unitCost          Decimal   @db.Decimal(12, 2) // Unit Cost – cost per unit
+  totalValue        Decimal   @db.Decimal(14, 2) // Total Value – (Received Quantity × Unit Cost)
+
+  warehouseLocation String    // Warehouse Location – where the item is stored
+  receivedDate      DateTime  // Received Date – when it arrived
+  reorderLevel      Int       // Reorder Level – stock level that triggers reordering
+
+  // Admin foreign key (matches Admin.id which is String)
+  adminId           String
+  admin             Admin     @relation(fields: [adminId], references: [id])
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([sku])
+}
+
+
+
+
+
 
 model Job {
   id                String       @id @default(uuid())
@@ -239,7 +267,7 @@ model Job {
   employment_type  EmploymentType
   experience_level ExperienceLevel
   industry         String?
-  
+
   skills_required  Json             
   status           JobStatus         @default(OPEN)
 
@@ -250,7 +278,6 @@ model Job {
 
   created_at       DateTime          @default(now())
   updated_at       DateTime          @updatedAt
-
 }
 
 enum EmploymentType {
@@ -301,7 +328,6 @@ model Applicant {
   updated_at      DateTime          @updatedAt 
 }
 
-
 model Client {
   id           String       @id @default(uuid())
   firstname    String
@@ -315,11 +341,11 @@ model Client {
   updatedAt    DateTime @updatedAt
 }
 
-
 enum ClientStatus{
-    ACTIVE
-    INACTIVE
+  ACTIVE
+  INACTIVE
 }
+
 model Activity {
   id          Int      @id @default(autoincrement())
   title       String
@@ -333,7 +359,6 @@ model Activity {
   admin       Admin?    @relation(fields: [adminId], references: [id])
   employee    Employee?    @relation(fields: [employeeId], references: [id])
 }
-
 
 model Asset {
   id             String       @id @default(uuid())
@@ -372,7 +397,6 @@ enum AssetStatus {
   DISPOSED
 }
 
-
 model Store {
   id            String       @id @default(uuid())
   code          String   @unique
@@ -384,7 +408,7 @@ model Store {
   manager     Employee?    @relation(fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   
   adminId  String
- admin       Admin      @relation(fields: [adminId], references: [id])
+  admin       Admin      @relation(fields: [adminId], references: [id])
 
   contact_phone String?
   contact_email String?
@@ -392,7 +416,6 @@ model Store {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
-
 
 model Site{
   id          String     @id @default(uuid())
@@ -412,7 +435,6 @@ model Site{
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
 
 model Cage {
   id           String          @id @default(uuid())
@@ -445,7 +467,6 @@ enum CageNetType {
   ADULT
 }
 
-
 model Medication {
   id             String    @id @default(uuid())
   name String
@@ -458,13 +479,11 @@ model Medication {
   cageId  String
   cage    Cage   @relation(fields: [cageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
- 
   administeredByEmployee String?
   employee              Employee? @relation(fields: [administeredByEmployee], references: [id],onDelete: Cascade, onUpdate: Cascade)
 
   administeredByAdmin    String?
   admin                 Admin?    @relation(fields: [administeredByAdmin], references: [id],onDelete: Cascade, onUpdate: Cascade)
-
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -477,13 +496,9 @@ enum MedicationMethod {
   INJECTION
 }
 
-
-
-
 model FeedCage {
   id                     String    @id @default(uuid())
-  
-  
+
   quantityGiven          Float
   notes                  String?
 
@@ -496,15 +511,12 @@ model FeedCage {
   employeeId String?
   employee               Employee?  @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 
   @@index([cageId])
   @@index([employeeId])
-
 }
-
 
 enum FeedType {
   PELLET
@@ -514,8 +526,6 @@ enum FeedType {
   INSECT
   OTHER
 }
-
-
 
 model StockCategory {
   id          String      @id @default(uuid())
@@ -565,7 +575,6 @@ enum Unit {
   OTHER      // fallback
 }
 
-
 model Request {
   id            String         @id @default(uuid()) // UUID primary key
   ref_no        String         @unique @db.VarChar(50)
@@ -606,9 +615,8 @@ model Request {
 
   comments   Json?
   
-attachments Json?  //  {"fileName":"string","fileUrl":"string","uploadedBy":"string","uploadedById":"string","uploadedAt":"string","description":"string"}[]
+  attachments Json?  //  {"fileName":"string","fileUrl":"string","uploadedBy":"string","uploadedById":"string","uploadedAt":"string","description":"string"}[]
 
- 
   // 🔹 Relations
   requestItems  RequestItem[]
   stockhistory  StockHistory[]
@@ -632,8 +640,6 @@ model RequestItem {
   qtyRemaining   Decimal     @default(0) @db.Decimal(12, 3)
   qtyReceived    Decimal?    @default(0) @db.Decimal(12, 3)
 
-
-
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 }
@@ -647,9 +653,6 @@ enum RequestStatus {
   RECEIVED
   CLOSED
 }
-
-
-
 
 model AssetRequest {
   id          String         @id @default(uuid())
@@ -725,10 +728,10 @@ model StockHistory {
   unitPrice      Decimal?      @db.Decimal(12, 2) 
   notes          String?       @db.Text          
 
- createdByAdminId   String?
-createdByAdmin     Admin?    @relation(fields: [createdByAdminId], references: [id])
-createdByEmployeeId String?
-createdByEmployee   Employee? @relation(fields: [createdByEmployeeId], references: [id])
+  createdByAdminId   String?
+  createdByAdmin     Admin?    @relation(fields: [createdByAdminId], references: [id])
+  createdByEmployeeId String?
+  createdByEmployee   Employee? @relation(fields: [createdByEmployeeId], references: [id])
 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -744,12 +747,11 @@ model ParentFishPool {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-parentWaterChanging ParentWaterChanging[]
+  parentWaterChanging ParentWaterChanging[]
   ParentFishFeeding ParentFishFeeding[]
   ParentFishMedication ParentFishMedication[]
-parentEggMigration  ParentEggMigration[]
+  parentEggMigration  ParentEggMigration[]
 }
-
 
 model Medicine {
   id             String    @id @default(uuid())
@@ -772,7 +774,6 @@ model Medicine {
   ParentFishMedication ParentFishMedication[]
   EggFishMedication EggFishMedication[]
   PondMedication PondMedication[]
-
 }
 
 enum DosageForm {
@@ -791,10 +792,10 @@ model FeedStock {
   category      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-eggFishFeeding   EggFishFeeding[]
+  eggFishFeeding   EggFishFeeding[]
   ParentFishFeeding ParentFishFeeding[]
-grownEggPondFeeding  GrownEggPondFeeding[]
-feedCage  FeedCage[]
+  grownEggPondFeeding  GrownEggPondFeeding[]
+  feedCage  FeedCage[]
 }
 
 model ParentFishFeeding {
@@ -831,9 +832,7 @@ model ParentFishMedication {
   employeeId     String
   quantity       Int            @default(0)
   createdAt      DateTime       @default(now())
-  
 }
-
 
 model LaboratoryBox{
   id       String   @id @default(uuid())
@@ -845,7 +844,6 @@ model LaboratoryBox{
   BoxWaterChanging LaboratoryBoxWaterChanging[]
 }
 
-
 enum ParentEggMigrationStatus {
   ACTIVE
   COMPLETED
@@ -854,7 +852,7 @@ enum ParentEggMigrationStatus {
 
 model ParentEggMigration {
   id               String          @id @default(uuid())
-  
+
   parentPoolId     String
   parentPool       ParentFishPool  @relation(fields: [parentPoolId], references: [id], onDelete: Cascade)
 
@@ -877,7 +875,6 @@ model ParentEggMigration {
   updatedAt        DateTime        @updatedAt
 }
 
-
 model EggFishFeeding {
   id             String         @id @default(uuid())
   parentEggMigrationId  String
@@ -885,7 +882,7 @@ model EggFishFeeding {
   feed           FeedStock      @relation(fields: [feedId], references: [id])
   feedId         String
   employee       Employee       @relation(fields: [employeeId], references: [id])
-    employeeId     String
+  employeeId     String
   quantity       Int            @default(0)
   createdAt      DateTime       @default(now())
 }
@@ -901,7 +898,6 @@ model EggFishMedication {
   createdAt      DateTime       @default(now())
 }
 
-
 model LaboratoryBoxWaterChanging {
   id            String          @id @default(uuid())
   boxId  String
@@ -912,8 +908,6 @@ model LaboratoryBoxWaterChanging {
   description   String?         // optional notes
   createdAt     DateTime        @default(now())
 }
-
-
 
 model EggToPondMigration {
   id                 String              @id @default(uuid())
@@ -984,7 +978,6 @@ model GrownEggPond {
   EggToPondMigrations EggToPondMigration[]
 }
 
-
 model GrownEggPondFeeding {
   id             String         @id @default(uuid())
   eggToPondMigrationId  String
@@ -993,7 +986,7 @@ model GrownEggPondFeeding {
   feed           FeedStock      @relation(fields: [feedId], references: [id])
   feedId         String
   employee       Employee       @relation(fields: [employeeId], references: [id])
-    employeeId     String
+  employeeId     String
   quantity       Int            @default(0)
   createdAt      DateTime       @default(now())
 }
@@ -1008,8 +1001,9 @@ model Category {
   admin       Admin?       @relation(fields: [adminId], references: [id])
   employee       Employee?       @relation(fields: [employeeId], references: [id])
   createdAt   DateTime  @default(now())
-}
 
+  Stock Stock[]
+}
 
 model Supplier {
   id          String       @id @default(uuid())
@@ -1018,12 +1012,11 @@ model Supplier {
   phone       String?   @unique
   address     String?
 
-   adminId  String
-
- admin       Admin      @relation(fields: [adminId], references: [id])
+  adminId  String
+  admin       Admin      @relation(fields: [adminId], references: [id])
 
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime  @default(now()) @updatedAt
 
   @@index([email])
   @@index([phone])

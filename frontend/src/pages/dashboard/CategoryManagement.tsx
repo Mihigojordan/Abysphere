@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Plus,
   Edit,
@@ -63,6 +63,16 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const { triggerSync, syncError } = useCategoryOfflineSync();
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
+
+  /* --------------------------------------------------------------------- */
+  /* Summary Stats (Memoized) */
+  /* --------------------------------------------------------------------- */
+  const stats = useMemo(() => {
+    const active = categories.filter(c => c.synced).length;
+    const pending = categories.filter(c => !c.synced).length;
+    const total = categories.length;
+    return { active, pending, total };
+  }, [categories]);
 
   /* --------------------------------------------------------------------- */
   /* Load & Sync */
@@ -362,7 +372,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* --------------------------------------------------------------------- */
   const renderTableView = () => (
     <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
-      <table className="w-full text-sm">
+      <table className="w-full text-xs">
         <thead className="bg-gray-50 border-b">
           <tr>
             <th className="text-left py-3 px-4 font-semibold text-gray-600">#</th>
@@ -389,7 +399,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   <div className="font-medium text-gray-900">{cat.name}</div>
                 </div>
               </td>
-              <td className="py-3 px-4 text-sm text-gray-600 line-clamp-2">
+              <td className="py-3 px-4 text-xs text-gray-600 line-clamp-2">
                 {cat.description || 'No description'}
               </td>
               <td className="py-3 px-4">
@@ -455,7 +465,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               <FolderIcon className="w-6 h-6 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-900 text-sm truncate">{cat.name}</div>
+              <div className="font-semibold text-gray-900 text-xs truncate">{cat.name}</div>
               <div className="text-gray-500 text-xs truncate">{cat.description || 'No description'}</div>
             </div>
           </div>
@@ -515,7 +525,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               <FolderIcon className="w-5 h-5 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-900 text-sm truncate">{cat.name}</div>
+              <div className="font-semibold text-gray-900 text-xs truncate">{cat.name}</div>
               <div className="text-gray-500 text-xs truncate">{cat.description || 'No description'}</div>
             </div>
           </div>
@@ -600,34 +610,34 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
       {/* Header */}
       <div className="sticky top-0 bg-white shadow-md z-10">
-        <div className=" mx-auto px-4 py-4">
+        <div className="mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary-600 rounded-lg">
-                <FolderIcon className="w-6 h-6 text-white" />
+                <FolderIcon className="w-6 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Category Management</h1>
-                <p className="text-sm text-gray-500">Works offline • Auto-sync enabled</p>
+                <p className="text-xs text-gray-500">Works offline • Auto-sync enabled</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-lg ${
+                className={`flex items-center justify-center w-10 h-8 rounded-lg ${
                   isOnline ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
                 }`}
                 title={isOnline ? 'Online' : 'Offline'}
               >
-                {isOnline ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
+                {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-5 h-5" />}
               </div>
 
               {isOnline && (
                 <button
                   onClick={handleManualSync}
                   disabled={isLoading}
-                  className="flex items-center justify-center w-10 h-10 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg disabled:opacity-50"
+                  className="flex items-center justify-center w-10 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg disabled:opacity-50"
                 >
-                  <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
               )}
 
@@ -635,17 +645,17 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <button
                   onClick={() => loadCategories(true)}
                   disabled={isRefreshing}
-                  className="flex items-center justify-center w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+                  className="flex items-center justify-center w-10 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
                 >
-                  <RotateCcw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RotateCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </button>
               )}
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
+                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium text-sm"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3 h-4 text-sm" />
                 Add Category
               </button>
             </div>
@@ -654,7 +664,57 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       </div>
 
       {/* Main */}
-      <div className=" mx-auto px-4 py-6 space-y-6">
+      <div className="mx-auto px-4 py-6 space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Active Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
+          >
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Active</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
+            </div>
+          </motion.div>
+
+          {/* Pending Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
+          >
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Pending Sync</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+            </div>
+          </motion.div>
+
+          {/* Total Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
+          >
+            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+              <FolderIcon className="w-6 h-6 text-primary-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Total</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+          </motion.div>
+        </div>
+
         {/* Search + View Mode */}
         <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -764,8 +824,6 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       </div>
 
       {/* Modals */}
-      {/* Add, Edit, Delete Modals – unchanged from previous version */}
-      {/* ... (same as before) */}
       {/* Add Modal */}
       <AnimatePresence>
         {isAddModalOpen && (

@@ -27,9 +27,10 @@ import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
 import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
 import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPage";
 import Demomanagement from "../pages/dashboard/SuperAdmin/Demo-management";
-import DemoRequestsDashboard from "../pages/dashboard/SuperAdmin/Demo-management";
 import CategoryDashboard from "../pages/dashboard/CategoryManagement";
 import SupplierDashboard from "../pages/dashboard/SupplierManagement";
+import StockInFormExample from "../pages/dashboard/AddStockin";
+import StockInManagement from "../pages/dashboard/StockInManagement";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -539,6 +540,23 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <AddAssetPage role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+
+                  {
+                path: 'stockin-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInFormExample role="admin" />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInManagement />
                   </SuspenseWrapper>
                 ),
               },
