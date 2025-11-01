@@ -41,6 +41,7 @@ export class EmployeeService {
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
     experience?: any[];
+    adminId:string;
   }) {
     // 🔍 Check if employee exists by phone, email, or national_id
     const existingEmployee = await this.prisma.employee.findFirst({
@@ -73,6 +74,7 @@ export class EmployeeService {
       },
       include: {
         department: true,
+        
       },
     });
 
@@ -93,10 +95,14 @@ export class EmployeeService {
     return createdEmployee;
   }
 
-  async findAll() {
+  async findAll(adminId:string) {
     return this.prisma.employee.findMany({
+      where:{
+        adminId,
+      },
       include: {
         department: true,
+        admin:true,
         contract: true,
       },
     });
@@ -146,6 +152,7 @@ async update(
     google_id?: string;
     isLocked?: boolean;
     is2FA?: boolean;
+    
   },
 ) {
   const employee = await this.findOne(id);

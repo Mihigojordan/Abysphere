@@ -85,6 +85,8 @@ model Admin {
   category      Category[]
   suppliers      Supplier[]
    store  Store[]
+   employee Employee[]
+   department Department[]
 
   // 🔹 Relation with SystemFeature
   features      SystemFeature[] @relation("AdminFeatures")
@@ -102,6 +104,8 @@ model Department {
   id          String     @id @unique @default(uuid())
   name        String?
   description String?    @db.VarChar(1000)
+       adminId  String
+ admin       Admin      @relation(fields: [adminId], references: [id])
   employee    Employee[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -149,6 +153,8 @@ enum MaritalStatus {
     emergency_contact_name  String?
     emergency_contact_phone String?
     store  Store[]
+      adminId  String
+ admin       Admin      @relation(fields: [adminId], references: [id])
     // security
     google_id    String?  @unique
     isLocked   Boolean? @default(false)

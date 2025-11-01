@@ -12,6 +12,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   Put,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
 
@@ -19,6 +21,8 @@ import { Experience } from '../../common/interfaces/employee.interface';
 import { EmployeeStatus, MaritalStatus } from '../../../generated/prisma';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { EmployeeFileFields, EmployeeUploadConfig } from 'src/common/utils/file-upload.utils';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 @Controller('employees')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
@@ -27,7 +31,7 @@ export class EmployeeController {
     @UseInterceptors(
     FileFieldsInterceptor(EmployeeFileFields, EmployeeUploadConfig),
   )
-  
+  @UseGuards(AdminJwtAuthGuard)
   create(
       @UploadedFiles()
     files: {
@@ -35,6 +39,8 @@ export class EmployeeController {
       cv?: Express.Multer.File[];
       applicationLetter?: Express.Multer.File[];
     },
+    @Req() req:RequestWithAdmin
+    ,
     @Body() createEmployeeData: {
     first_name: string;
     last_name: string;
@@ -70,12 +76,15 @@ export class EmployeeController {
       ...createEmployeeData,
       date_of_birth: new Date(createEmployeeData.date_of_birth),
       date_hired: new Date(createEmployeeData.date_hired),
+      adminId: req.admin!.id
+      
     });
   }
 
   @Get()
-  findAll() {
-    return this.employeeService.findAll();
+  @UseGuards(AdminJwtAuthGuard)
+  findAll(@Req() req:RequestWithAdmin) {
+    return this.employeeService.findAll(req.admin!.id);
   }
 
   @Get(':id')
@@ -88,6 +97,7 @@ export class EmployeeController {
     FileFieldsInterceptor(EmployeeFileFields, EmployeeUploadConfig),
   )
   
+  
   update(
 
     @UploadedFiles()
@@ -96,6 +106,7 @@ export class EmployeeController {
       cv?: Express.Multer.File[];
       applicationLetter?: Express.Multer.File[];
     },
+    
     @Param('id') id: string, @Body() updateEmployeeData: {
     first_name?: string;
     last_name?: string;
