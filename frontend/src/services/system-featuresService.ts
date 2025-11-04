@@ -88,7 +88,7 @@ class SystemFeaturesService {
   /** Update an existing system feature */
   async updateSystemFeature(id: string, updateData: Partial<SystemFeatureData>): Promise<SystemFeature> {
     try {
-      const response: AxiosResponse<SystemFeature> = await this.api.put(`/system-features/${id}`, updateData);
+      const response: AxiosResponse<SystemFeature> = await this.api.patch(`/system-features/${id}`, updateData);
       return response.data;
     } catch (error: any) {
       console.error('Error updating system feature:', error);

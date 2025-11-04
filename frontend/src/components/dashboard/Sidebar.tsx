@@ -1,3 +1,6 @@
+/*  ─────────────────────────────────────────────────────────────────────────────
+    Sidebar.tsx  (updated – feature-based visibility)
+    ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
   MapPin,
@@ -7,79 +10,109 @@ import {
   User,
   X,
   Building,
-
   User2,
   Cog,
-
   FolderTree,
-
   ChevronDown,
-  
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { headWeb } from "../../utils/web-head";
 
-interface SidebarProps {
-  isOpen?: boolean;
-  onToggle: () => void;
-  role: string;
+interface SystemFeature {
+  id: string;
+  name: string;
+  description?: string;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Extend the Admin type that comes from the context (only for this file)   */
+/* -------------------------------------------------------------------------- */
+interface Admin {
+  id: string;
+  adminName?: string;
+  adminEmail?: string;
+  profileImage?: string;
+  phone?: string;
+  isLocked?: boolean;
+  features?: SystemFeature[];
+  [key: string]: unknown;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  NavItem / DropdownGroup – now support a `feature` string                 */
+/* -------------------------------------------------------------------------- */
 interface NavItem {
   id: string;
   label: string;
   icon: React.ElementType;
   path: string;
+  /** optional – if present the item is shown only when admin has this feature */
+  feature?: string;
+  /** keep old role-based guard for backward compatibility */
   allowedRoles?: string[];
 }
-
 interface DropdownGroup {
   id: string;
   label: string;
   icon: React.ElementType;
+  /** the whole group can be guarded by a feature */
+  feature?: string;
   items: NavItem[];
 }
 
+/* -------------------------------------------------------------------------- */
+interface SidebarProps {
+  isOpen?: boolean;
+  onToggle: () => void;
+  role: string; // "admin" | "employee"
+}
+
+/* -------------------------------------------------------------------------- */
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
+
   const adminAuth = useAdminAuth();
   const employeeAuth = useEmployeeAuth();
   const auth = role === "admin" ? adminAuth : employeeAuth;
-  const user = auth.user;
+  const user = auth.user as Admin | null;               // <-- cast for TS
+
   const navigate = useNavigate();
 
-  const toggleDropdown = (id: string) => {
-    setOpenDropdown((prev) => (prev === id ? null : id));
+  /* ---------------------------------------------------------------------- */
+  /*  Helper – does the current admin have a given feature?                */
+  /* ---------------------------------------------------------------------- */
+  const hasFeature = (name?: string): boolean => {
+    if (!name) return true;                     // no guard → always visible
+    return !!user?.features?.some((f) => f.name === name);
   };
 
-
-
+  /* ---------------------------------------------------------------------- */
+  /*  Build the raw navigation tree                                         */
+  /* ---------------------------------------------------------------------- */
   const getNavlinks = (role: string): (NavItem | DropdownGroup)[] => {
-    const basePath = `/${role}/dashboard`;
+    const base = `/${role}/dashboard`;
 
     return [
-      {
-        id: "dashboard",
-        label: "Dashboard",
-        icon: TrendingUp,
-        path: basePath,
-      },
+      { id: "dashboard", label: "Dashboard", icon: TrendingUp, path: base },
+
       {
         id: "departments",
         label: "Departments Management",
         icon: Building,
-        path: `${basePath}/department-management`,
+        path: `${base}/department-management`,
+        feature: "DEPARTMENTS_MANAGEMENT",   // <-- feature name in DB
         allowedRoles: ["admin"],
       },
+
       {
         id: "employees",
         label: "Employees Management",
         icon: Users,
-        path: `${basePath}/employee-management`,
+        path: `${base}/employee-management`,
+        feature: "EMPLOYEES_MANAGEMENT",
         allowedRoles: ["admin"],
       },
 
@@ -87,78 +120,117 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         id: "clients",
         label: "Clients Management",
         icon: User2,
-        path: `${basePath}/client-management`,
+        path: `${base}/client-management`,
+        feature: "CLIENTS_MANAGEMENT",
       },
-      
+
       {
-        id:"Asset",
-       label: "Asset  Management",
+        id: "asset",
+        label: "Asset Management",
         icon: Cog,
-         path: `${basePath}/asset-management`,
+        path: `${base}/asset-management`,
+        feature: "ASSET_MANAGEMENT",
       },
 
+      {
+        id: "category",
+        label: "Category Management",
+        icon: FolderTree,
+        path: `${base}/category-management`,
+        feature: "CATEGORY_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+
+      {
+        id: "supplier",
+        label: "Supplier Management",
+        icon: FolderTree,
+        path: `${base}/supplier-management`,
+        feature: "SUPPLIER_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+
+      /* ------------------------------------------------------------------ */
+      /*  Example of a dropdown that is guarded by a single feature        */
+      /* ------------------------------------------------------------------ */
+      {
+        id: "reports",
+        label: "Reports",
+        icon: TrendingUp,
+        feature: "VIEW_REPORTS",               // whole group hidden if missing
+        items: [
           {
-            id: "category",
-            label: "Category Management",
-            icon: FolderTree,
-            path: `${basePath}/category-management`,
-            allowedRoles: ["admin"],
+            id: "sales-report",
+            label: "Sales Report",
+            icon: TrendingUp,
+            path: `${base}/reports/sales`,
           },
           {
-            id: "supplier",
-            label: "Supplier Management",
+            id: "inventory-report",
+            label: "Inventory Report",
             icon: FolderTree,
-            path: `${basePath}/supplier-management`,
-            allowedRoles: ["admin"],
+            path: `${base}/reports/inventory`,
           },
-          
-
-
-
+        ],
+      },
     ];
   };
 
-
-  const filterNavItems = (items: (NavItem | DropdownGroup)[]): (NavItem | DropdownGroup)[] => {
+  /* ---------------------------------------------------------------------- */
+  /*  Filter by role **and** by feature                                    */
+  /* ---------------------------------------------------------------------- */
+  const filterNavItems = (
+    items: (NavItem | DropdownGroup)[]
+  ): (NavItem | DropdownGroup)[] => {
     return items
       .map((item) => {
+        /* ------------------- DropdownGroup ------------------- */
         if ("items" in item) {
-          const filteredItems = item.items.filter(
-            (subItem) => !subItem.allowedRoles || subItem.allowedRoles.includes(role)
-          );
-          if (filteredItems.length === 0) return null;
-          return { ...item, items: filteredItems };
+          const filtered = item.items
+            .filter(
+              (sub) =>
+                (!sub.allowedRoles || sub.allowedRoles.includes(role)) &&
+                hasFeature(sub.feature)
+            );
+
+          // keep the group only if it has at least one visible child **or**
+          // the group itself is not guarded (feature undefined)
+          const groupVisible =
+            hasFeature(item.feature) && filtered.length > 0;
+
+          return groupVisible ? { ...item, items: filtered } : null;
         }
-        if (!item.allowedRoles || item.allowedRoles.includes(role)) {
-          return item;
-        }
-        return null;
+
+        /* ----------------------- NavItem ---------------------- */
+        const visible =
+          (!item.allowedRoles || item.allowedRoles.includes(role)) &&
+          hasFeature(item.feature);
+
+        return visible ? item : null;
       })
-      .filter((item): item is NavItem | DropdownGroup => item !== null);
+      .filter((i): i is NavItem | DropdownGroup => i !== null);
   };
 
   const navlinks = filterNavItems(getNavlinks(role));
 
-  // Auto-open dropdown if current path matches any item inside it
+  /* ---------------------------------------------------------------------- */
+  /*  Auto-open dropdown when a child route is active                     */
+  /* ---------------------------------------------------------------------- */
   useEffect(() => {
-    const currentPath = location.pathname;
-    for (const item of navlinks) {
-      if ("items" in item) {
-        const hasActiveChild = item.items.some((subItem) => currentPath === subItem.path);
-        if (hasActiveChild) {
-          setOpenDropdown(item.id);
-          break;
-        }
+    const cur = location.pathname;
+    for (const it of navlinks) {
+      if ("items" in it && it.items.some((sub) => cur === sub.path)) {
+        setOpenDropdown(it.id);
+        break;
       }
     }
-  }, [location.pathname]);
+  }, [location.pathname, navlinks]);
 
+  /* ---------------------------------------------------------------------- */
+  /*  Misc helpers                                                          */
+  /* ---------------------------------------------------------------------- */
   const getProfileRoute = () => `/${role}/dashboard/profile`;
-
-  const handleNavigateProfile = () => {
-    const route = getProfileRoute();
-    navigate(route, { replace: true });
-  };
+  const handleNavigateProfile = () => navigate(getProfileRoute(), { replace: true });
 
   const displayName =
     role === "admin"
@@ -172,32 +244,35 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
   const portalTitle = `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
 
-  const isDropdownActive = (dropdown: DropdownGroup) => {
-    const currentPath = location.pathname;
-    return dropdown.items.some((item) => currentPath === item.path);
-  };
+  const isDropdownActive = (dropdown: DropdownGroup) =>
+    dropdown.items.some((i) => location.pathname === i.path);
 
+  /* ---------------------------------------------------------------------- */
+  /*  Renderers                                                            */
+  /* ---------------------------------------------------------------------- */
   const renderMenuItem = (item: NavItem) => {
     const Icon = item.icon;
-
     return (
       <NavLink
         key={item.id}
         to={item.path}
         end
         className={({ isActive }) =>
-          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${isActive
-            ? "bg-primary-500/10 text-primary-700 border-primary-500"
-            : "text-gray-700 hover:bg-gray-50 border-transparent"
+          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${
+            isActive
+              ? "bg-primary-500/10 text-primary-700 border-primary-500"
+              : "text-gray-700 hover:bg-gray-50 border-transparent"
           }`
         }
-        onClick={() => {
-          if (window.innerWidth < 1024) onToggle();
-        }}
+        onClick={() => window.innerWidth < 1024 && onToggle()}
       >
         {({ isActive }) => (
           <>
-            <div className={`p-1 rounded-md ${isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"}`}>
+            <div
+              className={`p-1 rounded-md ${
+                isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
               <Icon className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">{item.label}</span>
@@ -210,57 +285,64 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   const renderDropdown = (dropdown: DropdownGroup) => {
     const Icon = dropdown.icon;
     const isOpen = openDropdown === dropdown.id;
-    const hasActiveChild = isDropdownActive(dropdown);
+    const active = isDropdownActive(dropdown);
 
     return (
       <div key={dropdown.id} className="w-full">
         <button
           onClick={() => toggleDropdown(dropdown.id)}
-          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${hasActiveChild
-            ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
-            : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
-            }`}
+          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${
+            active
+              ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
+              : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
+          }`}
         >
           <div className="flex items-center space-x-2">
-            <div className={`p-1 rounded-md ${hasActiveChild ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"}`}>
+            <div
+              className={`p-1 rounded-md ${
+                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
               <Icon className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">{dropdown.label}</span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : "rotate-0"
-              } ${hasActiveChild ? "text-primary-600" : "text-gray-400"}`}
+            className={`w-4 h-4 transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            } ${active ? "text-primary-600" : "text-gray-400"}`}
           />
         </button>
+
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
-            }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+          }`}
         >
           <div className="ml-4 space-y-0.5 border-l-2 border-primary-100 pl-3 py-0.5">
-            {dropdown.items.map((item) => {
-              const SubIcon = item.icon;
+            {dropdown.items.map((sub) => {
+              const SubIcon = sub.icon;
               return (
                 <NavLink
-                  key={item.id}
-                  to={item.path}
+                  key={sub.id}
+                  to={sub.path}
                   end
                   className={({ isActive }) =>
-                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${isActive
-                      ? "bg-primary-500 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${
+                      isActive
+                        ? "bg-primary-500 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`
                   }
-                  onClick={() => {
-                    if (window.innerWidth < 1024) onToggle();
-                  }}
+                  onClick={() => window.innerWidth < 1024 && onToggle()}
                 >
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full -ml-3"></div>
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full -ml-3" />
                       )}
                       <SubIcon className="w-4 h-4" />
-                      <span className="text-sm">{item.label}</span>
+                      <span className="text-sm">{sub.label}</span>
                     </>
                   )}
                 </NavLink>
@@ -272,9 +354,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     );
   };
 
+  /* ---------------------------------------------------------------------- */
+  /*  JSX                                                                   */
+  /* ---------------------------------------------------------------------- */
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -282,12 +367,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } w-72`}
+        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } w-72`}
       >
-        {/* Sidebar Header */}
+        {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-primary-200">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg">
@@ -297,9 +383,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
               </div>
             </div>
             <div>
-              <h2 className="font-bold text-base text-primary-800">
-                {headWeb.title}
-              </h2>
+              <h2 className="font-bold text-base text-primary-800">{headWeb.title}</h2>
               <p className="text-xs text-primary-500">{portalTitle}</p>
             </div>
           </div>
@@ -311,16 +395,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </button>
         </div>
 
-        {/* Navigation Menu */}
+        {/* Navigation */}
         <div className="flex-1 overflow-y-auto p-2">
           <nav className="space-y-0.5">
-            {navlinks.length > 0 ? (
-              navlinks.map((item) => {
-                if ("items" in item) {
-                  return renderDropdown(item);
-                }
-                return renderMenuItem(item);
-              })
+            {navlinks.length ? (
+              navlinks.map((it) => ("items" in it ? renderDropdown(it) : renderMenuItem(it)))
             ) : (
               <div className="text-center py-4">
                 <p className="text-gray-500 text-xs">No menu items available</p>
@@ -329,22 +408,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </nav>
         </div>
 
-        {/* Sidebar Footer */}
-        <div
-          className="p-2 border-t border-primary-200 cursor-pointer"
-          onClick={handleNavigateProfile}
-        >
+        {/* Footer – profile */}
+        <div className="p-2 border-t border-primary-200 cursor-pointer" onClick={handleNavigateProfile}>
           <div className="flex items-center space-x-2 p-1.5 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
             <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-normal text-gray-900 truncate">
-                {displayName}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {displayEmail}
-              </p>
+              <p className="text-xs font-normal text-gray-900 truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
             </div>
           </div>
         </div>

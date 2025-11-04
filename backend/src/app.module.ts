@@ -43,6 +43,8 @@ import { DemoRequestModule } from './modules/SuperAdmin-management/Demo/demorequ
 import { CategoryManagementModule } from './modules/category-management/category-management.module';
 import { SupplierManagementModule } from './modules/supplier-management/supplier.module';
 import { StockInModule } from './modules/stock-management/stock.module';
+import { StockoutModule } from './modules/stockout-management/stockout.module';
+import { SalesReturnModule } from './modules/salesReturn-management/salesReturn.module';
 
 @Module({
   imports: [
@@ -86,7 +88,9 @@ import { StockInModule } from './modules/stock-management/stock.module';
     DemoRequestModule,
     CategoryManagementModule,
     SupplierManagementModule,
-    StockInModule
+    StockInModule,
+    StockoutModule,
+    SalesReturnModule,
   ],
   controllers: [AppController],
 })

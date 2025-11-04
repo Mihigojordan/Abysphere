@@ -266,17 +266,17 @@ const StockInManagement = ({ role }: { role: string }) => {
     };
 
     const handleAddStock = () => {
-        navigate(`/stockin/create`);
+        navigate(`/${role}/dashboard/stockin-management/create`);
     };
 
     const handleEditStock = (stock: Stock) => {
         if (!stock.id) return Swal.fire({});
-        navigate(`/stockin/update/${stock.id}`);
+        navigate(`/${role}/dashboard/stockin-management/update/${stock.id}`);
     };
 
     const handleViewStock = (stock: Stock) => {
         if (!stock.id) return Swal.fire({});
-        navigate(`/stockin/${stock.id}`);
+        navigate(`/${role}/dashboard/stockin-management/${stock.id}`);
     };
 
     const handleDeleteStock = (stock: Stock) => {

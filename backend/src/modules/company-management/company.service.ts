@@ -119,7 +119,7 @@ export class CompanyService {
                     connect: featureIds.map((id) => ({ id })),
                 },
             },
-            include: { features: true },
+            include: { features: true, },
         });
     }
 

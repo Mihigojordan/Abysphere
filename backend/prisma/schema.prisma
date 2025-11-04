@@ -83,6 +83,8 @@ model Admin {
   employee Employee[]
   department Department[]
 
+  stockout StockOut[]
+
   // 🔹 Relation with SystemFeature
   features      SystemFeature[] @relation("AdminFeatures")
 
@@ -189,7 +191,7 @@ model Employee {
 
   ParentFishFeeding ParentFishFeeding[]
   medicines Medicine[]
-
+stockout StockOut[]
   ParentFishMedication ParentFishMedication[]
   EggFishMedication  EggFishMedication[]
   laboratoryBoxWaterChanging LaboratoryBoxWaterChanging[]
@@ -247,6 +249,8 @@ model Stock {
   // Admin foreign key (matches Admin.id which is String)
   adminId           String
   admin             Admin     @relation(fields: [adminId], references: [id])
+
+  stockout StockOut[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -560,10 +564,13 @@ model StockIn {
 
   stockhistory   StockHistory[]
   requestItems  RequestItem[]
+  
 
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 }
+
+
 
 enum Unit {
   PCS        // pieces
@@ -574,6 +581,64 @@ enum Unit {
   PACK       // packs
   OTHER      // fallback
 }
+
+
+
+model StockOut {
+  id              String         @id @default(uuid())
+  stockinId       Int?
+  adminId         String?
+  employeeId      String?
+  transactionId   String?        @unique
+  quantity        Int            @default(0)
+  soldPrice       Decimal?       @db.Decimal(10,2)
+  clientName      String?
+  clientEmail     String?
+  clientPhone     String?
+  paymentMethod   PaymentMethod?
+
+  // Relations
+  
+  stockin         Stock?       @relation(fields: [stockinId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  admin           Admin?         @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employee        Employee?      @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  salesReturnItems SalesReturnItem[]
+
+  // Timestamps
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+
+enum PaymentMethod {
+  MOMO
+  CARD
+  CASH
+}
+
+
+model SalesReturn {
+  id        String              @id @default(uuid())
+  transactionId String?
+  creditnoteId String?
+  adminId   String
+  reason    String?
+  createdAt DateTime            @default(now())
+  items     SalesReturnItem[]
+}
+
+model SalesReturnItem {
+  id            String   @id @default(uuid())
+  salesReturnId String
+  stockoutId    String
+  quantity      Int
+  stockout      StockOut?     @relation(fields: [stockoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  salesReturn   SalesReturn @relation(fields: [salesReturnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+
+
 
 model Request {
   id            String         @id @default(uuid()) // UUID primary key

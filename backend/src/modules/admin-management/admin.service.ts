@@ -31,6 +31,9 @@ export class AdminService {
         where: {
           id: id,
         },
+        include:{
+          features:true,
+        }
       });
       return admin;
     } catch (error) {
@@ -48,6 +51,9 @@ export class AdminService {
         where: {
           adminEmail: email,
         },
+          include:{
+          features:true,
+        }
       });
 
       return admin;
@@ -85,6 +91,9 @@ export class AdminService {
           adminName: adminName,
           password: hashedPassword,
         },
+          include:{
+          features:true,
+        }
       });
 
       return { message: 'Admin registered successfully', adminId: newAdmin.id };
@@ -185,6 +194,7 @@ export class AdminService {
     await this.prisma.admin.update({
       where: { id: adminId },
       data: { password: hashedPassword },
+
     });
 
     return { message: 'Password updated successfully' };
@@ -287,6 +297,9 @@ export class AdminService {
       const updatedAdmin = await this.prisma.admin.update({
         where: { id },
         data,
+          include:{
+          features:true,
+        }
       });
 
       return {

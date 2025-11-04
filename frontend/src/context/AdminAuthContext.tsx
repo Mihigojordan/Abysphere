@@ -7,6 +7,14 @@ import {
 } from 'react';
 import adminAuthService from '../services/adminAuthService';
 import { API_URL } from '../api/api';
+import { useSocketEvent } from './SocketContext';
+
+// At the top of your AdminAuthContext file
+interface SystemFeature {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 interface Admin {
   id: string;
@@ -15,9 +23,9 @@ interface Admin {
   profileImage?: string;
   phone?: string;
   isLocked?: boolean;
+  features?: SystemFeature[]; // Add this
   [key: string]: unknown;
 }
-
 interface LoginData {
   adminEmail: string; // Updated to match AdminLogin usage
   password: string;
@@ -80,6 +88,7 @@ interface AdminAuthContextProviderProps {
 
 
 
+
 export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> = ({ children }) => {
   const [user, setUser] = useState<Admin | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -93,6 +102,27 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
     setIsAuthenticated(authData.isAuthenticated);
     setIsLocked(authData.isLocked);
   };
+
+
+  // Listen for real-time feature updates
+  useSocketEvent('featureAssigned', (data: {
+    adminId: string;
+    assignedFeatures: SystemFeature[];
+    admin: Admin;
+  }) => {
+    if (user?.id === data.adminId) {
+      setUser(prev => prev ? { ...prev, features: data.assignedFeatures } : prev);
+    }
+  }, [user?.id]);
+
+  useSocketEvent('featureRemoved', (data: {
+    adminId: string;
+    remainingFeatures: SystemFeature[]
+  }) => {
+    if (user?.id === data.adminId) {
+      setUser(prev => prev ? { ...prev, features: data.remainingFeatures } : prev);
+    }
+  }, [user?.id]);
 
   /**
    * Login with email/phone.

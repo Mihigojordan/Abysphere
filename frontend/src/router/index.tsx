@@ -31,6 +31,8 @@ import CategoryDashboard from "../pages/dashboard/CategoryManagement";
 import SupplierDashboard from "../pages/dashboard/SupplierManagement";
 import StockInFormExample from "../pages/dashboard/AddStockin";
 import StockInManagement from "../pages/dashboard/StockInManagement";
+import StockOutDashboard from "../pages/dashboard/StockOutDashboard";
+import SalesReturnDashboard from "../pages/dashboard/SalesReturnDashboard";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -556,7 +558,41 @@ const routes = createBrowserRouter([
                 path: 'stockin-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockInManagement />
+                    <StockInManagement  role="admin" />
+                  </SuspenseWrapper>
+                ),
+              },
+
+          
+              {
+                path: 'stockin-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInForm  role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInViewPage  role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockout-management',
+                element: (
+                  <SuspenseWrapper>
+                    <StockOutDashboard />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'sales-return-management',
+                element: (
+                  <SuspenseWrapper>
+                    <SalesReturnDashboard />
                   </SuspenseWrapper>
                 ),
               },

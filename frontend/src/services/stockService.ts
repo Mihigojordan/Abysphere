@@ -2,7 +2,7 @@ import api from '../api/api';
 import type { AxiosResponse } from 'axios';
 
 export interface Stock {
-  [x: string]: never[];
+  // [x: string]: never[];
   id: number;
   sku: string;
   itemName: string;

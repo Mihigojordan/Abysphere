@@ -63,6 +63,7 @@ export class CompanyController {
     this.companyGateway.server.emit('featureAssigned', {
       adminId,
       assignedFeatures: result.features,
+      admin:result
     });
 
     return result;
