@@ -94,6 +94,8 @@ model Admin {
   features      SystemFeature[] @relation("AdminFeatures")
 
   Stock Stock[]
+
+  membershipPlans MembershipPlan[]
 }
 
 enum AdminStatus {
@@ -101,6 +103,23 @@ enum AdminStatus {
   INACTIVE
 }
 
+
+model MembershipPlan {
+  id               String   @id @default(uuid())
+  companyId        String
+  planName         String
+  startTime        DateTime
+  expireTime       DateTime
+  amountPaid       Float
+  shortDescription String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company          Admin    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
 model Department {
   id          String     @id @unique @default(uuid())
   name        String?

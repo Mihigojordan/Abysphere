@@ -1,413 +1,709 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users,
-  UserPlus,
-  Calendar,
-  Clock,
-  TrendingUp,
-  Bell,
-  Settings,
-  Search,
-  Filter,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-  Building2,
-  Award,
-  CheckCircle
+  Users, Package, DollarSign, TrendingUp, AlertCircle, Building2,
+  Truck, RefreshCw, Download, BarChart3, PieChart as PieChartIcon,
+  ShoppingCart, TrendingDown, Activity, Layers, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart
+} from 'recharts';
 
-// --- Type Definitions ---
-interface Employee {
-  id: number;
-  name: string;
-  position: string;
-  department: string;
-  status?: string;
-  startDate: string;
-}
+import clientService from '../../services/clientService';
+import departmentService from '../../services/departmentService';
+import assetService from '../../services/assetService';
+import supplierService from '../../services/supplierService';
+import employeeService from '../../services/employeeService';
+import stockService from '../../services/stockInService';
+import stockOutService from '../../services/stockoutService';
+import salesReturnService from '../../services/salesReturnService';
 
-interface RecentHire {
-  id: number;
-  name: string;
-  position: string;
-  department: string;
-  startDate: string;
-}
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
 
-interface LeaveRequest {
-  id: number;
-  employee: string;
-  type: string;
-  days: number;
-  status: 'pending' | 'approved' | 'rejected';
-  startDate: string;
-}
+const SafeTooltip = ({ active, payload, label, formatter }: any) => {
+  if (!active || !payload || !payload[0]) return null;
+  const value = payload[0].value;
+  return (
+    <div className="bg-gray-900 p-2 border border-gray-700 rounded shadow-xl">
+      <p className="text-[10px] text-gray-400">{label}</p>
+      <p className="font-bold text-white text-xs">
+        {formatter ? formatter(value) : value}
+      </p>
+    </div>
+  );
+};
 
-interface Birthday {
-  id: number;
-  name: string;
-  date: string;
-  department: string;
-}
+const MultiTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload) return null;
+  return (
+    <div className="bg-gray-900 p-2 border border-gray-700 rounded shadow-xl">
+      <p className="text-[10px] text-gray-400 mb-1">{label}</p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} className="font-bold text-xs" style={{ color: entry.color }}>
+          {entry.name}: {entry.value}
+        </p>
+      ))}
+    </div>
+  );
+};
 
-interface Stats {
-  totalEmployees: number;
-  activeEmployees: number;
-  newHires: number;
-  pendingLeaves: number;
-  departments: number;
-  avgSalary: number;
-  attendanceRate: number;
-  turnoverRate: number;
-}
+const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle }: any) => (
+  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all">
+    <div className="flex items-start justify-between">
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">{title}</p>
+        <p className="text-xl font-bold text-gray-900 mt-0.5 truncate">{value}</p>
+        {subtitle && <p className="text-[9px] text-gray-500 mt-0.5">{subtitle}</p>}
+        {change !== undefined && (
+          <p className={`text-[10px] mt-1 font-semibold flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+            {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {change}%
+          </p>
+        )}
+      </div>
+      <div className={`p-2 rounded-lg ${color} flex-shrink-0`}>
+        <Icon className="w-4 h-4 text-white" />
+      </div>
+    </div>
+  </div>
+);
 
-interface DashboardData {
-  employees: Employee[];
-  recentHires: RecentHire[];
-  leaveRequests: LeaveRequest[];
-  upcomingBirthdays: Birthday[];
-  stats: Stats;
-}
-
-interface StatCard {
-  label: string;
-  value: string | number;
-  change: string;
-  icon: React.FC<any>;
-  color: string;
-  trend: 'up' | 'down';
-}
-
-// --- Component ---
-const DashboardHome: React.FC<{role:string}> = ({role}) => {
-  const [dashboardData, setDashboardData] = useState<DashboardData>({
-    employees: [],
-    recentHires: [],
-    leaveRequests: [],
-    upcomingBirthdays: [],
-    stats: {
-      totalEmployees: 0,
-      activeEmployees: 0,
-      newHires: 0,
-      pendingLeaves: 0,
-      departments: 0,
-      avgSalary: 0,
-      attendanceRate: 0,
-      turnoverRate: 0
-    }
+const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalClients: 0,
+    totalEmployees: 0,
+    totalDepartments: 0,
+    totalSuppliers: 0,
+    totalStockValue: 0,
+    totalStockItems: 0,
+    todaySales: 0,
+    weekSales: 0,
+    monthSales: 0,
+    avgOrderValue: 0,
+    lowStock: 0,
+    outOfStock: 0,
+    pendingReturns: 0,
+    totalReturnsValue: 0,
+    profitMargin: 0,
+    totalAssets: 0
   });
 
-  const [loading, setLoading] = useState(true);
+  const [salesTrend, setSalesTrend] = useState<any[]>([]);
+  const [monthlySales, setMonthlySales] = useState<any[]>([]);
+  const [stockByCategory, setStockByCategory] = useState<any[]>([]);
+  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [supplierPerformance, setSupplierPerformance] = useState<any[]>([]);
+  const [deptEmployees, setDeptEmployees] = useState<any[]>([]);
+  const [stockInOutTrend, setStockInOutTrend] = useState<any[]>([]);
+  const [revenueVsCost, setRevenueVsCost] = useState<any[]>([]);
+  const [clientActivity, setClientActivity] = useState<any[]>([]);
+  const [productPerformance, setProductPerformance] = useState<any[]>([]);
+  const [returnsAnalysis, setReturnsAnalysis] = useState<any[]>([]);
 
-  // Mock data for demonstration
+  // SAFELY GET ARRAY FROM ANY API RESPONSE
+  const safeArray = (data: any): any[] => {
+    if (Array.isArray(data)) return data;
+    if (data?.data && Array.isArray(data.data)) return data.data;
+    if (data?.items && Array.isArray(data.items)) return data.items;
+    return [];
+  };
+
   useEffect(() => {
-    setTimeout(() => {
-      setDashboardData({
-        employees: [
-          { id: 1, name: 'John Smith', position: 'Software Engineer', department: 'Engineering', status: 'active', startDate: '2023-01-15' },
-          { id: 2, name: 'Sarah Johnson', position: 'Product Manager', department: 'Product', status: 'active', startDate: '2023-03-10' },
-          { id: 3, name: 'Mike Davis', position: 'HR Specialist', department: 'Human Resources', status: 'active', startDate: '2023-02-20' },
-          { id: 4, name: 'Emily Chen', position: 'UX Designer', department: 'Design', status: 'active', startDate: '2023-04-05' },
-          { id: 5, name: 'David Wilson', position: 'Sales Manager', department: 'Sales', status: 'active', startDate: '2023-01-30' }
-        ],
-        recentHires: [
-          { id: 1, name: 'Alex Rodriguez', position: 'Frontend Developer', department: 'Engineering', startDate: '2025-08-15' },
-          { id: 2, name: 'Lisa Park', position: 'Marketing Coordinator', department: 'Marketing', startDate: '2025-08-10' },
-          { id: 3, name: 'James Brown', position: 'Data Analyst', department: 'Analytics', startDate: '2025-08-05' }
-        ],
-        leaveRequests: [
-          { id: 1, employee: 'Sarah Johnson', type: 'Vacation', days: 5, status: 'pending', startDate: '2025-09-01' },
-          { id: 2, employee: 'Mike Davis', type: 'Sick Leave', days: 2, status: 'approved', startDate: '2025-08-25' },
-          { id: 3, employee: 'Emily Chen', type: 'Personal', days: 1, status: 'pending', startDate: '2025-08-30' }
-        ],
-        upcomingBirthdays: [
-          { id: 1, name: 'John Smith', date: '2025-09-25', department: 'Engineering' },
-          { id: 2, name: 'Sarah Johnson', date: '2025-09-28', department: 'Product' },
-          { id: 3, name: 'Mike Davis', date: '2025-10-02', department: 'Human Resources' }
-        ],
-        stats: {
-          totalEmployees: 152,
-          activeEmployees: 148,
-          newHires: 8,
-          pendingLeaves: 12,
-          departments: 6,
-          avgSalary: 75000,
-          attendanceRate: 94.2,
-          turnoverRate: 5.8
-        }
-      });
-      setLoading(false);
-    }, 1000);
-  }, []);
+    const loadData = async () => {
+      try {
+        setLoading(true);
 
-  const statsCards: StatCard[] = [
-    {
-      label: 'Total Employees',
-      value: dashboardData.stats.totalEmployees,
-      change: '+5.2%',
-      icon: Users,
-      color: 'bg-primary-500',
-      trend: 'up'
-    },
-    {
-      label: 'New Hires (This Month)',
-      value: dashboardData.stats.newHires,
-      change: '+12%',
-      icon: UserPlus,
-      color: 'bg-primary-500',
-      trend: 'up'
-    },
-    {
-      label: 'Attendance Rate',
-      value: `${dashboardData.stats.attendanceRate}%`,
-      change: '+2.1%',
-      icon: CheckCircle,
-      color: 'bg-primary-500',
-      trend: 'up'
-    },
-    {
-      label: 'Pending Leaves',
-      value: dashboardData.stats.pendingLeaves,
-      change: '-8%',
-      icon: Clock,
-      color: 'bg-primary-500',
-      trend: 'down'
-    }
-  ];
+        const [
+          rawClients, rawEmployees, rawDepartments, rawAssets,
+          rawStockIns, rawStockOuts, rawReturns, rawSuppliers
+        ] = await Promise.all([
+          clientService.getAllClients(),
+          employeeService.getAllEmployees(),
+          departmentService.getAllDepartments(),
+          assetService.getAllAssets(),
+          stockService.getAllStockIns(),
+          stockOutService.getAllStockOuts(),
+          salesReturnService.getAllSalesReturns(),
+          supplierService.getAllSuppliers(),
+        ]);
+
+        const clients = safeArray(rawClients);
+        const employees = safeArray(rawEmployees);
+        const departments = safeArray(rawDepartments);
+        const assets = safeArray(rawAssets);
+        const stockIns = safeArray(rawStockIns);
+        const stockOuts = safeArray(rawStockOuts);
+        const returns = safeArray(rawReturns);
+        const suppliers = safeArray(rawSuppliers);
+
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10);
+        const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+        const monthAgo = new Date(today); monthAgo.setDate(monthAgo.getDate() - 30);
+
+        // REVENUE
+        const todayRevenue = stockOuts
+          .filter((s: any) => s.createdAt?.startsWith(todayStr))
+          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+        const weekRevenue = stockOuts
+          .filter((s: any) => new Date(s.createdAt) >= weekAgo)
+          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+        const monthRevenue = stockOuts
+          .filter((s: any) => new Date(s.createdAt) >= monthAgo)
+          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+        const totalCost = stockOuts.reduce((sum: number, s: any) => {
+          const stockIn = stockIns.find((i: any) => i.id === s.stockInId);
+          return sum + (Number(stockIn?.unitPrice) || 0) * (Number(s.quantity) || 0);
+        }, 0);
+
+        const totalRevenue = stockOuts.reduce((sum: number, s: any) => 
+          sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+        const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+        const avgOrder = stockOuts.length > 0 ? totalRevenue / stockOuts.length : 0;
+
+        const lowStockItems = stockIns.filter((s: any) => 
+          s.reorderLevel && s.quantity > 0 && s.quantity <= s.reorderLevel);
+        const outOfStockItems = stockIns.filter((s: any) => s.quantity === 0);
+
+        const returnsValue = returns.reduce((sum: number, r: any) => sum + (Number(r.refundAmount) || 0), 0);
+        const totalStockValue = stockIns.reduce((s: number, i: any) => 
+          s + (Number(i.unitPrice) || 0) * (Number(i.quantity) || 0), 0);
+        const totalStockItems = stockIns.reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
+        const totalAssetsValue = assets.reduce((s: number, a: any) => s + (Number(a.value) || 0), 0);
+
+        // CHARTS
+        const catMap: any = {};
+        stockIns.forEach((i: any) => {
+          const cat = i.stockcategory?.name || 'Uncategorized';
+          catMap[cat] = (catMap[cat] || 0) + (Number(i.quantity) || 0);
+        });
+        const pieData = Object.entries(catMap)
+          .map(([name, value]) => ({ name, value: Number(value) }))
+          .sort((a: any, b: any) => b.value - a.value);
+
+        const prodMap: any = {};
+        stockOuts.forEach((s: any) => {
+          const name = s.stockin?.productName || s.productName || 'Unknown';
+          prodMap[name] = (prodMap[name] || 0) + (Number(s.quantity) || 0);
+        });
+        const top8 = Object.entries(prodMap)
+          .sort((a: any, b: any) => (b[1] as number) - (a[1] as number))
+          .slice(0, 8)
+          .map(([name, qty]) => ({ name, qty }));
+
+        const supMap: any = {};
+        stockIns.forEach((i: any) => {
+          const sup = i.supplier?.name || 'No Supplier';
+          supMap[sup] = (supMap[sup] || 0) + (Number(i.quantity) || 0);
+        });
+        const supData = Object.entries(supMap)
+          .map(([name, qty]) => ({ name, qty: Number(qty) }))
+          .sort((a: any, b: any) => b.qty - a.qty)
+          .slice(0, 8);
+
+        const trend = Array.from({ length: 14 }, (_, i) => {
+          const d = new Date(); d.setDate(d.getDate() - (13 - i));
+          const dateStr = d.toISOString().slice(0, 10);
+          const dayRev = stockOuts
+            .filter((s: any) => s.createdAt?.startsWith(dateStr))
+            .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+          const dayOrders = stockOuts.filter((s: any) => s.createdAt?.startsWith(dateStr)).length;
+          return { 
+            day: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }), 
+            sales: Math.round(dayRev),
+            orders: dayOrders
+          };
+        });
+
+        const monthlyData = Array.from({ length: 6 }, (_, i) => {
+          const d = new Date(); d.setMonth(d.getMonth() - (5 - i));
+          const monthStr = d.toISOString().slice(0, 7);
+          const monthRev = stockOuts
+            .filter((s: any) => s.createdAt?.startsWith(monthStr))
+            .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+          return {
+            month: d.toLocaleDateString('en', { month: 'short' }),
+            revenue: Math.round(monthRev)
+          };
+        });
+
+        const deptData = departments
+          .map((d: any) => ({
+            name: d.name || 'Unnamed',
+            employees: employees.filter((e: any) => e.departmentId === d.id).length,
+          }))
+          .sort((a, b) => b.employees - a.employees)
+          .slice(0, 8);
+
+        const stockTrend = Array.from({ length: 10 }, (_, i) => {
+          const d = new Date(); d.setDate(d.getDate() - (9 - i));
+          const dateStr = d.toISOString().slice(0, 10);
+          const inQty = stockIns.filter((s: any) => s.createdAt?.startsWith(dateStr))
+            .reduce((sum: number, s: any) => sum + (Number(s.quantity) || 0), 0);
+          const outQty = stockOuts.filter((s: any) => s.createdAt?.startsWith(dateStr))
+            .reduce((sum: number, s: any) => sum + (Number(s.quantity) || 0), 0);
+          return {
+            date: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+            in: inQty,
+            out: outQty
+          };
+        });
+
+        const revCostData = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(); d.setDate(d.getDate() - (6 - i));
+          const dateStr = d.toISOString().slice(0, 10);
+          const dayRev = stockOuts.filter((s: any) => s.createdAt?.startsWith(dateStr))
+            .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+          const dayCost = stockOuts.filter((s: any) => s.createdAt?.startsWith(dateStr))
+            .reduce((sum: number, s: any) => {
+              const stockIn = stockIns.find((i: any) => i.id === s.stockInId);
+              return sum + (Number(stockIn?.unitPrice) || 0) * (Number(s.quantity) || 0);
+            }, 0);
+          return {
+            day: d.toLocaleDateString('en', { weekday: 'short' }),
+            revenue: Math.round(dayRev),
+            cost: Math.round(dayCost),
+            profit: Math.round(dayRev - dayCost)
+          };
+        });
+
+        const clientMap: any = {};
+        stockOuts.forEach((s: any) => {
+          const name = s.client?.name || 'Walk-in';
+          clientMap[name] = (clientMap[name] || 0) + 1;
+        });
+        const clientData = Object.entries(clientMap)
+          .map(([name, orders]) => ({ name, orders }))
+          .sort((a: any, b: any) => b.orders - a.orders)
+          .slice(0, 6);
+
+        const prodRevMap: any = {};
+        stockOuts.forEach((s: any) => {
+          const name = s.stockin?.productName || s.productName || 'Unknown';
+          prodRevMap[name] = (prodRevMap[name] || 0) + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0);
+        });
+        const prodPerfData = Object.entries(prodRevMap)
+          .map(([name, revenue]) => ({ name, revenue: Math.round(revenue as number) }))
+          .sort((a: any, b: any) => b.revenue - a.revenue)
+          .slice(0, 6);
+
+        const reasonMap: any = {};
+        returns.forEach((r: any) => {
+          const reason = r.reason || 'Unknown';
+          reasonMap[reason] = (reasonMap[reason] || 0) + 1;
+        });
+        const returnsData = Object.entries(reasonMap)
+          .map(([reason, count]) => ({ reason, count }))
+          .sort((a: any, b: any) => b.count - a.count);
+
+        // UPDATE ALL STATE
+        setStats({
+          totalClients: clients.length,
+          totalEmployees: employees.length,
+          totalDepartments: departments.length,
+          totalSuppliers: suppliers.length,
+          totalStockValue: Math.round(totalStockValue),
+          totalStockItems: Math.round(totalStockItems),
+          todaySales: Math.round(todayRevenue),
+          weekSales: Math.round(weekRevenue),
+          monthSales: Math.round(monthRevenue),
+          avgOrderValue: Math.round(avgOrder),
+          lowStock: lowStockItems.length,
+          outOfStock: outOfStockItems.length,
+          pendingReturns: returns.length,
+          totalReturnsValue: Math.round(returnsValue),
+          profitMargin: Math.round(profitMargin * 10) / 10,
+          totalAssets: Math.round(totalAssetsValue)
+        });
+
+        setSalesTrend(trend);
+        setMonthlySales(monthlyData);
+        setStockByCategory(pieData);
+        setTopProducts(top8);
+        setSupplierPerformance(supData);
+        setDeptEmployees(deptData);
+        setStockInOutTrend(stockTrend);
+        setRevenueVsCost(revCostData);
+        setClientActivity(clientData);
+        setProductPerformance(prodPerfData);
+        setReturnsAnalysis(returnsData);
+
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    const id = setInterval(loadData, 30000);
+    return () => clearInterval(id);
+  }, []);
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="w-5 h-5 text-primary-500 animate-spin" />
-          <span className="text-base text-gray-600">Loading dashboard...</span>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <RefreshCw className="w-8 h-8 text-primary-600 animate-spin mr-3" />
+        <span className="text-lg">Loading Dashboard...</span>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">HR Dashboard</h1>
-              <p className="text-sm text-gray-600 mt-1">Welcome back! Here's your team overview.</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                <Search className="w-4 h-4" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative">
-                <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                <Settings className="w-4 h-4" />
-              </button>
-            </div>
+      {/* HEADER */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Analytics Dashboard</h1>
+            <p className="text-[10px] text-gray-500">
+              {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1.5 text-xs">
+              <Download className="w-3.5 h-3.5" /> Export
+            </button>
+            <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-gray-100 rounded-lg">
+              <RefreshCw className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statsCards.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 font-medium">{stat.label}</p>
-                  <p className="text-xl font-semibold text-gray-900 mt-2">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    {stat.trend === 'up' ? (
-                      <ArrowUpRight className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4 text-red-500" />
-                    )}
-                    <span className={`text-sm font-medium ml-1 ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-gray-500 ml-2">vs last month</span>
-                  </div>
-                </div>
-                <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center shadow-sm`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className="p-4 space-y-4">
+
+        {/* KPI ROW 1 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard title="Clients" value={stats.totalClients} change={12} trend="up" icon={Users} color="bg-primary-500" />
+          <StatCard title="Employees" value={stats.totalEmployees} change={5} trend="up" icon={Users} color="bg-indigo-500" />
+          <StatCard title="Departments" value={stats.totalDepartments} icon={Building2} color="bg-purple-500" />
+          <StatCard title="Suppliers" value={stats.totalSuppliers} change={8} trend="up" icon={Truck} color="bg-orange-500" />
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Hires */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Recent Hires</h3>
-                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Filter className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {dashboardData.recentHires.map((hire) => (
-                  <div key={hire.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <UserPlus className="w-5 h-5 text-primary-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{hire.name}</p>
-                        <p className="text-sm text-gray-500">{hire.position}</p>
-                        <p className="text-sm text-gray-400">{hire.department}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Start Date</p>
-                      <p className="font-medium text-gray-900">{new Date(hire.startDate).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="w-full text-primary-600 hover:text-primary-700 font-medium text-sm py-2">
-                  View All Employees →
-                </button>
-              </div>
-            </div>
+        {/* KPI ROW 2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard title="Today Sales" value={`$${stats.todaySales.toLocaleString()}`} change={18} trend="up" icon={DollarSign} color="bg-green-500" subtitle="Daily revenue" />
+          <StatCard title="Week Sales" value={`$${stats.weekSales.toLocaleString()}`} change={15} trend="up" icon={TrendingUp} color="bg-emerald-500" subtitle="7-day revenue" />
+          <StatCard title="Month Sales" value={`$${stats.monthSales.toLocaleString()}`} change={22} trend="up" icon={Activity} color="bg-teal-500" subtitle="30-day revenue" />
+          <StatCard title="Avg Order" value={`$${stats.avgOrderValue.toLocaleString()}`} icon={ShoppingCart} color="bg-cyan-500" subtitle="Per transaction" />
+        </div>
+
+        {/* KPI ROW 3 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard title="Stock Value" value={`$${stats.totalStockValue.toLocaleString()}`} icon={Package} color="bg-primary-600" subtitle="Total inventory" />
+          <StatCard title="Stock Items" value={stats.totalStockItems.toLocaleString()} icon={Layers} color="bg-indigo-600" subtitle="Total units" />
+          <StatCard title="Low Stock" value={stats.lowStock} icon={AlertCircle} color="bg-yellow-500" subtitle="Need reorder" />
+          <StatCard title="Out of Stock" value={stats.outOfStock} icon={TrendingDown} color="bg-red-500" subtitle="Zero inventory" />
+        </div>
+
+        {/* KPI ROW 4 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard title="Returns" value={stats.pendingReturns} icon={RefreshCw} color="bg-amber-500" subtitle="Pending" />
+          <StatCard title="Returns Value" value={`$${stats.totalReturnsValue.toLocaleString()}`} icon={DollarSign} color="bg-orange-600" subtitle="Total refunds" />
+          <StatCard title="Profit Margin" value={`${stats.profitMargin}%`} change={3.2} trend="up" icon={TrendingUp} color="bg-green-600" subtitle="Overall margin" />
+          <StatCard title="Total Assets" value={`$${stats.totalAssets.toLocaleString()}`} icon={Building2} color="bg-purple-600" subtitle="Asset value" />
+        </div>
+
+        {/* MAIN CHARTS ROW 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary-600" /> 14-Day Sales & Orders Trend
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <ComposedChart data={salesTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 10 }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} />
+                <Tooltip content={<MultiTooltip />} />
+                <Legend wrapperStyle={{ fontSize: '10px' }} />
+                <Area yAxisId="left" type="monotone" dataKey="sales" fill="#3b82f6" fillOpacity={0.2} stroke="#3b82f6" strokeWidth={2} />
+                <Line yAxisId="right" type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Leave Requests */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Leave Requests</h3>
-                <div className="flex items-center space-x-1 bg-yellow-100 px-2 py-1 rounded-lg">
-                  <Clock className="w-4 h-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-700">
-                    {dashboardData.leaveRequests.filter(req => req.status === 'pending').length} Pending
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {dashboardData.leaveRequests.map((request) => (
-                  <div key={request.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                          <Calendar className="w-4 h-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{request.employee}</p>
-                          <p className="text-sm text-gray-500">{request.type} • {request.days} days</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className={`text-sm px-2 py-1 rounded-lg ${
-                          request.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : request.status === 'approved'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-700'
-                        }`}>
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                        </span>
-                        <span className="text-sm text-gray-500 mt-1">
-                          {new Date(request.startDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="w-full text-primary-600 hover:text-primary-700 font-medium text-sm py-2">
-                  View All Requests →
-                </button>
-              </div>
-            </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <PieChartIcon className="w-4 h-4 text-purple-600" /> Stock Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={stockByCategory}
+                  innerRadius={45}
+                  outerRadius={75}
+                  paddingAngle={3}
+                  dataKey="value"
+                  label={({ name, value }) => `${name.slice(0, 8)}: ${value}`}
+                  labelStyle={{ fontSize: '9px' }}
+                >
+                  {stockByCategory.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} units`} />} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Department Overview */}
-          <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Department Overview</h3>
-                <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                  View Details
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { name: 'Engineering', employees: 45, growth: '+8%' },
-                  { name: 'Sales', employees: 32, growth: '+12%' },
-                  { name: 'Marketing', employees: 18, growth: '+5%' },
-                  { name: 'Human Resources', employees: 12, growth: '+2%' },
-                  { name: 'Finance', employees: 15, growth: '+3%' },
-                  { name: 'Operations', employees: 20, growth: '+7%' }
-                ].map((dept, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all duration-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                          <Building2 className="w-4 h-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{dept.name}</p>
-                          <p className="text-sm text-gray-500">{dept.employees} employees</p>
-                        </div>
-                      </div>
-                      <span className="text-green-600 text-sm font-medium">
-                        {dept.growth}
-                      </span>
+        {/* MAIN CHARTS ROW 2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green- Unusual" /> Revenue, Cost & Profit (7 Days)
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <ComposedChart data={revenueVsCost}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip content={<MultiTooltip />} />
+                <Legend wrapperStyle={{ fontSize: '10px' }} />
+                <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cost" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                <Line type="monotone" dataKey="profit" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary-600" /> 6-Month Revenue
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={monthlySales}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `$${v.toLocaleString()}`} />} />
+                <Bar dataKey="revenue" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* SMALL CHARTS ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Top Products */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4 text-green-600" /> Top Products (Qty)
+            </h3>
+            {topProducts.length === 0 ? (
+              <p className="text-center text-gray-500 py-8 text-xs">No sales yet</p>
+            ) : (
+              <div className="space-y-2">
+                {topProducts.map((p, i) => (
+                  <div key={i} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="font-bold text-sm text-gray-400">#{i + 1}</span>
+                      <p className="font-medium text-xs truncate">{p.name}</p>
                     </div>
+                    <span className="text-xs font-bold text-primary-600">{p.qty}</span>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Stock Flow */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-orange-600" /> Stock Flow (10 Days)
+            </h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={stockInOutTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-20} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip content={<MultiTooltip />} />
+                <Legend wrapperStyle={{ fontSize: '9px' }} />
+                <Area type="monotone" dataKey="in" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
+                <Area type="monotone" dataKey="out" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Product Revenue */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-purple-600" /> Product Revenue
+            </h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={productPerformance} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" width={70} tick={{ fontSize: 9 }} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `$${v.toLocaleString()}`} />} />
+                <Bar dataKey="revenue" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Returns */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-red-600" /> Returns by Reason
+            </h3>
+            {returnsAnalysis.length === 0 ? (
+              <p className="text-center text-gray-500 py-8 text-xs">No returns</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={returnsAnalysis}
+                    innerRadius={40}
+                    outerRadius={70}
+                    paddingAngle={4}
+                    dataKey="count"
+                    label={({ reason, count }) => `${reason.slice(0, 10)}: ${count}`}
+                    labelStyle={{ fontSize: '9px' }}
+                  >
+                    {returnsAnalysis.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} returns`} />} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* BOTTOM ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Truck className="w-4 h-4 text-orange-600" /> Top Suppliers by Volume
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={supplierPerformance} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 9 }} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} units`} />} />
+                <Bar dataKey="qty" fill="#f59e0b" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-purple-600" /> Department Headcount
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={deptEmployees}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={70} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} staff`} />} />
+                <Bar dataKey="employees" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary-600" /> Top Clients by Orders
+            </h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={clientActivity}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={70} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} orders`} />} />
+                <Bar dataKey="orders" fill="#06b6d4" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* INSIGHTS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4 text-teal-600" /> Stock Health Overview
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
+                  <div><p className="text-xs font-medium text-gray-700">Healthy Stock</p><p className="text-[10px] text-gray-500">Above reorder level</p></div>
+                </div>
+                <p className="text-lg font-bold text-green-700">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-yellow-500 rounded-lg"><AlertCircle className="w-4 h-4 text-white" /></div>
+                  <div><p className="text-xs font-medium text-gray-700">Low Stock Items</p><p className="text-[10px] text-gray-500">Need reordering soon</p></div>
+                </div>
+                <p className="text-lg font-bold text-yellow-700">{stats.lowStock}</p>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-500 rounded-lg"><TrendingDown className="w-4 h-4 text-white" /></div>
+                  <div><p className="text-xs font-medium text-gray-700">Out of Stock</p><p className="text-[10px] text-gray-500">Immediate action needed</p></div>
+                </div>
+                <p className="text-lg font-bold text-red-700">{stats.outOfStock}</p>
               </div>
             </div>
           </div>
 
-          {/* Upcoming Birthdays */}
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-base font-semibold text-gray-900">Upcoming Birthdays</h3>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {dashboardData.upcomingBirthdays.map((birthday) => (
-                  <div key={birthday.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <Award className="w-4 h-4 text-primary-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{birthday.name}</p>
-                      <p className="text-sm text-gray-500">{birthday.department}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">{new Date(birthday.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                ))}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-600" /> Financial Summary
+            </h3>
+            <div className="space-y-3">
+              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-medium text-gray-700">Total Revenue (Month)</p>
+                  <TrendingUp className="w-4 h-4 text-green-600" />
+                </div>
+                <p className="text-2xl font-bold text-green-700">${stats.monthSales.toLocaleString()}</p>
+                <p className="text-[10px] text-gray-500 mt-1">Last 30 days performance</p>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="w-full text-primary-600 hover:text-primary-700 font-medium text-sm py-2">
-                  View Calendar →
-                </button>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-primary-50 rounded-lg border border-primary-200">
+                  <p className="text-[10px] font-medium text-gray-600 mb-1">Inventory Value</p>
+                  <p className="text-lg font-bold text-primary-700">${stats.totalStockValue.toLocaleString()}</p>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-[10px] font-medium text-gray-600 mb-1">Asset Value</p>
+                  <p className="text-lg font-bold text-purple-700">${stats.totalAssets.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                  <p className="text-[10px] font-medium text-gray-600 mb-1">Profit Margin</p>
+                  <p className="text-lg font-bold text-teal-700">{stats.profitMargin}%</p>
+                </div>
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-[10px] font-medium text-gray-600 mb-1">Avg Order Value</p>
+                  <p className="text-lg font-bold text-orange-700">${stats.avgOrderValue.toLocaleString()}</p>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <div className="flex items-center justify-between text-[10px] text-gray-500">
+            <p>Last updated: {new Date().toLocaleTimeString()}</p>
+            <p className="flex items-center gap-1">
+              <Activity className="w-3 h-3" />
+              Auto-refresh every 30 seconds
+            </p>
+            <p>Role: {role}</p>
           </div>
         </div>
       </div>

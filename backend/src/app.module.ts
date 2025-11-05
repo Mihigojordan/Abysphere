@@ -45,6 +45,7 @@ import { SupplierManagementModule } from './modules/supplier-management/supplier
 import { StockInModule } from './modules/stock-management/stock.module';
 import { StockoutModule } from './modules/stockout-management/stockout.module';
 import { SalesReturnModule } from './modules/salesReturn-management/salesReturn.module';
+import { MembershipPlanModule } from './modules/membership-plan-management/membership-plan.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { SalesReturnModule } from './modules/salesReturn-management/salesReturn.
     StockInModule,
     StockoutModule,
     SalesReturnModule,
+    MembershipPlanModule
   ],
   controllers: [AppController],
 })

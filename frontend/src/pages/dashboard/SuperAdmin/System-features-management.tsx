@@ -760,18 +760,29 @@ const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    System Feature Name
-                  </label>
-                  <input
-                    type="text"
-                    value={newSystemFeature.name}
-                    onChange={(e) => setNewSystemFeature({ ...newSystemFeature, name: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    placeholder="Enter system feature name"
-                    aria-label="System feature name"
-                  />
-                </div>
+  <label className="block text-xs font-medium text-gray-700 mb-1">
+    System Feature Name
+  </label>
+  <select
+    value={newSystemFeature.name}
+    onChange={(e) =>
+      setNewSystemFeature({ ...newSystemFeature, name: e.target.value })
+    }
+    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+    aria-label="System feature name"
+  >
+    <option value="">Select a system feature</option>
+    <option value="DEPARTMENTS_MANAGEMENT">Department Management</option>
+    <option value="EMPLOYEES_MANAGEMENT">Employee Management</option>
+    <option value="CLIENTS_MANAGEMENT">Client Management</option>
+    <option value="ASSET_MANAGEMENT">Asset Management</option>
+    <option value="CATEGORY_MANAGEMENT">Category Management</option>
+    <option value="SUPPLIER_MANAGEMENT">Supplier Management</option>
+    <option value="VIEW_REPORTS">Reports - Sales</option>
+    <option value="VIEW_REPORTS">Reports - Inventory</option>
+  </select>
+</div>
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Description

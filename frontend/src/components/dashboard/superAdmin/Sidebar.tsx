@@ -11,6 +11,7 @@ import {
   ChevronDown,
 
   Beaker,
+  Package,
 
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
@@ -74,6 +75,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle }) => {
                 path: `${basePath}/company-management`,
             
               },
+                 {
+      id: "membership-plan",
+      label: "MemberShip Plan  Management",
+      icon: Package,
+      path: `${basePath}/membership-plan`,
+    },
     
     
         
