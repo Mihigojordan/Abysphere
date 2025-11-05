@@ -21,6 +21,8 @@ export interface Company {
   status?: CompanyStatus;
   is2FA?: boolean;
   isLocked?: boolean;
+  message?: string;
+  messageExpiry?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -157,6 +159,30 @@ class CompanyService {
       throw new Error(errorMessage);
     }
   }
+
+    /** 💬 Set a message and expiry for a company/admin */
+  async setCompanyMessage(
+    adminId: string,
+    message: string,
+    expiry?: string
+  ): Promise<any> {
+    try {
+      const payload: Record<string, any> = { message };
+      if (expiry) payload.expiry = expiry;
+
+      const response: AxiosResponse<any> = await this.api.post(
+        `/company/${adminId}/set-message`,
+        payload
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error setting company message:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to set company message';
+      throw new Error(errorMessage);
+    }
+  }
+
 
   /** 🚫 Remove features from an admin */
   async removeFeaturesFromCompany(adminId: string, featureIds: string[]): Promise<any> {

@@ -37,6 +37,7 @@
     "body-parser": "^2.2.0",
     "bwip-js": "^4.7.0",
     "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
     "handlebars": "^4.7.8",
     "ioredis": "^5.7.0",
     "multer": "^2.0.2",

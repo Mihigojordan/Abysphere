@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { EmailService } from 'src/global/email/email.service';
 import { last } from 'rxjs';
+import { addDays } from 'date-fns'; 
 
 @Injectable()
 export class CompanyService {
@@ -100,6 +101,67 @@ export class CompanyService {
 
         return this.prisma.admin.delete({ where: { id } });
     }
+
+
+     /**
+   * Set or update an admin's message and message expiry.
+   * @param adminId - The UUID of the admin.
+   * @param message - The message text to display.
+   * @param expiryDate - Optional expiry date for the message.
+   *                     If not provided, defaults to 24 hours from now.
+   */
+  async setAdminMessage(
+    adminId: string,
+    message?: string,
+    expiryDate?: Date,
+  ) {
+    // Ensure the admin exists
+    const admin = await this.prisma.admin.findUnique({
+      where: { id: adminId },
+    });
+
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${adminId} not found`);
+    }
+
+    const finalExpiry = expiryDate ?? addDays(new Date(), 1); // Default: 1 day later
+
+    const updatedAdmin = await this.prisma.admin.update({
+      where: { id: adminId },
+      data: {
+        message,
+        messageExpiry: finalExpiry,
+      },
+    });
+
+    return {
+      success: true,
+      message: `Message set for admin ${admin.adminName ?? admin.id}`,
+      data: updatedAdmin,
+    };
+  }
+
+  /**
+   * Optional: clear message if expired
+   */
+  async clearExpiredMessages() {
+    const now = new Date();
+
+    const cleared = await this.prisma.admin.updateMany({
+      where: {
+        messageExpiry: { lt: now },
+      },
+      data: {
+        message: null,
+        messageExpiry: null,
+      },
+    });
+
+    return {
+      success: true,
+      clearedCount: cleared.count,
+    };
+  }
 
     // =====================================================
     // 🔹 FEATURE MANAGEMENT METHODS (Company ↔ SystemFeature)

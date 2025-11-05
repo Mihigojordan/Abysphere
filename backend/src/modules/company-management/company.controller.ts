@@ -44,6 +44,31 @@ export class CompanyController {
     return deleted;
   }
 
+   @Post(':adminId/set-message')
+  async setAdminMessage(
+    @Param('adminId') adminId: string,
+    @Body('message') message: string,
+    @Body('expiry') expiry?: string,
+  ) {
+    const expiryDate = expiry ? new Date(expiry) : undefined;
+
+    const result = await this.companyService.setAdminMessage(
+      adminId,
+      message,
+      expiryDate,
+    );
+
+    // 🔔 Notify connected clients in real-time
+    this.companyGateway.server.emit('companyMessageUpdated', {
+      adminId,
+      message: result.data.message,
+      expiry: result.data.messageExpiry,
+    });
+
+    return result;
+  }
+
+  
   // ========================================
   // 🔹 ADMIN ↔ FEATURE RELATION MANAGEMENT
   // ========================================

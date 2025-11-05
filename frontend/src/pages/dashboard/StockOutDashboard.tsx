@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Edit, Trash2, Search, Eye,
   ChevronLeft, ChevronRight, AlertTriangle,
   CheckCircle, XCircle, X, Package, RefreshCw,
   Grid3X3, List, Minimize2, DollarSign,
-  ShoppingCart,
+  ShoppingCart, Calendar,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import stockOutService, {
@@ -19,12 +19,10 @@ import { API_URL } from '../../api/api';
 import stockService from '../../services/stockService';
 
 type ViewMode = 'table' | 'grid' | 'list';
-
 interface OperationStatus {
   type: 'success' | 'error' | 'info';
   message: string;
 }
-
 interface StockOutWithRelations extends StockOut {
   stockin?: {
     itemName: string;
@@ -33,7 +31,6 @@ interface StockOutWithRelations extends StockOut {
     unitCost: number;
   } | null;
 }
-
 interface StockInOption {
   id: number;
   label: string;
@@ -43,6 +40,8 @@ interface StockInOption {
   unitOfMeasure: string;
   unitCost: number;
 }
+
+type DateFilterOption = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 const StockOutDashboard: React.FC = () => {
   const [stockOuts, setStockOuts] = useState<StockOutWithRelations[]>([]);
@@ -64,7 +63,6 @@ const StockOutDashboard: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<StockOutWithRelations[] | null>(null);
-
   const [formData, setFormData] = useState<any>({
     clientName: '',
     clientEmail: '',
@@ -74,6 +72,11 @@ const StockOutDashboard: React.FC = () => {
   });
   const [formError, setFormError] = useState<string>('');
 
+  // === DATE FILTER STATES ===
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+
   useEffect(() => {
     loadStockIns();
     loadStockOuts();
@@ -81,15 +84,38 @@ const StockOutDashboard: React.FC = () => {
 
   useEffect(() => {
     handleFilterAndSort();
-  }, [searchTerm, sortBy, sortOrder, allStockOuts]);
+  }, [searchTerm, sortBy, sortOrder, allStockOuts, dateFilter, customStartDate, customEndDate]);
+
+  // === DATE RANGE CALCULATION ===
+  const getDateRange = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    switch (dateFilter) {
+      case 'today':
+        return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+      case 'week':
+        return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+      case 'month':
+        return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+      case 'custom':
+        return {
+          start: customStartDate ? new Date(customStartDate) : null,
+          end: customEndDate ? new Date(customEndDate + 'T23:59:59') : null,
+        };
+      default:
+        return { start: null, end: null };
+    }
+  }, [dateFilter, customStartDate, customEndDate]);
 
   // FETCH STOCK-IN (AVAILABLE ONLY)
   const loadStockIns = async () => {
     try {
       setLoadingStockIns(true);
-      const raw = await stockService.getAllStocks(); // Returns your StockIn[]
-      console.log(raw);
-      
+      const raw = await stockService.getAllStocks();
       const options: StockInOption[] = raw
         .filter(s => s.receivedQuantity > 0)
         .map(s => ({
@@ -141,6 +167,8 @@ const StockOutDashboard: React.FC = () => {
 
   const handleFilterAndSort = () => {
     let filtered = [...allStockOuts];
+
+    // Search filter
     if (searchTerm.trim()) {
       filtered = filtered.filter(
         (so) =>
@@ -151,6 +179,15 @@ const StockOutDashboard: React.FC = () => {
       );
     }
 
+    // Date filter
+    if (dateFilter !== 'all' && getDateRange.start && getDateRange.end) {
+      filtered = filtered.filter((so) => {
+        const createdAt = so.createdAt ? new Date(so.createdAt).getTime() : 0;
+        return createdAt >= getDateRange.start!.getTime() && createdAt <= getDateRange.end!.getTime();
+      });
+    }
+
+    // Sort
     filtered.sort((a, b) => {
       const aVal = a[sortBy];
       const bVal = b[sortBy];
@@ -201,7 +238,6 @@ const StockOutDashboard: React.FC = () => {
   const handleProductSelect = (idx: number, stockInId: string) => {
     const selected = stockInOptions.find(o => o.id == stockInId);
     if (!selected) return;
-
     const updated = [...formData.sales];
     updated[idx] = {
       ...updated[idx],
@@ -292,7 +328,6 @@ const StockOutDashboard: React.FC = () => {
 
   const formatDate = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
@@ -386,7 +421,7 @@ const StockOutDashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-100">
       {/* HEADER */}
       <div className="sticky top-0 bg-white shadow-md z-10">
-        <div className="id: String(stockinId) mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <Minimize2 className="w-5 h-5" />
             <div>
@@ -407,7 +442,7 @@ const StockOutDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="id: String(stockinId) mx-auto px-4 py-6 space-y-6">
+      <div className="mx-auto px-4 py-6 space-y-6">
         {/* STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
@@ -429,28 +464,76 @@ const StockOutDashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* SEARCH & VIEW */}
+        {/* SEARCH & DATE FILTER */}
         <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex flex-col sm:flex-row justify-between gap-3">
-            <div className="relative">
+          <div className="flex flex-col lg:flex-row justify-between gap-4">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search client, product, transaction..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border rounded w-64"
+                className="pl-10 pr-4 py-2 border rounded w-full"
               />
+            </div>
+
+            {/* Date Filter Buttons */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setDateFilter(opt);
+                      if (opt !== 'custom') {
+                        setCustomStartDate('');
+                        setCustomEndDate('');
+                      }
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
+                      dateFilter === opt
+                        ? 'bg-white text-primary-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {opt === 'all' ? 'All Time' : opt}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Inputs */}
+              {dateFilter === 'custom' && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="px-3 py-1.5 text-xs border rounded"
+                    required
+                  />
+                  <span className="text-gray-500 text-sm">to</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="px-3 py-1.5 text-xs border rounded"
+                    required
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
 
+        {/* TABLE & PAGINATION */}
         {loading ? (
           <div className="bg-white p-8 text-center rounded-lg shadow">Loading...</div>
         ) : stockOuts.length === 0 ? (
           <div className="bg-white p-8 text-center rounded-lg shadow">
             <p className="text-lg font-semibold">No Sales Found</p>
-            <p className="text-sm text-gray-500">Start recording a sale.</p>
+            <p className="text-sm text-gray-500">Try adjusting filters or record a sale.</p>
           </div>
         ) : (
           <div>
@@ -460,26 +543,25 @@ const StockOutDashboard: React.FC = () => {
         )}
 
         {/* ADD MODAL */}
-       {/* ADD MODAL */}
         <AnimatePresence>
           {showAddModal && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
-              <motion.div 
-                initial={{ scale: 0.95, opacity: 0 }} 
-                animate={{ scale: 1, opacity: 1 }} 
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
               >
                 {/* Header */}
                 <div className="px-6 py-4 border-b bg-gradient-to-r from-primary-50 to-white flex justify-between items-center">
                   <h3 className="text-xl font-semibold text-gray-900">New Sale Transaction</h3>
-                  <button 
-                    onClick={() => setShowAddModal(false)} 
+                  <button
+                    onClick={() => setShowAddModal(false)}
                     className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-500" />
@@ -490,37 +572,36 @@ const StockOutDashboard: React.FC = () => {
                 <div className="overflow-y-auto flex-1 px-6 py-5">
                   {formError && (
                     <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r mb-5 flex items-start gap-3">
-                      <div className="text-red-600 mt-0.5">⚠</div>
+                      <div className="text-red-600 mt-0.5">Warning</div>
                       <div className="text-red-700 text-sm">{formError}</div>
                     </div>
                   )}
-
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Customer Information */}
                     <div className="space-y-4">
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Customer Details</h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <input 
-                          name="clientName" 
-                          placeholder="Customer Name" 
-                          value={formData.clientName} 
-                          onChange={handleInputChange} 
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" 
+                        <input
+                          name="clientName"
+                          placeholder="Customer Name"
+                          value={formData.clientName}
+                          onChange={handleInputChange}
+                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         />
-                        <input 
-                          name="clientEmail" 
-                          type="email" 
-                          placeholder="Email Address" 
-                          value={formData.clientEmail} 
-                          onChange={handleInputChange} 
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" 
+                        <input
+                          name="clientEmail"
+                          type="email"
+                          placeholder="Email Address"
+                          value={formData.clientEmail}
+                          onChange={handleInputChange}
+                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         />
-                        <input 
-                          name="clientPhone" 
-                          placeholder="Phone Number" 
-                          value={formData.clientPhone} 
-                          onChange={handleInputChange} 
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" 
+                        <input
+                          name="clientPhone"
+                          placeholder="Phone Number"
+                          value={formData.clientPhone}
+                          onChange={handleInputChange}
+                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                         />
                       </div>
                     </div>
@@ -528,15 +609,15 @@ const StockOutDashboard: React.FC = () => {
                     {/* Payment Method */}
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Payment Method</h4>
-                      <select 
-                        name="paymentMethod" 
-                        value={formData.paymentMethod} 
-                        onChange={handleInputChange} 
+                      <select
+                        name="paymentMethod"
+                        value={formData.paymentMethod}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
                       >
-                        <option value="CASH">💵 Cash</option>
-                        <option value="MOMO">📱 Mobile Money</option>
-                        <option value="CARD">💳 Card</option>
+                        <option value="CASH">Cash</option>
+                        <option value="MOMO">Mobile Money</option>
+                        <option value="CARD">Card</option>
                       </select>
                     </div>
 
@@ -544,75 +625,70 @@ const StockOutDashboard: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Sale Items</h4>
-                        <button 
-                          type="button" 
-                          onClick={addSaleRow} 
+                        <button
+                          type="button"
+                          onClick={addSaleRow}
                           className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
                         >
                           <Plus className="w-4 h-4" /> Add Item
                         </button>
                       </div>
-
                       <div className="space-y-3">
                         {formData.sales.map((sale: any, i: number) => {
                           const opt = stockInOptions.find(o => o.id === sale.stockinId);
                           const maxQty = opt?.available ?? 0;
-
                           return (
                             <div key={i} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
-                                {/* Product Selection */}
+                                {/* Product */}
                                 <div className="md:col-span-5">
                                   <label className="text-xs font-medium text-gray-600 mb-1.5 block">Product</label>
-                                  <select 
-                                    value={sale.stockinId} 
-                                    onChange={e => handleProductSelect(i, e.target.value)} 
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white" 
+                                  <select
+                                    value={sale.stockinId}
+                                    onChange={e => handleProductSelect(i, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
                                     required
                                   >
                                     <option value="">Select product...</option>
                                     {stockInOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
                                   </select>
                                 </div>
-
                                 {/* Quantity */}
                                 <div className="md:col-span-3">
                                   <label className="text-xs font-medium text-gray-600 mb-1.5 block">Quantity</label>
-                                  <input 
-                                    type="number" 
-                                    name="quantity" 
-                                    value={sale.quantity} 
-                                    min="1" 
-                                    max={maxQty} 
-                                    onChange={e => handleInputChange(e, i)} 
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                                    required 
+                                  <input
+                                    type="number"
+                                    name="quantity"
+                                    value={sale.quantity}
+                                    min="1"
+                                    max={maxQty}
+                                    onChange={e => handleInputChange(e, i)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    required
                                   />
                                   {maxQty > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">Available: {maxQty}</p>
                                   )}
                                 </div>
-
                                 {/* Price */}
                                 <div className="md:col-span-3">
                                   <label className="text-xs font-medium text-gray-600 mb-1.5 block">Unit Price</label>
-                                  <input 
-                                    type="number" 
-                                    step="0.01" 
-                                    name="soldPrice" 
-                                    value={sale.soldPrice ?? ''} 
-                                    onChange={e => handleInputChange(e, i)} 
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
-                                    placeholder="Auto-filled" 
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    name="soldPrice"
+                                    value={sale.soldPrice ?? ''}
+                                    onChange={e => handleInputChange(e, i)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    placeholder="Auto-filled"
                                   />
                                 </div>
-
-                                {/* Remove Button */}
+                                {/* Remove */}
                                 <div className="md:col-span-1 flex items-end justify-end md:pb-2">
                                   {formData.sales.length > 1 && (
-                                    <button 
-                                      type="button" 
-                                      onClick={() => removeSaleRow(i)} 
+                                    <button
+                                      type="button"
+                                      onClick={() => removeSaleRow(i)}
                                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                       title="Remove item"
                                     >
@@ -631,16 +707,16 @@ const StockOutDashboard: React.FC = () => {
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAddModal(false)} 
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
                     className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    disabled={operationLoading} 
+                  <button
+                    type="submit"
+                    disabled={operationLoading}
                     onClick={handleSubmit}
                     className="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -652,7 +728,7 @@ const StockOutDashboard: React.FC = () => {
           )}
         </AnimatePresence>
 
-        
+        {/* VIEW MODAL */}
         <AnimatePresence>
           {showViewModal && selectedTransaction && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -674,7 +750,7 @@ const StockOutDashboard: React.FC = () => {
                   {selectedTransaction.map((so) => (
                     <div key={so.id} className="border rounded p-3 flex justify-between">
                       <div>
-                        <div className="font-medium">{so.stockin?.productName}</div>
+                        <div className="font-medium">{so.stockin?.itemName || 'Unknown'}</div>
                         <div className="text-sm text-gray-600">Qty: {so.quantity} × {formatCurrency(so.soldPrice || 0)}</div>
                       </div>
                       <div className="text-right font-medium">
@@ -691,6 +767,7 @@ const StockOutDashboard: React.FC = () => {
           )}
         </AnimatePresence>
 
+        {/* DELETE CONFIRM MODAL */}
         <AnimatePresence>
           {deleteConfirm && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
@@ -716,8 +793,7 @@ const StockOutDashboard: React.FC = () => {
           )}
         </AnimatePresence>
 
-
-        {/* TOAST */}
+        {/* TOAST NOTIFICATION */}
         <AnimatePresence>
           {operationStatus && (
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="fixed top-4 right-4 z-50">

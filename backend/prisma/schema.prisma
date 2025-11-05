@@ -65,10 +65,15 @@ model Admin {
   city          String?
   country       String?
   description   String?
+
+  message      String?
+  messageExpiry  DateTime?
+
   is2FA         Boolean?        @default(false)
   isLocked      Boolean?        @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+
 
   medications   Medication[]
   requestedBy   Request[]       @relation("RequestedByAdmin")

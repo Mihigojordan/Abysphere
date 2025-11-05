@@ -34,36 +34,31 @@ import useAdminAuth from '../../context/AdminAuthContext';
 import CreditNoteComponent from '../../components/dashboard/salesReturn/CreditNote';
 
 // ──────────────────────────────────────────────────────────────
-// Types & Interfaces (Prisma-aligned)
+// Types & Interfaces
 // ──────────────────────────────────────────────────────────────
-
 interface StockIn {
   id: number;
   sku: string;
   itemName: string;
   unitOfMeasure: string;
-  // ... other fields
 }
-
 interface StockOut {
-  id: string; // UUID
+  id: string;
   transactionId?: string;
   quantity: number;
-  soldPrice?: string; // Decimal as string
+  soldPrice?: string;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
   createdAt: string;
   stockin?: StockIn;
 }
-
 interface SalesReturnItem {
   id: string;
   stockoutId: string;
   quantity: number;
   stockout?: StockOut;
 }
-
 interface SalesReturn extends ServiceSalesReturn {
   id: string;
   transactionId: string;
@@ -71,23 +66,19 @@ interface SalesReturn extends ServiceSalesReturn {
   createdAt: string;
   items: SalesReturnItem[];
 }
-
 interface Filters {
   dateRange: 'all' | 'today' | 'week' | 'month' | 'custom';
   reason: string;
   startDate: string;
   endDate: string;
 }
-
 interface OperationStatus {
   type: 'success' | 'error' | 'info';
   message: string;
 }
-
 interface SalesReturnManagementProps {
   role: 'admin' | 'employee';
 }
-
 type ViewMode = 'table' | 'grid' | 'list';
 
 // ──────────────────────────────────────────────────────────────
@@ -104,7 +95,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   const [statistics, setStatistics] = useState<SalesReturnStatistics | null>(null);
-  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filters, setFilters] = useState<Filters>({
     dateRange: 'all',
     reason: 'all',
@@ -114,7 +104,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const [isCreditNoteOpen, setIsCreditNoteOpen] = useState<boolean>(false);
   const [salesReturnId, setSalesReturnId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
-
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
 
@@ -140,6 +129,31 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
     }
   }, []);
 
+  // ── Date Range Logic ──────────────────────────────────────────
+  const getDateRange = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    switch (filters.dateRange) {
+      case 'today':
+        return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+      case 'week':
+        return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+      case 'month':
+        return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+      case 'custom':
+        return {
+          start: filters.startDate ? new Date(filters.startDate) : null,
+          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
+        };
+      default:
+        return { start: null, end: null };
+    }
+  };
+
   // ── Helpers ───────────────────────────────────────────────────
   const updateSearchParam = (key: string, value?: string): void => {
     const params = new URLSearchParams(window.location.search);
@@ -164,7 +178,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
           : response?.data && Array.isArray(response.data)
           ? response.data
           : [];
-
       setSalesReturns(dataArray);
       setFilteredSalesReturns(dataArray);
       setStatistics(salesReturnService.calculateReturnStatistics(dataArray));
@@ -181,6 +194,8 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
   const applyFilters = useCallback((): void => {
     const list = Array.isArray(salesReturns) ? salesReturns : [];
+    const { start, end } = getDateRange();
+
     const filtered = list.filter((sr) => {
       const searchMatch =
         !searchTerm ||
@@ -192,34 +207,15 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         );
 
       let dateMatch = true;
-      if (filters.dateRange !== 'all') {
-        const d = new Date(sr.createdAt);
-        const now = new Date();
-        switch (filters.dateRange) {
-          case 'today':
-            dateMatch = d.toDateString() === now.toDateString();
-            break;
-          case 'week':
-            dateMatch = d >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case 'month':
-            dateMatch = d >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          case 'custom':
-            if (filters.startDate && filters.endDate) {
-              const start = new Date(filters.startDate);
-              const end = new Date(filters.endDate);
-              dateMatch = d >= start && d <= end;
-            }
-            break;
-        }
+      if (filters.dateRange !== 'all' && start && end) {
+        const d = new Date(sr.createdAt).getTime();
+        dateMatch = d >= start.getTime() && d <= end.getTime();
       }
 
       const reasonMatch =
         filters.reason === 'all' ||
         (filters.reason === 'no-reason' && !sr.reason) ||
-        (filters.reason !== 'no-reason' &&
-          sr.reason?.toLowerCase().includes(filters.reason.toLowerCase()));
+        (filters.reason !== 'no-reason' && sr.reason?.toLowerCase().includes(filters.reason.toLowerCase()));
 
       return searchMatch && dateMatch && reasonMatch;
     });
@@ -241,7 +237,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
     setIsLoading(true);
     try {
       if (!adminData?.id && !employeeData?.id) throw new Error('User authentication required');
-
       const requestData = {
         transactionId: returnData.transactionId,
         reason: returnData.reason,
@@ -250,10 +245,8 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         adminId: role === 'admin' && adminData?.id ? adminData.id : undefined,
         employeeId: role === 'employee' && employeeData?.id ? employeeData.id : undefined,
       };
-
       if (!requestData.transactionId) throw new Error('Transaction ID is required');
       if (!requestData.items?.length) throw new Error('At least one item must be provided');
-
       const response = await salesReturnService.createSalesReturn(requestData);
       updateSearchParam('salesReturnId', response.salesReturn.id);
       setSalesReturnId(response.salesReturn.id);
@@ -287,12 +280,9 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
     });
 
   const truncateId = (id: string): string => (id ? `${id.substring(0, 8)}...` : 'N/A');
-
   const getTotalItemsCount = (sr: SalesReturn): number => sr.items?.length || 0;
-
   const getTotalQuantity = (sr: SalesReturn): number =>
     sr.items?.reduce((s, i) => s + (i.quantity || 0), 0) || 0;
-
   const getProductNames = (sr: SalesReturn): string => {
     if (!sr.items?.length) return 'No items';
     const names = sr.items
@@ -310,7 +300,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const startIdx = (currentPage - 1) * itemsPerPage;
   const endIdx = startIdx + itemsPerPage;
   const currentItems = safeList.slice(startIdx, endIdx);
-
   const getPageNumbers = (): number[] => {
     const max = 5;
     let start = Math.max(1, currentPage - Math.floor(max / 2));
@@ -346,74 +335,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
           </div>
         </motion.div>
       ))}
-    </div>
-  );
-
-  const FiltersComponent = () => (
-    <div
-      className={`bg-white rounded-xl shadow-sm border border-gray-200 mb-6 transition-all duration-300 ${
-        showFilters ? 'p-6' : 'p-0 h-0 overflow-hidden'
-      }`}
-    >
-      {showFilters && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-              <select
-                value={filters.dateRange}
-                onChange={(e) =>
-                  setFilters((p) => ({
-                    ...p,
-                    dateRange: e.target.value as Filters['dateRange'],
-                  }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              >
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="week">Last 7 Days</option>
-                <option value="month">Last 30 Days</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
-            {filters.dateRange === 'custom' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start</label>
-                  <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters((p) => ({ ...p, startDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End</label>
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters((p) => ({ ...p, endDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              onClick={() =>
-                setFilters({ dateRange: 'all', reason: 'all', startDate: '', endDate: '' })
-              }
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Clear Filters
-            </motion.button>
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -665,7 +586,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
               <p className="text-gray-600">Process returns & track inventory</p>
             </div>
           </div>
-
           {/* View Mode Switcher */}
           <div className="flex items-center border border-gray-300 rounded-lg">
             <motion.button
@@ -707,28 +627,64 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         {/* Search + Controls */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-            <div className="relative flex-grow max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by transaction, reason, ID, or product..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              />
+            <div className="flex items-center gap-3 flex-1">
+              {/* Search */}
+              <div className="relative flex-grow max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by transaction, reason, ID, or product..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+
+              {/* Date Filter Buttons */}
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setFilters(prev => ({
+                        ...prev,
+                        dateRange: opt,
+                        startDate: opt !== 'custom' ? '' : prev.startDate,
+                        endDate: opt !== 'custom' ? '' : prev.endDate,
+                      }));
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
+                      filters.dateRange === opt
+                        ? 'bg-white text-primary-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {opt === 'all' ? 'All Time' : opt}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Inputs */}
+              {filters.dateRange === 'custom' && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => setFilters(p => ({ ...p, startDate: e.target.value }))}
+                    className="px-3 py-1.5 text-xs border rounded"
+                  />
+                  <span className="text-gray-500 text-sm">to</span>
+                  <input
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => setFilters(p => ({ ...p, endDate: e.target.value }))}
+                    className="px-3 py-1.5 text-xs border rounded"
+                  />
+                </div>
+              )}
             </div>
+
             <div className="flex items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg font-medium transition-colors ${
-                  showFilters
-                    ? 'bg-primary-50 border-primary-200 text-primary-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Filter size={20} /> Filters
-              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={fetchSalesReturns}
@@ -748,9 +704,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
           </div>
         </div>
 
-        {/* Filters */}
-        <FiltersComponent />
-
         {/* Loading / Empty */}
         {isLoading ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
@@ -762,11 +715,11 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
             <RotateCcw className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No returns found</h3>
             <p className="text-gray-600 mb-6">
-              {searchTerm || showFilters
+              {searchTerm || filters.dateRange !== 'all'
                 ? 'Try adjusting your search or filters.'
                 : 'No returns have been processed yet.'}
             </p>
-            {!searchTerm && !showFilters && (
+            {!searchTerm && filters.dateRange === 'all' && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 onClick={() => setIsAddModalOpen(true)}

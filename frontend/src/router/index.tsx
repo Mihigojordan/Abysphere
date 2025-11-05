@@ -33,6 +33,8 @@ import StockInFormExample from "../pages/dashboard/AddStockin";
 import StockInManagement from "../pages/dashboard/StockInManagement";
 import StockOutDashboard from "../pages/dashboard/StockOutDashboard";
 import SalesReturnDashboard from "../pages/dashboard/SalesReturnDashboard";
+import SalesReportPage from "../pages/dashboard/SalesReportDashboard";
+import InventoryReportPage from "../pages/dashboard/InventoryReportDashboard";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -577,6 +579,22 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StockInViewPage  role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'reports/inventory',
+                element: (
+                  <SuspenseWrapper>
+                    <InventoryReportPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'reports/sales',
+                element: (
+                  <SuspenseWrapper>
+                    <SalesReportPage />
                   </SuspenseWrapper>
                 ),
               },

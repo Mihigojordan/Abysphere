@@ -14,7 +14,9 @@ export const FEATURE_ROUTES: Record<string, string> = {
   "/admin/dashboard/category-management": "CATEGORY_MANAGEMENT",
   "/admin/dashboard/supplier-management": "SUPPLIER_MANAGEMENT",
   "/admin/dashboard/reports/sales": "VIEW_REPORTS",
-  "/admin/dashboard/reports/inventory": "VIEW_REPORTS",
+  "/admin/dashboard/stockin-management": "STOCKIN_MANAGEMENT",
+  "/admin/dashboard/stockout-management": "STOCKOUT_MANAGEMENT",
+  "/admin/dashboard/sales-return-management": "SALES_RETURN_MANAGEMENT",
   // add more as needed
 };
 

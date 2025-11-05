@@ -1,22 +1,16 @@
-import api, { API_URL } from '../api/api';
-import type { AxiosResponse } from 'axios';
+import { type AxiosInstance, type AxiosResponse } from 'axios';
+import api, { API_URL } from '../api/api'; // Adjust path to your axios instance
 
-// ENUMS
+// Enums
 export type PaymentMethod = 'MOMO' | 'CARD' | 'CASH';
 
-// INTERFACES
-export interface SaleItem {
-  stockinId: string;
-  quantity: number;
-  soldPrice?: number;
-}
-
+// StockOut interface
 export interface StockOut {
   id: string;
   stockinId?: string;
-  transactionId?: string;
   adminId?: string;
   employeeId?: string;
+  transactionId?: string;
   quantity: number;
   soldPrice?: number;
   clientName?: string;
@@ -27,210 +21,111 @@ export interface StockOut {
   updatedAt?: string;
 }
 
-export interface CreateStockOutInput {
-  sales: SaleItem[];
-  clientName?: string;
-  clientEmail?: string;
-  clientPhone?: string;
-  paymentMethod?: PaymentMethod;
-  adminId?: string;
-  employeeId?: string;
-}
+// Input types
+export type CreateStockOutInput = Omit<StockOut, 'id' | 'transactionId' | 'createdAt' | 'updatedAt'> & { sales?: { stockinId: string; quantity: number; soldPrice?: number }[] };
+export type UpdateStockOutInput = Partial<CreateStockOutInput>;
 
-export interface UpdateStockOutInput extends Partial<CreateStockOutInput> {}
-
-export interface DeleteResponse {
+// Delete response
+interface DeleteResponse {
   message: string;
 }
 
-export interface TransactionResponse {
-  transactionId: string;
-  data: StockOut[];
-}
-
 /**
- * StockOutService
- * Handles all stock-out operations with type safety and clean structure.
+ * StockOut Service
+ * Handles API calls for StockOut
  */
 class StockOutService {
-  /** Create a single stock-out entry */
-  async createStockOut(stockOutData: Omit<SaleItem, 'soldPrice'> & Partial<StockOut>): Promise<TransactionResponse> {
+  private api: AxiosInstance = api;
+
+  /** Create a new stock out */
+  async createStockOut(data: CreateStockOutInput): Promise<{ transactionId: string; data: StockOut[] }> {
     try {
-      if (!stockOutData.stockinId || !stockOutData.quantity) {
-        throw new Error('Stock-in ID and quantity are required');
-      }
-
-      const requestData: CreateStockOutInput = {
-        sales: [
-          {
-            stockinId: stockOutData.stockinId,
-            quantity: Number(stockOutData.quantity),
-          },
-        ],
-        clientName: stockOutData.clientName,
-        clientEmail: stockOutData.clientEmail,
-        clientPhone: stockOutData.clientPhone,
-        adminId: stockOutData.adminId,
-        employeeId: stockOutData.employeeId,
-        paymentMethod: stockOutData.paymentMethod,
-      };
-
-      const response: AxiosResponse<TransactionResponse> = await api.post('/stockout/create', requestData);
+      const response: AxiosResponse<{ transactionId: string; data: StockOut[] }> = await this.api.post('/stockout/create', data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error creating stock-out:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create stock-out');
+      console.error('Error creating stock out:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create stock out';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Create multiple stock-out entries in one transaction */
-  async createMultipleStockOut(
-    salesArray: SaleItem[],
-    clientInfo: Partial<StockOut> = {},
-    userInfo: Partial<StockOut> = {}
-  ): Promise<TransactionResponse> {
-    try {
-      if (!Array.isArray(salesArray) || salesArray.length === 0) {
-        throw new Error('At least one sale is required');
-      }
-
-      const formattedSales = salesArray.map((sale) => ({
-        stockinId: sale.stockinId,
-        quantity: Number(sale.quantity),
-      }));
-
-      const requestData: CreateStockOutInput = {
-        sales: formattedSales,
-        clientName: clientInfo.clientName,
-        clientEmail: clientInfo.clientEmail,
-        clientPhone: clientInfo.clientPhone,
-        paymentMethod: clientInfo.paymentMethod,
-        adminId: userInfo.adminId,
-        employeeId: userInfo.employeeId,
-      };
-
-      const response: AxiosResponse<TransactionResponse> = await api.post('/stockout/create', requestData);
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ Error creating multiple stock-out:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to create multiple stock-out');
-    }
-  }
-
-  /** Get all stock-outs */
+  /** Get all stock outs */
   async getAllStockOuts(): Promise<StockOut[]> {
     try {
-      const response: AxiosResponse<StockOut[]> = await api.get('/stockout/all');
+      const response: AxiosResponse<StockOut[]> = await this.api.get('/stockout/all');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error fetching all stock-outs:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch stock-outs');
+      console.error('Error fetching stock outs:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch stock outs';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Get stock-out by ID */
+  /** Get stock out by ID */
   async getStockOutById(id: string): Promise<StockOut | null> {
     try {
-      if (!id) throw new Error('Stock-out ID is required');
-
-      const response: AxiosResponse<StockOut> = await api.get(`/stockout/getone/${id}`);
+      const response: AxiosResponse<StockOut> = await this.api.get(`/stockout/getone/${id}`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) return null;
-      console.error('❌ Error fetching stock-out by ID:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch stock-out');
+      console.error('Error fetching stock out by ID:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch stock out';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Get stock-outs by transaction ID */
+  /** Get stock out by transaction ID */
   async getStockOutByTransactionId(transactionId: string): Promise<StockOut[]> {
     try {
-      if (!transactionId) throw new Error('Transaction ID is required');
-
-      const response: AxiosResponse<StockOut[]> = await api.get(`/stockout/transaction/${transactionId}`);
+      const response: AxiosResponse<StockOut[]> = await this.api.get(`/stockout/transaction/${transactionId}`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error fetching stock-out by transaction ID:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to fetch stock-out by transaction ID');
+      console.error('Error fetching stock out by transaction ID:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch stock out by transaction ID';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Update stock-out */
-  async updateStockOut(id: string, updateData: UpdateStockOutInput): Promise<StockOut> {
+  /** Update a stock out */
+  async updateStockOut(id: string, data: UpdateStockOutInput): Promise<StockOut> {
     try {
-      if (!id) throw new Error('Stock-out ID is required');
-      if (!updateData || Object.keys(updateData).length === 0) throw new Error('Update data is required');
-
-      const formattedData = {
-        ...updateData,
-        quantity: updateData.quantity ? Number(updateData.quantity) : undefined,
-        soldPrice: updateData.soldPrice ? Number(updateData.soldPrice) : undefined,
-      };
-
-      const response: AxiosResponse<StockOut> = await api.put(`/stockout/update/${id}`, formattedData);
+      const response: AxiosResponse<StockOut> = await this.api.put(`/stockout/update/${id}`, data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error updating stock-out:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to update stock-out');
+      console.error('Error updating stock out:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update stock out';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Delete stock-out */
-  async deleteStockOut(id: string, userData: Partial<StockOut> = {}): Promise<DeleteResponse> {
+  /** Delete a stock out */
+  async deleteStockOut(id: string): Promise<DeleteResponse> {
     try {
-      if (!id) throw new Error('Stock-out ID is required');
-
-      const response: AxiosResponse<DeleteResponse> = await api.delete(`/stockout/delete/${id}`, { data: userData });
+      const response: AxiosResponse<DeleteResponse> = await this.api.delete(`/stockout/delete/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Error deleting stock-out:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Failed to delete stock-out');
+      console.error('Error deleting stock out:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete stock out';
+      throw new Error(errorMessage);
     }
   }
 
-  /** Get barcode image URL */
-  getBarCodeUrlImage(code?: string): string | null {
+    getBarCodeUrlImage(code?: string): string | null {
     return code ? `${API_URL}/uploads/barcodes/${code}.png` : null;
   }
 
-  /** Validation helpers */
-  validateStockOutData(stockOutData: Partial<StockOut>): boolean {
-    const errors: string[] = [];
-
-    if (!stockOutData.stockinId) errors.push('Stock-in ID is required');
-    if (!stockOutData.quantity || stockOutData.quantity <= 0) errors.push('Valid quantity is required');
-
-    if (stockOutData.clientEmail && !this.isValidEmail(stockOutData.clientEmail)) {
-      errors.push('Valid email format required');
-    }
-
-    if (stockOutData.clientPhone && !this.isValidPhone(stockOutData.clientPhone)) {
-      errors.push('Valid phone number required');
-    }
-
-    if (errors.length > 0) throw new Error(errors.join(', '));
-    return true;
-  }
-
-  isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  isValidPhone(phone: string): boolean {
-    return /^[\+]?[1-9][\d]{0,15}$/.test(phone.replace(/[\s\-\(\)]/g, ''));
-  }
-
-  /** Totals utilities */
-  calculateTotalSales(sales: SaleItem[]): number {
-    return Array.isArray(sales) ? sales.reduce((total, s) => total + (s.soldPrice || 0), 0) : 0;
-  }
-
-  calculateTotalQuantity(sales: SaleItem[]): number {
-    return Array.isArray(sales) ? sales.reduce((total, s) => total + (s.quantity || 0), 0) : 0;
-  }
 }
 
-// Singleton export
+// Singleton instance
 const stockOutService = new StockOutService();
 export default stockOutService;
-export { StockOutService };
+
+// Named exports
+export const {
+  createStockOut,
+  getAllStockOuts,
+  getStockOutById,
+  getStockOutByTransactionId,
+  updateStockOut,
+  deleteStockOut,
+} = stockOutService;

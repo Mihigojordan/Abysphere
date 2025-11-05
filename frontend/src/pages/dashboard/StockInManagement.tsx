@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
     Plus,
     Search,
@@ -22,7 +24,6 @@ import {
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import stockService, { type Stock } from '../../services/stockService';
-
 import DeleteStockModal from '../../components/dashboard/stock/DeleteStockInModal';
 import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
@@ -35,6 +36,7 @@ interface OperationStatus {
 }
 
 type ViewMode = 'table' | 'grid' | 'list';
+type DateFilterOption = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 const StockInManagement = ({ role }: { role: string }) => {
     const [stocks, setStocks] = useState<Stock[]>([]);
@@ -54,6 +56,11 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
 
+    // === DATE FILTER STATES ===
+    const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+    const [customStartDate, setCustomStartDate] = useState<string>('');
+    const [customEndDate, setCustomEndDate] = useState<string>('');
+
     const pdfContentRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -68,13 +75,37 @@ const StockInManagement = ({ role }: { role: string }) => {
         return `R${toNumber(value).toFixed(2)}`;
     };
 
+    // === DATE RANGE CALCULATION ===
+    const getDateRange = useMemo(() => {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        switch (dateFilter) {
+            case 'today':
+                return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+            case 'week':
+                return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+            case 'month':
+                return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+            case 'custom':
+                return {
+                    start: customStartDate ? new Date(customStartDate) : null,
+                    end: customEndDate ? new Date(customEndDate + 'T23:59:59') : null,
+                };
+            default:
+                return { start: null, end: null };
+        }
+    }, [dateFilter, customStartDate, customEndDate]);
+
     useEffect(() => {
         const fetchStocks = async () => {
             try {
                 setLoading(true);
                 const data = await stockService.getAllStocks();
 
-                // Normalize all numeric fields from string to number
                 const normalizedData = (Array.isArray(data) ? data : [data]).map(stock => ({
                     ...stock,
                     unitCost: toNumber(stock.unitCost),
@@ -99,7 +130,7 @@ const StockInManagement = ({ role }: { role: string }) => {
 
     useEffect(() => {
         handleFilterAndSort();
-    }, [searchTerm, categoryFilter, sortBy, sortOrder, allStocks]);
+    }, [searchTerm, categoryFilter, sortBy, sortOrder, allStocks, dateFilter, customStartDate, customEndDate]);
 
     // Socket Events
     useSocketEvent('stockCreated', (stockData: Stock) => {
@@ -157,6 +188,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     const handleFilterAndSort = () => {
         let filtered = [...allStocks];
 
+        // Search
         if (searchTerm.trim()) {
             filtered = filtered.filter(
                 (stock) =>
@@ -167,10 +199,20 @@ const StockInManagement = ({ role }: { role: string }) => {
             );
         }
 
+        // Category
         if (categoryFilter !== 'all') {
             filtered = filtered.filter((stock) => stock.categoryId === categoryFilter);
         }
 
+        // Date Filter
+        if (dateFilter !== 'all' && getDateRange.start && getDateRange.end) {
+            filtered = filtered.filter((stock) => {
+                const receivedAt = stock.receivedDate ? new Date(stock.receivedDate).getTime() : 0;
+                return receivedAt >= getDateRange.start!.getTime() && receivedAt <= getDateRange.end!.getTime();
+            });
+        }
+
+        // Sort
         filtered.sort((a, b) => {
             let aValue = a[sortBy] ?? '';
             let bValue = b[sortBy] ?? '';
@@ -614,14 +656,18 @@ const StockInManagement = ({ role }: { role: string }) => {
                             <p className="text-xs text-gray-500 mt-0.5">Track incoming inventory and stock levels</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <button onClick={() => stockService.getAllStocks().then(data => setAllStocks((Array.isArray(data) ? data : [data]).map(s => ({
-                                ...s,
-                                unitCost: toNumber(s.unitCost),
-                                receivedQuantity: parseInt(s.receivedQuantity as any) || 0,
-                                totalValue: toNumber(s.totalValue),
-                                reorderLevel: parseInt(s.reorderLevel as any) || 0,
-                            }))))}
-                                disabled={loading} className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50" title="Refresh">
+                            <button onClick={async () => {
+                                setLoading(true);
+                                const data = await stockService.getAllStocks();
+                                setAllStocks((Array.isArray(data) ? data : [data]).map(s => ({
+                                    ...s,
+                                    unitCost: toNumber(s.unitCost),
+                                    receivedQuantity: parseInt(s.receivedQuantity as any) || 0,
+                                    totalValue: toNumber(s.totalValue),
+                                    reorderLevel: parseInt(s.reorderLevel as any) || 0,
+                                })));
+                                setLoading(false);
+                            }} disabled={loading} className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50" title="Refresh">
                                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                                 <span>Refresh</span>
                             </button>
@@ -641,6 +687,7 @@ const StockInManagement = ({ role }: { role: string }) => {
             </div>
 
             <div className="px-4 py-4 space-y-4">
+                {/* STATS */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="bg-white rounded shadow p-4">
                         <div className="flex items-center space-x-3">
@@ -688,9 +735,11 @@ const StockInManagement = ({ role }: { role: string }) => {
                     </div>
                 </div>
 
+                {/* SEARCH & FILTERS */}
                 <div className="bg-white rounded border border-gray-200 p-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 gap-3">
-                        <div className="flex items-center space-x-2">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
+                        {/* Search + Date Filter */}
+                        <div className="flex items-center space-x-2 flex-1">
                             <div className="relative">
                                 <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
                                 <input
@@ -701,14 +750,51 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 />
                             </div>
-                            <button onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${
-                                    showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                                }`}>
-                                <Filter className="w-3 h-3" />
-                                <span>Filter</span>
-                            </button>
+
+                            {/* Date Filter Buttons */}
+                            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                                {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
+                                    <button
+                                        key={opt}
+                                        onClick={() => {
+                                            setDateFilter(opt);
+                                            if (opt !== 'custom') {
+                                                setCustomStartDate('');
+                                                setCustomEndDate('');
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
+                                            dateFilter === opt
+                                                ? 'bg-white text-primary-600 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {opt === 'all' ? 'All Time' : opt}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Custom Date Inputs */}
+                            {dateFilter === 'custom' && (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        value={customStartDate}
+                                        onChange={(e) => setCustomStartDate(e.target.value)}
+                                        className="px-3 py-1.5 text-xs border rounded"
+                                    />
+                                    <span className="text-gray-500 text-sm">to</span>
+                                    <input
+                                        type="date"
+                                        value={customEndDate}
+                                        onChange={(e) => setCustomEndDate(e.target.value)}
+                                        className="px-3 py-1.5 text-xs border rounded"
+                                    />
+                                </div>
+                            )}
                         </div>
+
+                        {/* Sort & View Mode */}
                         <div className="flex items-center space-x-2">
                             <select
                                 value={`${sortBy}-${sortOrder}`}
@@ -738,6 +824,8 @@ const StockInManagement = ({ role }: { role: string }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Additional Filters (Category) */}
                     {showFilters && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -747,8 +835,9 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 >
                                     <option value="all">All Categories</option>
+                                    {/* Add dynamic categories if available */}
                                 </select>
-                                <button onClick={() => { setSearchTerm(''); setCategoryFilter('all'); }}
+                                <button onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setDateFilter('all'); setCustomStartDate(''); setCustomEndDate(''); }}
                                     className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-200 rounded">
                                     Clear Filters
                                 </button>
@@ -768,7 +857,7 @@ const StockInManagement = ({ role }: { role: string }) => {
                 ) : currentStocks.length === 0 ? (
                     <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
                         <div className="text-xs">
-                            {searchTerm || categoryFilter !== 'all' ? 'No stock items found' : 'No stock received yet'}
+                            {searchTerm || categoryFilter !== 'all' || dateFilter !== 'all' ? 'No stock items found' : 'No stock received yet'}
                         </div>
                     </div>
                 ) : (

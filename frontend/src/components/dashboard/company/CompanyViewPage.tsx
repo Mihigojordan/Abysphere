@@ -55,6 +55,10 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     action: "deactivate";
   } | null>(null);
 
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+const [messageText, setMessageText] = useState<string>("");
+const [messageExpiry, setMessageExpiry] = useState<string>("");   // ISO string
+
   const url = `/${role}/dashboard/company-management/`;
 
   // Fetch companies
@@ -179,6 +183,31 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
       setOperationLoading(false);
     }
   };
+
+  const handleSetMessage = async () => {
+  if (!selectedCompany?.id) return;
+
+  try {
+    setOperationLoading(true);
+    const expiryISO = messageExpiry ? new Date(messageExpiry).toISOString() : undefined;
+
+    await companyService.setCompanyMessage(selectedCompany.id, messageText, expiryISO);
+
+    // Optimistically update UI
+    setSelectedCompany((prev) =>
+      prev ? { ...prev, message: messageText, messageExpiry: expiryISO } : prev
+    );
+
+    showOperationStatus("success", "Message set successfully!");
+  } catch (err: any) {
+    showOperationStatus("error", err.message || "Failed to set message");
+  } finally {
+    setOperationLoading(false);
+    setShowMessageModal(false);
+    setMessageText("");
+    setMessageExpiry("");
+  }
+};
 
   const getStatusColor = (status?: CompanyStatus) => {
     const colors: Record<CompanyStatus, string> = {
@@ -418,7 +447,11 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                 </div>
               )}
             </div>
+
+            
           </div>
+
+          
 
           <div className="grid grid-cols-2 gap-6">
             {/* Basic Information */}
@@ -633,6 +666,34 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
             </div>
           )}
 
+          {/* ----------  SET MESSAGE SECTION  ---------- */}
+<div className="bg-white rounded-lg shadow-sm border p-6">
+  <div className="flex items-center justify-between mb-4">
+    <h3 className="text-lg font-medium text-gray-900">Company Message</h3>
+    <button
+      onClick={() => setShowMessageModal(true)}
+      className="flex items-center space-x-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+    >
+      <Edit className="w-4 h-4" />
+      <span>Set Message</span>
+    </button>
+  </div>
+
+  {/* Current message preview */}
+  {selectedCompany?.message ? (
+    <div className="bg-gray-50 p-4 rounded border">
+      <p className="text-sm text-gray-800">{selectedCompany.message}</p>
+      {selectedCompany.messageExpiry && (
+        <p className="text-xs text-gray-500 mt-1">
+          Expires: {formatDate(selectedCompany.messageExpiry)}
+        </p>
+      )}
+    </div>
+  ) : (
+    <p className="text-sm text-gray-500 italic">No message set.</p>
+  )}
+</div>
+
           {/* Operation Loading Overlay */}
           {operationLoading && (
             <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
@@ -644,6 +705,77 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
               </div>
             </div>
           )}
+
+          {/* ----------  SET MESSAGE MODAL  ---------- */}
+{showMessageModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">Set Company Message</h3>
+        <button
+          onClick={() => {
+            setShowMessageModal(false);
+            setMessageText("");
+            setMessageExpiry("");
+          }}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Message *
+          </label>
+          <textarea
+            rows={4}
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder="Enter the message that will be shown to the company admin..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Expiry (optional)
+          </label>
+          <input
+            type="datetime-local"
+            value={messageExpiry}
+            onChange={(e) => setMessageExpiry(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Leave empty for a permanent message.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3 mt-6">
+        <button
+          onClick={() => {
+            setShowMessageModal(false);
+            setMessageText("");
+            setMessageExpiry("");
+          }}
+          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSetMessage}
+          disabled={operationLoading || !messageText.trim()}
+          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {operationLoading ? "Saving…" : "Save Message"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           {/* Action Confirmation Modal */}
           {actionConfirm && (

@@ -105,6 +105,35 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
 
 
   // Listen for real-time feature updates
+
+
+  useSocketEvent(
+  'companyMessageUpdated',
+  (data: {
+    adminId: string;
+    message: string;
+    expiry: string | null;
+  }) => {
+    if (user?.id === data.adminId) {
+      // ✅ Update user state with the new message and expiry
+      setUser(prev =>
+        prev
+          ? {
+              ...prev,
+              message: data.message,
+              messageExpiry: data.expiry,
+            }
+          : prev
+      );
+
+      // 🔔 Optional: show a toast or notification
+      console.info('🟢 Admin message updated:', data.message);
+    }
+  },
+  [user?.id]
+);
+
+
   useSocketEvent('featureAssigned', (data: {
     adminId: string;
     assignedFeatures: SystemFeature[];
@@ -114,6 +143,8 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
       setUser(prev => prev ? { ...prev, features: data.assignedFeatures } : prev);
     }
   }, [user?.id]);
+
+
 
   useSocketEvent('featureRemoved', (data: {
     adminId: string;

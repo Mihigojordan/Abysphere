@@ -1,5 +1,5 @@
 /*  ─────────────────────────────────────────────────────────────────────────────
-    Sidebar.tsx  (updated – feature-based visibility)
+    Sidebar.tsx  (updated – feature-based visibility with enhanced dropdowns)
     ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
@@ -14,6 +14,9 @@ import {
   Cog,
   FolderTree,
   ChevronDown,
+  ArrowUp,
+  ArrowDown,
+  Loader,
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -82,6 +85,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   const navigate = useNavigate();
 
   /* ---------------------------------------------------------------------- */
+  /*  Toggle dropdown open/close                                           */
+  /* ---------------------------------------------------------------------- */
+  const toggleDropdown = (dropdownId: string) => {
+    setOpenDropdown(prev => prev === dropdownId ? null : dropdownId);
+  };
+
+  /* ---------------------------------------------------------------------- */
   /*  Helper – does the current admin have a given feature?                */
   /* ---------------------------------------------------------------------- */
   const hasFeature = (name?: string): boolean => {
@@ -147,6 +157,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: FolderTree,
         path: `${base}/supplier-management`,
         feature: "SUPPLIER_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "stockin",
+        label: "StockIn Management",
+        icon: ArrowUp,
+        path: `${base}/stockin-management`,
+        feature: "STOCKIN_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "stockout",
+        label: "StockOut Management",
+        icon: ArrowDown,
+        path: `${base}/stockout-management`,
+        feature: "STOCKOUT_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "Sales-Return",
+        label: "Sales Return Management",
+        icon: Loader,
+        path: `${base}/sales-return-management`,
+        feature: "SALES_RETURN_MANAGEMENT",
         allowedRoles: ["admin"],
       },
 
