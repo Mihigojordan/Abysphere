@@ -1,5 +1,5 @@
 /*  ─────────────────────────────────────────────────────────────────────────────
-    Sidebar.tsx  (updated – feature-based visibility)
+    Sidebar.tsx  (updated – custom logo + dynamic profile)
     ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
@@ -19,6 +19,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { headWeb } from "../../utils/web-head";
+import { API_URL } from "../../api/api";
 
 interface SystemFeature {
   id: string;
@@ -27,7 +28,7 @@ interface SystemFeature {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Extend the Admin type that comes from the context (only for this file)   */
+/*  Extend the Admin type (for local use only)                               */
 /* -------------------------------------------------------------------------- */
 interface Admin {
   id: string;
@@ -41,28 +42,22 @@ interface Admin {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  NavItem / DropdownGroup – now support a `feature` string                 */
-/* -------------------------------------------------------------------------- */
 interface NavItem {
   id: string;
   label: string;
   icon: React.ElementType;
   path: string;
-  /** optional – if present the item is shown only when admin has this feature */
   feature?: string;
-  /** keep old role-based guard for backward compatibility */
   allowedRoles?: string[];
 }
 interface DropdownGroup {
   id: string;
   label: string;
   icon: React.ElementType;
-  /** the whole group can be guarded by a feature */
   feature?: string;
   items: NavItem[];
 }
 
-/* -------------------------------------------------------------------------- */
 interface SidebarProps {
   isOpen?: boolean;
   onToggle: () => void;
@@ -77,21 +72,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   const adminAuth = useAdminAuth();
   const employeeAuth = useEmployeeAuth();
   const auth = role === "admin" ? adminAuth : employeeAuth;
-  const user = auth.user as Admin | null;               // <-- cast for TS
+  const user = auth.user as Admin | null;
 
   const navigate = useNavigate();
 
-  /* ---------------------------------------------------------------------- */
-  /*  Helper – does the current admin have a given feature?                */
-  /* ---------------------------------------------------------------------- */
   const hasFeature = (name?: string): boolean => {
-    if (!name) return true;                     // no guard → always visible
+    if (!name) return true;
     return !!user?.features?.some((f) => f.name === name);
   };
 
-  /* ---------------------------------------------------------------------- */
-  /*  Build the raw navigation tree                                         */
-  /* ---------------------------------------------------------------------- */
   const getNavlinks = (role: string): (NavItem | DropdownGroup)[] => {
     const base = `/${role}/dashboard`;
 
@@ -103,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         label: "Departments Management",
         icon: Building,
         path: `${base}/department-management`,
-        feature: "DEPARTMENTS_MANAGEMENT",   // <-- feature name in DB
+        feature: "DEPARTMENTS_MANAGEMENT",
         allowedRoles: ["admin"],
       },
 
@@ -150,14 +139,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         allowedRoles: ["admin"],
       },
 
-      /* ------------------------------------------------------------------ */
-      /*  Example of a dropdown that is guarded by a single feature        */
-      /* ------------------------------------------------------------------ */
       {
         id: "reports",
         label: "Reports",
         icon: TrendingUp,
-        feature: "VIEW_REPORTS",               // whole group hidden if missing
+        feature: "VIEW_REPORTS",
         items: [
           {
             id: "sales-report",
@@ -176,32 +162,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     ];
   };
 
-  /* ---------------------------------------------------------------------- */
-  /*  Filter by role **and** by feature                                    */
-  /* ---------------------------------------------------------------------- */
   const filterNavItems = (
     items: (NavItem | DropdownGroup)[]
   ): (NavItem | DropdownGroup)[] => {
     return items
       .map((item) => {
-        /* ------------------- DropdownGroup ------------------- */
         if ("items" in item) {
-          const filtered = item.items
-            .filter(
-              (sub) =>
-                (!sub.allowedRoles || sub.allowedRoles.includes(role)) &&
-                hasFeature(sub.feature)
-            );
-
-          // keep the group only if it has at least one visible child **or**
-          // the group itself is not guarded (feature undefined)
-          const groupVisible =
-            hasFeature(item.feature) && filtered.length > 0;
-
+          const filtered = item.items.filter(
+            (sub) =>
+              (!sub.allowedRoles || sub.allowedRoles.includes(role)) &&
+              hasFeature(sub.feature)
+          );
+          const groupVisible = hasFeature(item.feature) && filtered.length > 0;
           return groupVisible ? { ...item, items: filtered } : null;
         }
 
-        /* ----------------------- NavItem ---------------------- */
         const visible =
           (!item.allowedRoles || item.allowedRoles.includes(role)) &&
           hasFeature(item.feature);
@@ -213,9 +188,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
   const navlinks = filterNavItems(getNavlinks(role));
 
-  /* ---------------------------------------------------------------------- */
-  /*  Auto-open dropdown when a child route is active                     */
-  /* ---------------------------------------------------------------------- */
   useEffect(() => {
     const cur = location.pathname;
     for (const it of navlinks) {
@@ -226,16 +198,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     }
   }, [location.pathname, navlinks]);
 
-  /* ---------------------------------------------------------------------- */
-  /*  Misc helpers                                                          */
-  /* ---------------------------------------------------------------------- */
+  const toggleDropdown = (id: string) => {
+    setOpenDropdown((prev) => (prev === id ? null : id));
+  };
+
   const getProfileRoute = () => `/${role}/dashboard/profile`;
-  const handleNavigateProfile = () => navigate(getProfileRoute(), { replace: true });
+  const handleNavigateProfile = () =>
+    navigate(getProfileRoute(), { replace: true });
 
   const displayName =
     role === "admin"
-      ? user?.adminName || "Admin User"
-      : `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Employee User";
+      ? user?.adminName || "Admin Username"
+      : `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
+        "Employee User";
 
   const displayEmail =
     role === "admin"
@@ -244,12 +219,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
   const portalTitle = `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
 
+    // Get profile image and email based on role
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getProfileImage = (): string | undefined => {
+    return role === "admin" ? user?.profileImage : user?.profile_image ;
+  };
+
   const isDropdownActive = (dropdown: DropdownGroup) =>
     dropdown.items.some((i) => location.pathname === i.path);
 
-  /* ---------------------------------------------------------------------- */
-  /*  Renderers                                                            */
-  /* ---------------------------------------------------------------------- */
   const renderMenuItem = (item: NavItem) => {
     const Icon = item.icon;
     return (
@@ -270,7 +248,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           <>
             <div
               className={`p-1 rounded-md ${
-                isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                isActive
+                  ? "bg-primary-500 text-white"
+                  : "bg-gray-100 text-gray-600"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -355,11 +335,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   };
 
   /* ---------------------------------------------------------------------- */
-  /*  JSX                                                                   */
+  /*  JSX                                                                  */
   /* ---------------------------------------------------------------------- */
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -367,23 +346,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } w-72`}
       >
-        {/* Header */}
+        {/* --------------------------- Header (Logo) --------------------------- */}
         <div className="flex items-center justify-between p-3 border-b border-primary-200">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg">
-              <div className="flex items-center space-x-0.5">
-                <MapPin className="w-3 h-3 text-white" />
-                <Plane className="w-2 h-2 text-white" />
-              </div>
-            </div>
+          <div className="flex items-center space-x-3">
+          {getProfileImage() ? (
+                              <img
+                                src={`${API_URL}${getProfileImage()}`}
+                                alt="Profile"
+                                className="w-24 h-20 rounded-md object-cover"
+                              />
+                            ) : (
+                              <User className="w-5 h-5 text-primary-600" />
+                            )}
             <div>
-              <h2 className="font-bold text-base text-primary-800">{headWeb.title}</h2>
+              <h2 className="font-bold text-base text-primary-800">
+                {    displayName || "Company Name"}
+              </h2>
               <p className="text-xs text-primary-500">{portalTitle}</p>
             </div>
           </div>
@@ -395,11 +378,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </button>
         </div>
 
-        {/* Navigation */}
+        {/* --------------------------- Navigation --------------------------- */}
         <div className="flex-1 overflow-y-auto p-2">
           <nav className="space-y-0.5">
             {navlinks.length ? (
-              navlinks.map((it) => ("items" in it ? renderDropdown(it) : renderMenuItem(it)))
+              navlinks.map((it) =>
+                "items" in it ? renderDropdown(it) : renderMenuItem(it)
+              )
             ) : (
               <div className="text-center py-4">
                 <p className="text-gray-500 text-xs">No menu items available</p>
@@ -408,14 +393,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </nav>
         </div>
 
-        {/* Footer – profile */}
-        <div className="p-2 border-t border-primary-200 cursor-pointer" onClick={handleNavigateProfile}>
-          <div className="flex items-center space-x-2 p-1.5 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
-            <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-600" />
-            </div>
+        {/* --------------------------- Footer (Profile) --------------------------- */}
+        <div
+          className="p-3 border-t border-primary-200 cursor-pointer"
+          onClick={handleNavigateProfile}
+        >
+          <div className="flex items-center space-x-3 p-1.5 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+            {user?.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt={displayName}
+                className="w-9 h-9 rounded-full object-cover border border-primary-200"
+              />
+            ) : (
+              <div className="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-primary-600" />
+              </div>
+            )}
+
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-normal text-gray-900 truncate">{displayName}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {displayName}
+              </p>
               <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
             </div>
           </div>

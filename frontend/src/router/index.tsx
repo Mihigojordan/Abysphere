@@ -33,6 +33,7 @@ import StockInFormExample from "../pages/dashboard/AddStockin";
 import StockInManagement from "../pages/dashboard/StockInManagement";
 import StockOutDashboard from "../pages/dashboard/StockOutDashboard";
 import SalesReturnDashboard from "../pages/dashboard/SalesReturnDashboard";
+import MembershipPlan from "../pages/dashboard/SuperAdmin/MembershipPlan";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -357,6 +358,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <Demomanagement role={""}  />
+                  </SuspenseWrapper>
+                ),
+              },
+                   {
+                path: 'membership-plan',
+                element: (
+                  <SuspenseWrapper>
+                    <MembershipPlan />
                   </SuspenseWrapper>
                 ),
               },
