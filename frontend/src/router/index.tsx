@@ -36,6 +36,7 @@ import SalesReturnDashboard from "../pages/dashboard/SalesReturnDashboard";
 import SalesReportPage from "../pages/dashboard/SalesReportDashboard";
 import InventoryReportPage from "../pages/dashboard/InventoryReportDashboard";
 import MembershipPlan from "../pages/dashboard/SuperAdmin/MembershipPlan";
+import SuperAdminDashboard from "../pages/dashboard/SuperAdmin/SuperAdminDashboard";
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -294,7 +295,7 @@ const routes = createBrowserRouter([
                 path: '',
                 element: (
                   <SuspenseWrapper>
-                    <DashboardHome role='super-admin'/>
+                    <SuperAdminDashboard role='super-admin'/>
                   </SuspenseWrapper>
                 ),
               },

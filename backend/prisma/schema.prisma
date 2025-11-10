@@ -68,6 +68,7 @@ model Admin {
 
   message      String?
   messageExpiry  DateTime?
+  isMessage      Boolean?        @default(false)
 
   is2FA         Boolean?        @default(false)
   isLocked      Boolean?        @default(false)

@@ -1,10 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Check, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, Loader2, AlertCircle, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import systemFeaturesService from '../../../services/system-featuresService';
 import companyService from '../../../services/companyService';
 
 const ITEMS_PER_PAGE = 7;
+
+// Define feature groups
+const FEATURE_GROUPS = {
+  INVENTORY: {
+    name: 'Inventory Management',
+    description: 'All inventory-related features',
+    children: [
+      'SALES_RETURN_MANAGEMENT',
+      'STOCKOUT_MANAGEMENT',
+      'STOCKIN_MANAGEMENT',
+      'SUPPLIER_MANAGEMENT',
+      'CATEGORY_MANAGEMENT',
+      'ASSET_MANAGEMENT',
+      "CLIENTS_MANAGEMENT",
+      "EMPLOYEES_MANAGEMENT",
+      "DEPARTMENTS_MANAGEMENT",
+      "VIEW_REPORTS"
+    ]
+  }
+};
+
+// Features that belong to groups
+const GROUPED_FEATURE_NAMES = Object.values(FEATURE_GROUPS).flatMap(g => g.children);
 
 export default function AssignFeaturesPage() {
   const { companyId } = useParams();
@@ -14,6 +37,7 @@ export default function AssignFeaturesPage() {
   const [assignedFeatures, setAssignedFeatures] = useState([]);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState([]);
   const [company, setCompany] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +46,6 @@ export default function AssignFeaturesPage() {
 
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
-  // Fetch data on mount
   useEffect(() => {
     fetchData();
   }, [companyId]);
@@ -58,6 +81,48 @@ export default function AssignFeaturesPage() {
     });
   };
 
+  const handleToggleGroup = (groupKey) => {
+    const group = FEATURE_GROUPS[groupKey];
+    const groupFeatureIds = allFeatures
+      .filter(f => group.children.includes(f.name))
+      .map(f => f.id);
+    
+    const allSelected = groupFeatureIds.every(id => selectedFeatureIds.includes(id));
+    
+    setSelectedFeatureIds(prev => {
+      if (allSelected) {
+        return prev.filter(id => !groupFeatureIds.includes(id));
+      }
+      return [...new Set([...prev, ...groupFeatureIds])];
+    });
+  };
+
+  const toggleGroupExpansion = (groupKey) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupKey]: !prev[groupKey]
+    }));
+  };
+
+  const isGroupFullySelected = (groupKey) => {
+    const group = FEATURE_GROUPS[groupKey];
+    const groupFeatureIds = allFeatures
+      .filter(f => group.children.includes(f.name))
+      .map(f => f.id);
+    
+    return groupFeatureIds.length > 0 && groupFeatureIds.every(id => selectedFeatureIds.includes(id));
+  };
+
+  const isGroupPartiallySelected = (groupKey) => {
+    const group = FEATURE_GROUPS[groupKey];
+    const groupFeatureIds = allFeatures
+      .filter(f => group.children.includes(f.name))
+      .map(f => f.id);
+    
+    const selectedCount = groupFeatureIds.filter(id => selectedFeatureIds.includes(id)).length;
+    return selectedCount > 0 && selectedCount < groupFeatureIds.length;
+  };
+
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
@@ -89,17 +154,21 @@ export default function AssignFeaturesPage() {
     setSearchParams({ page: newPage.toString() });
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(allFeatures.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedFeatures = allFeatures.slice(startIndex, endIndex);
-
   const hasChanges = () => {
     const originalIds = assignedFeatures.map(f => f.id).sort();
     const currentIds = [...selectedFeatureIds].sort();
     return JSON.stringify(originalIds) !== JSON.stringify(currentIds);
   };
+
+  // Separate features into grouped and ungrouped
+  const groupedFeatures = allFeatures.filter(f => GROUPED_FEATURE_NAMES.includes(f.name));
+  const ungroupedFeatures = allFeatures.filter(f => !GROUPED_FEATURE_NAMES.includes(f.name));
+
+  // Pagination for ungrouped features only
+  const totalPages = Math.ceil(ungroupedFeatures.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedFeatures = ungroupedFeatures.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -123,7 +192,6 @@ export default function AssignFeaturesPage() {
     );
   }
 
-  // No features available
   if (allFeatures.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -148,7 +216,7 @@ export default function AssignFeaturesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className=" mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Assign Features</h1>
@@ -180,6 +248,115 @@ export default function AssignFeaturesPage() {
         {/* Features List */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="divide-y divide-gray-200">
+            {/* Render Feature Groups */}
+            {Object.entries(FEATURE_GROUPS).map(([groupKey, group]) => {
+              const isExpanded = expandedGroups[groupKey];
+              const isFullySelected = isGroupFullySelected(groupKey);
+              const isPartiallySelected = isGroupPartiallySelected(groupKey);
+              const groupChildren = allFeatures.filter(f => group.children.includes(f.name));
+
+              return (
+                <div key={groupKey} className="border-b border-gray-200">
+                  {/* Group Header */}
+                  <div
+                    className="p-4 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+                    onClick={() => handleToggleGroup(groupKey)}
+                     onDoubleClick={(e) => {
+                          // e.stopPropagation();
+                          toggleGroupExpansion(groupKey);
+                        }}
+                  >
+                    <div className="flex items-start">
+                      <div className="flex items-center h-6">
+                        <div
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                            isFullySelected
+                              ? 'bg-primary-600 border-primary-600'
+                              : isPartiallySelected
+                              ? 'bg-primary-300 border-primary-300'
+                              : 'border-gray-300 bg-white'
+                          }`}
+                        >
+                          {isFullySelected && <Check className="w-3.5 h-3.5 text-white" />}
+                          {isPartiallySelected && !isFullySelected && (
+                            <div className="w-2 h-2 bg-white rounded-sm" />
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 flex items-center">
+                          {group.name}
+                          <span className="ml-2 text-xs text-gray-500">
+                            ({groupChildren.length} features)
+                          </span>
+                        </h3>
+                        {group.description && (
+                          <p className="mt-1 text-sm text-gray-600">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroupExpansion(groupKey);
+                        }}
+                        className="ml-2 p-1 hover:bg-blue-200 rounded transition-colors"
+                      >
+                        {isExpanded ? (
+                          <ChevronDown className="w-5 h-5 text-gray-600" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Group Children */}
+                  {isExpanded && (
+                    <div className="bg-gray-50">
+                      {groupChildren.map((feature) => {
+                        const isSelected = selectedFeatureIds.includes(feature.id);
+                        
+                        return (
+                          <div
+                            key={feature.id}
+                            className="p-4 pl-12 hover:bg-gray-100 transition-colors cursor-pointer border-t border-gray-200"
+                            onClick={() => handleToggleFeature(feature.id)}
+                          >
+                            <div className="flex items-start">
+                              <div className="flex items-center h-6">
+                                <div
+                                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                                    isSelected
+                                      ? 'bg-primary-600 border-primary-600'
+                                      : 'border-gray-300 bg-white'
+                                  }`}
+                                >
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                                </div>
+                              </div>
+                              <div className="ml-3 flex-1">
+                                <h3 className="text-sm font-semibold text-gray-900">
+                                  {feature.name}
+                                </h3>
+                                {feature.description && (
+                                  <p className="mt-1 text-sm text-gray-600">
+                                    {feature.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Render Ungrouped Features */}
             {paginatedFeatures.map((feature) => {
               const isSelected = selectedFeatureIds.includes(feature.id);
               
@@ -222,8 +399,8 @@ export default function AssignFeaturesPage() {
             <div className="border-t border-gray-200 px-4 py-3 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-700">
-                  Showing {startIndex + 1} to {Math.min(endIndex, allFeatures.length)} of{' '}
-                  {allFeatures.length} features
+                  Showing {startIndex + 1} to {Math.min(endIndex, ungroupedFeatures.length)} of{' '}
+                  {ungroupedFeatures.length} ungrouped features
                 </div>
                 <div className="flex items-center space-x-2">
                   <button

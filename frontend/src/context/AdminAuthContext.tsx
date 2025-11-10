@@ -132,6 +132,27 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
   },
   [user?.id]
 );
+  useSocketEvent(
+  'clearedCompanyMessages',
+  (data: {
+    adminId: string;
+
+  }) => {
+    if (user?.id === data.adminId) {
+      // ✅ Update user state with the new message and expiry
+      setUser(prev =>
+        prev
+          ? {
+              ...prev,
+              message: null,
+              messageExpiry: null,
+            }
+          : prev
+      );
+    }
+  },
+  [user?.id]
+);
 
 
   useSocketEvent('featureAssigned', (data: {

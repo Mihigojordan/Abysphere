@@ -22,6 +22,8 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { headWeb } from "../../utils/web-head";
+import { API_URL } from "../../api/api";
+import PWAInstallButton from "./PWAInstallButton";
 
 interface SystemFeature {
   id: string;
@@ -275,6 +277,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     role === "admin"
       ? user?.adminEmail || "admin@example.com"
       : user?.email || "employee@example.com";
+  const displayImage =
+    role === "admin"
+      ? user?.profileImage || "admin@example.com"
+      : user?.email || "employee@example.com";
 
   const portalTitle = `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
 
@@ -410,14 +416,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-primary-200">
           <div className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-7 h-7 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg">
-              <div className="flex items-center space-x-0.5">
-                <MapPin className="w-3 h-3 text-white" />
-                <Plane className="w-2 h-2 text-white" />
-              </div>
-            </div>
+            <img src={`${API_URL}${displayImage}`} className="w-7 h-7" alt="" />
             <div>
-              <h2 className="font-bold text-base text-primary-800">{headWeb.title}</h2>
+              <h2 className="font-bold text-base text-primary-800">{displayName}</h2>
               <p className="text-xs text-primary-500">{portalTitle}</p>
             </div>
           </div>
@@ -443,17 +444,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         </div>
 
         {/* Footer – profile */}
-        <div className="p-2 border-t border-primary-200 cursor-pointer" onClick={handleNavigateProfile}>
-          <div className="flex items-center space-x-2 p-1.5 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
-            <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-primary-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-normal text-gray-900 truncate">{displayName}</p>
-              <p className="text-xs text-gray-500 truncate">{displayEmail}</p>
-            </div>
-          </div>
-        </div>
+<PWAInstallButton />
       </div>
     </>
   );

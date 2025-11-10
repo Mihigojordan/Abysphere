@@ -574,7 +574,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         salesReturnId={salesReturnId}
       />
 
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto ">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-3">

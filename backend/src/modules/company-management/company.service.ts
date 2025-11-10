@@ -144,16 +144,17 @@ export class CompanyService {
   /**
    * Optional: clear message if expired
    */
-  async clearExpiredMessages() {
+  async clearAdminMessages(adminId:string) {
     const now = new Date();
 
     const cleared = await this.prisma.admin.updateMany({
       where: {
-        messageExpiry: { lt: now },
+        id: adminId,
       },
       data: {
         message: null,
         messageExpiry: null,
+        isMessage:false,
       },
     });
 
