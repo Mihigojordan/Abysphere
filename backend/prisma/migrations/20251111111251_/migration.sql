@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE `Admin` (
+CREATE TABLE `SuperAdmin` (
     `id` VARCHAR(191) NOT NULL,
     `adminName` VARCHAR(191) NULL,
     `adminEmail` VARCHAR(191) NULL,
@@ -13,9 +13,92 @@ CREATE TABLE `Admin` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `SuperAdmin_id_key`(`id`),
+    UNIQUE INDEX `SuperAdmin_adminEmail_key`(`adminEmail`),
+    UNIQUE INDEX `SuperAdmin_google_id_key`(`google_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `SystemFeature` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` TEXT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SystemFeature_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `DemoRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `fullName` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `phone` VARCHAR(191) NOT NULL,
+    `companyName` VARCHAR(191) NOT NULL,
+    `companyWebsite` VARCHAR(191) NULL,
+    `companyDescription` VARCHAR(191) NULL,
+    `companySize` VARCHAR(191) NULL,
+    `message` VARCHAR(191) NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'pending',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `AdminFeature` (
+    `adminId` VARCHAR(191) NOT NULL,
+    `featureId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`adminId`, `featureId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Admin` (
+    `id` VARCHAR(191) NOT NULL,
+    `adminName` VARCHAR(191) NULL,
+    `adminEmail` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `password` VARCHAR(191) NULL,
+    `profileImage` VARCHAR(191) NULL,
+    `status` ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    `google_id` VARCHAR(191) NULL,
+    `website` VARCHAR(191) NULL,
+    `address` VARCHAR(191) NULL,
+    `city` VARCHAR(191) NULL,
+    `country` VARCHAR(191) NULL,
+    `description` VARCHAR(191) NULL,
+    `message` VARCHAR(191) NULL,
+    `messageExpiry` DATETIME(3) NULL,
+    `isMessage` BOOLEAN NULL DEFAULT false,
+    `is2FA` BOOLEAN NULL DEFAULT false,
+    `isLocked` BOOLEAN NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
     UNIQUE INDEX `Admin_id_key`(`id`),
     UNIQUE INDEX `Admin_adminEmail_key`(`adminEmail`),
     UNIQUE INDEX `Admin_google_id_key`(`google_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `MembershipPlan` (
+    `id` VARCHAR(191) NOT NULL,
+    `companyId` VARCHAR(191) NOT NULL,
+    `planName` VARCHAR(191) NOT NULL,
+    `startTime` DATETIME(3) NOT NULL,
+    `expireTime` DATETIME(3) NOT NULL,
+    `amountPaid` DOUBLE NOT NULL,
+    `shortDescription` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `MembershipPlan_companyId_idx`(`companyId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -24,6 +107,7 @@ CREATE TABLE `Department` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NULL,
     `description` VARCHAR(1000) NULL,
+    `adminId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -56,6 +140,7 @@ CREATE TABLE `Employee` (
     `experience` JSON NULL,
     `emergency_contact_name` VARCHAR(191) NULL,
     `emergency_contact_phone` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NOT NULL,
     `google_id` VARCHAR(191) NULL,
     `isLocked` BOOLEAN NULL DEFAULT false,
     `is2FA` BOOLEAN NULL DEFAULT false,
@@ -87,6 +172,29 @@ CREATE TABLE `Contract` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Stock` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `sku` VARCHAR(191) NOT NULL,
+    `itemName` VARCHAR(191) NOT NULL,
+    `categoryId` VARCHAR(191) NULL,
+    `supplier` VARCHAR(191) NULL,
+    `unitOfMeasure` VARCHAR(191) NOT NULL,
+    `receivedQuantity` INTEGER NOT NULL,
+    `unitCost` DECIMAL(12, 2) NOT NULL,
+    `totalValue` DECIMAL(14, 2) NOT NULL,
+    `warehouseLocation` VARCHAR(191) NOT NULL,
+    `receivedDate` DATETIME(3) NOT NULL,
+    `reorderLevel` INTEGER NOT NULL,
+    `adminId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Stock_sku_key`(`sku`),
+    INDEX `Stock_sku_idx`(`sku`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -185,6 +293,7 @@ CREATE TABLE `Store` (
     `location` VARCHAR(191) NOT NULL,
     `description` TEXT NULL,
     `managerId` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NOT NULL,
     `contact_phone` VARCHAR(191) NULL,
     `contact_email` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -292,6 +401,48 @@ CREATE TABLE `StockIn` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `StockIn_sku_key`(`sku`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `StockOut` (
+    `id` VARCHAR(191) NOT NULL,
+    `stockinId` INTEGER NULL,
+    `adminId` VARCHAR(191) NULL,
+    `employeeId` VARCHAR(191) NULL,
+    `transactionId` VARCHAR(191) NULL,
+    `quantity` INTEGER NOT NULL DEFAULT 0,
+    `soldPrice` DECIMAL(10, 2) NULL,
+    `clientName` VARCHAR(191) NULL,
+    `clientEmail` VARCHAR(191) NULL,
+    `clientPhone` VARCHAR(191) NULL,
+    `paymentMethod` ENUM('MOMO', 'CARD', 'CASH') NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `StockOut_transactionId_key`(`transactionId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `SalesReturn` (
+    `id` VARCHAR(191) NOT NULL,
+    `transactionId` VARCHAR(191) NULL,
+    `creditnoteId` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NOT NULL,
+    `reason` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `SalesReturnItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `salesReturnId` VARCHAR(191) NOT NULL,
+    `stockoutId` VARCHAR(191) NOT NULL,
+    `quantity` INTEGER NOT NULL,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -598,14 +749,65 @@ CREATE TABLE `GrownEggPondFeeding` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `Category` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NULL,
+    `description` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NULL,
+    `employeeId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Supplier` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `address` VARCHAR(191) NULL,
+    `adminId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Supplier_email_key`(`email`),
+    UNIQUE INDEX `Supplier_phone_key`(`phone`),
+    INDEX `Supplier_email_idx`(`email`),
+    INDEX `Supplier_phone_idx`(`phone`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `AdminFeature` ADD CONSTRAINT `AdminFeature_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `AdminFeature` ADD CONSTRAINT `AdminFeature_featureId_fkey` FOREIGN KEY (`featureId`) REFERENCES `SystemFeature`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `MembershipPlan` ADD CONSTRAINT `MembershipPlan_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Department` ADD CONSTRAINT `Department_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE `Employee` ADD CONSTRAINT `Employee_departmentId_fkey` FOREIGN KEY (`departmentId`) REFERENCES `Department`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Employee` ADD CONSTRAINT `Employee_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Employee` ADD CONSTRAINT `Employee_siteId_fkey` FOREIGN KEY (`siteId`) REFERENCES `Site`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Contract` ADD CONSTRAINT `Contract_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Stock` ADD CONSTRAINT `Stock_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Stock` ADD CONSTRAINT `Stock_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Applicant` ADD CONSTRAINT `Applicant_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `Job`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -618,6 +820,9 @@ ALTER TABLE `Activity` ADD CONSTRAINT `Activity_employeeId_fkey` FOREIGN KEY (`e
 
 -- AddForeignKey
 ALTER TABLE `Store` ADD CONSTRAINT `Store_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Store` ADD CONSTRAINT `Store_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Site` ADD CONSTRAINT `Site_manager_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -648,6 +853,21 @@ ALTER TABLE `StockIn` ADD CONSTRAINT `StockIn_stockcategoryId_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `StockIn` ADD CONSTRAINT `StockIn_storeId_fkey` FOREIGN KEY (`storeId`) REFERENCES `Store`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_stockinId_fkey` FOREIGN KEY (`stockinId`) REFERENCES `Stock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `SalesReturnItem` ADD CONSTRAINT `SalesReturnItem_stockoutId_fkey` FOREIGN KEY (`stockoutId`) REFERENCES `StockOut`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `SalesReturnItem` ADD CONSTRAINT `SalesReturnItem_salesReturnId_fkey` FOREIGN KEY (`salesReturnId`) REFERENCES `SalesReturn`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Request` ADD CONSTRAINT `Request_siteId_fkey` FOREIGN KEY (`siteId`) REFERENCES `Site`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -798,3 +1018,12 @@ ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_feedId_fke
 
 -- AddForeignKey
 ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Category` ADD CONSTRAINT `Category_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Category` ADD CONSTRAINT `Category_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Supplier` ADD CONSTRAINT `Supplier_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
