@@ -135,7 +135,7 @@ export class CompanyController {
     // 🔔 Notify clients in real-time
     this.companyGateway.server.emit('featureAssigned', {
       adminId,
-      assignedFeatures: result.features,
+      assignedFeatures: result?.features,
       admin:result
     });
 
@@ -156,7 +156,7 @@ export class CompanyController {
     // 🔔 Notify clients in real-time
     this.companyGateway.server.emit('featureRemoved', {
       adminId,
-      remainingFeatures: result.features,
+      remainingFeatures: result?.features,
     });
 
     return result;
