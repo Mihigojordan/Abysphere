@@ -8,6 +8,7 @@ import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdm
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/fine_fish_logo.png";
+import PricingPage from "../pages/landing/PricingPage";
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
@@ -171,7 +172,7 @@ const routes = createBrowserRouter([
             ),
           },
           {
-            path: 'solutions',
+            path: 'features',
             element: (
               <SuspenseWrapper>
                 <ServicesPage />
@@ -183,6 +184,14 @@ const routes = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <JobBoard />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'pricing',
+            element: (
+              <SuspenseWrapper>
+                <PricingPage />
               </SuspenseWrapper>
             ),
           },

@@ -232,11 +232,27 @@ async assignFeaturesToCompany(adminId: string, featureIds: string[]) {
     async getCompanyFeatures(adminId: string) {
         const admin = await this.prisma.admin.findUnique({
             where: { id: adminId },
-            include: { features: true },
+           include:{
+          features:{
+            include:{
+              feature:true,
+            } 
+          },
+        }
         });
+
         if (!admin) throw new NotFoundException('Company not found');
 
-        return admin.features;
+
+   
+
+      const features = admin?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+      }))
+
+
+        return features;
     }
 
     /**

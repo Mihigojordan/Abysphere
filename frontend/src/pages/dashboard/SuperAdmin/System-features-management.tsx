@@ -775,7 +775,7 @@ const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
     <option value="DEPARTMENTS_MANAGEMENT">Department Management</option>
     <option value="EMPLOYEES_MANAGEMENT">Employee Management</option>
     <option value="CLIENTS_MANAGEMENT">Client Management</option>
-    <option value="ASSET_MANAGEMENT">Asset Management</option>
+    
     <option value="CATEGORY_MANAGEMENT">Category Management</option>
     <option value="SUPPLIER_MANAGEMENT">Supplier Management</option>
     <option value="STOCKIN_MANAGEMENT">StockIn Mangement</option>

@@ -136,14 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         feature: "CLIENTS_MANAGEMENT",
       },
 
-      {
-        id: "asset",
-        label: "Asset Management",
-        icon: Cog,
-        path: `${base}/asset-management`,
-        feature: "ASSET_MANAGEMENT",
-      },
-
+     
       {
         id: "category",
         label: "Category Management",

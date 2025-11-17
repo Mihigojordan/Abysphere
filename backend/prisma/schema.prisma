@@ -627,7 +627,7 @@ model StockOut {
   stockinId       Int?
   adminId         String?
   employeeId      String?
-  transactionId   String?        @unique
+  transactionId   String?        
   quantity        Int            @default(0)
   soldPrice       Decimal?       @db.Decimal(10,2)
   clientName      String?

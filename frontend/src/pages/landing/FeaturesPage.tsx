@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { 
-  ChevronRight, 
-  Users, 
-  Fish, 
-  Leaf, 
-  Handshake, 
-  Clock, 
-  BookOpen, 
-  Target, 
-  Award, 
-  Star, 
-  CheckCircle, 
-  Cloud, 
-  Smartphone, 
-  Lock, 
-  Globe, 
-  Settings, 
-  Database 
+import {
+  ChevronRight,
+  Users,
+  Fish,
+  Leaf,
+  Handshake,
+  Clock,
+  BookOpen,
+  Target,
+  Award,
+  Star,
+  CheckCircle,
+  Cloud,
+  Smartphone,
+  Lock,
+  Globe,
+  Settings,
+  Database
 } from 'lucide-react';
 import HeaderBanner from '../../components/landing/HeaderBanner';
 
@@ -49,10 +49,10 @@ const HRFeaturesPage: React.FC = () => {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
 
   const categories: string[] = [
-    'All', 
-    'Workforce Management', 
-    'Training & Development', 
-    'Sustainability Tracking', 
+    'All',
+    'Workforce Management',
+    'Training & Development',
+    'Sustainability Tracking',
     'Community Engagement'
   ];
 
@@ -171,8 +171,8 @@ const HRFeaturesPage: React.FC = () => {
     { name: "Lake Kivu Fisheries", logo: "https://placehold.co/150x50?text=Kivu+Fisheries&bg=1e3a8a&fg=ffffff" },
   ];
 
-  const filteredModules: Module[] = activeCategory === 'All' 
-    ? modules 
+  const filteredModules: Module[] = activeCategory === 'All'
+    ? modules
     : modules.filter(module => module.category === activeCategory);
 
   return (
@@ -182,7 +182,7 @@ const HRFeaturesPage: React.FC = () => {
         <div className="absolute bottom-20 left-10 w-24 h-24 bg-primary-200 rounded-full opacity-30"></div>
         <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-primary-300 rounded-full opacity-15"></div>
       </div>
-      
+
       <HeaderBanner
         title="Aquaculture HR Features"
         subtitle="Home / Features"
@@ -225,7 +225,7 @@ const HRFeaturesPage: React.FC = () => {
               Built to support sustainable aquaculture, community empowerment, and Rwanda’s Vision 2050.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {keyFeatures.map((feature, index) => (
               <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
@@ -258,11 +258,10 @@ const HRFeaturesPage: React.FC = () => {
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                  activeCategory === category
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-600'
-                }`}
+                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${activeCategory === category
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-600 hover:bg-primary-50 hover:text-primary-600'
+                  }`}
               >
                 {category}
               </button>
@@ -277,8 +276,8 @@ const HRFeaturesPage: React.FC = () => {
                 onClick={() => setSelectedModule(module)}
               >
                 <div className="relative overflow-hidden">
-                  <img 
-                    src={module.image} 
+                  <img
+                    src={module.image}
                     alt={module.name}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -293,15 +292,15 @@ const HRFeaturesPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   <div className="mb-2">
                     <span className="text-primary-600 text-sm font-medium">{module.category}</span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{module.name}</h3>
-                  
+
                   <p className="text-gray-600 text-sm mb-4">{module.description}</p>
-                  
+
                   <div className="space-y-2 mb-4">
                     {module.features.slice(0, 3).map((feature, idx) => (
                       <div key={idx} className="flex items-center gap-2">
@@ -315,7 +314,7 @@ const HRFeaturesPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-gray-500">{module.pricing}</div>
                     <div className="flex text-yellow-400">
@@ -324,7 +323,7 @@ const HRFeaturesPage: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <button className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all">
                     Learn More <ChevronRight size={18} />
                   </button>
@@ -346,7 +345,7 @@ const HRFeaturesPage: React.FC = () => {
               Collaborating to advance Rwanda’s aquaculture workforce and sustainability goals.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-4 gap-6">
             {partners.map((partner, index) => (
               <div key={index} className="bg-white rounded-xl p-6 shadow-lg text-center hover:shadow-xl transition-all duration-300">
@@ -368,8 +367,8 @@ const HRFeaturesPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-screen overflow-y-auto">
             <div className="relative">
-              <img 
-                src={selectedModule.image} 
+              <img
+                src={selectedModule.image}
                 alt={selectedModule.name}
                 className="w-full h-64 object-cover"
               />
@@ -385,7 +384,7 @@ const HRFeaturesPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            
+
             <div className="p-8">
               <div className="flex items-center gap-4 mb-4">
                 <div className="text-primary-600">
@@ -396,9 +395,9 @@ const HRFeaturesPage: React.FC = () => {
                   <p className="text-primary-600">{selectedModule.category}</p>
                 </div>
               </div>
-              
+
               <p className="text-gray-600 mb-6">{selectedModule.description}</p>
-              
+
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Features</h3>
@@ -411,7 +410,7 @@ const HRFeaturesPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Benefits</h3>
                   <div className="space-y-2">
@@ -424,14 +423,14 @@ const HRFeaturesPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-primary-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-gray-900">Pricing</span>
                   <span className="text-primary-600 font-semibold">{selectedModule.pricing}</span>
                 </div>
               </div>
-              
+
               <div className="flex gap-4">
                 <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors">
                   Start Free Trial
