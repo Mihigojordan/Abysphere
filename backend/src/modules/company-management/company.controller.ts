@@ -1,6 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CompanyGateway } from './company.gateway';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { AdminFileFields, AdminUploadConfig } from 'src/common/utils/file-upload.utils';
 
 @Controller('company')
 export class CompanyController {
@@ -14,7 +16,21 @@ export class CompanyController {
   // ============================
 
   @Post()
-  async create(@Body() body: any) {
+    @UseInterceptors(
+      FileFieldsInterceptor(AdminFileFields, AdminUploadConfig),
+    )
+  async create(@Body() body: any, @UploadedFiles() files: { profileImg?: Express.Multer.File[] },) {
+
+     function parseBoolean(value: string | boolean | undefined): boolean | undefined {
+      if (typeof value === 'string') return JSON.parse(value);
+      return value;
+    }
+    if (files?.profileImg?.[0]?.filename) {
+      body['profileImage'] = `/uploads/profile_images/${files.profileImg[0].filename}`;
+    }
+    if (body['is2FA']) {
+      body['is2FA'] = parseBoolean(body['is2FA'])
+    }
     const company = await this.companyService.create(body);
     this.companyGateway.emitCompanyCreated(company);
     return company;
@@ -31,7 +47,21 @@ export class CompanyController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: any) {
+    @UseInterceptors(
+    FileFieldsInterceptor(AdminFileFields, AdminUploadConfig),
+  )
+  async update(@Param('id') id: string, @Body() body: any, @UploadedFiles() files: { profileImg?: Express.Multer.File[] },) {
+     function parseBoolean(value: string | boolean | undefined): boolean | undefined {
+      if (typeof value === 'string') return JSON.parse(value);
+      return value;
+    }
+    if (files?.profileImg?.[0]?.filename) {
+      body['profileImage'] = `/uploads/profile_images/${files.profileImg[0].filename}`;
+    }
+    if (body['is2FA']) {
+      body['is2FA'] = parseBoolean(body['is2FA'])
+    }
+    
     const company = await this.companyService.update(id, body);
     this.companyGateway.emitCompanyUpdated(company);
     return company;
@@ -67,6 +97,24 @@ export class CompanyController {
 
     return result;
   }
+   @Post(':adminId/clear-message')
+  async clearAdminMessages(
+    @Param('adminId') adminId: string,
+
+  ) {
+
+
+    const result = await this.companyService.clearAdminMessages(
+      adminId,
+    );
+
+    // 🔔 Notify connected clients in real-time
+    this.companyGateway.server.emit('clearedCompanyMessages', {
+      adminId,
+    });
+
+    return result;
+  }
 
   
   // ========================================
@@ -87,7 +135,7 @@ export class CompanyController {
     // 🔔 Notify clients in real-time
     this.companyGateway.server.emit('featureAssigned', {
       adminId,
-      assignedFeatures: result.features,
+      assignedFeatures: result?.features,
       admin:result
     });
 
@@ -108,7 +156,7 @@ export class CompanyController {
     // 🔔 Notify clients in real-time
     this.companyGateway.server.emit('featureRemoved', {
       adminId,
-      remainingFeatures: result.features,
+      remainingFeatures: result?.features,
     });
 
     return result;

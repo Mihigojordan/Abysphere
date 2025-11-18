@@ -8,34 +8,47 @@ import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdm
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/fine_fish_logo.png";
-import FeedstockDashboard from "../pages/dashboard/FeedstockDashboard";
-import ParentFishPoolManagement from "../pages/dashboard/ParentFishPoolManagement";
-import ParentFishFeedingManagement from "../pages/dashboard/ParentFishFeedingManagement";
-import ParentWaterChangingManagement from "../pages/dashboard/ParentWaterChangingManagement";
-import ParentFishMedicationManagement from "../pages/dashboard/ParentFishMedicationManagement";
-import ParentEggMigrationManagement from "../pages/dashboard/ParentEggMigrationManagement";
-import EggFishFeedingManagement from "../pages/dashboard/EggFishFeedingManagement";
-import GrownEggPondManagement from "../pages/dashboard/GrownEggPondManagement";
-import EggToPondMigrationManagement from "../pages/dashboard/EggToPondMigrationManagement";
-import GrownEggPondFeedingManagement from "../pages/dashboard/GrownEggPondFeedingManagement";
-import SuperAdminLogin from "../pages/auth/SuperAdmin/SuperLogin";
-import SuperAdminUnlockScreen from "../pages/auth/SuperAdmin/SuperUnlockScreen";
-import CompanyManagement from "../pages/dashboard/CompanyManagement";
-import CompanyViewPage from "../components/dashboard/company/CompanyViewPage";
-import CompanyForm from "../components/dashboard/company/CompanyForm";
-import SuperDashboardLayout from "../layout/SuperAdmin/DashboardLayout";
-import SystemFeaturesDashboard from "../pages/dashboard/SuperAdmin/System-features-management";
-import AssignFeaturesPage from "../components/dashboard/company/AssignFeaturesPage";
-import Demomanagement from "../pages/dashboard/SuperAdmin/Demo-management";
-import CategoryDashboard from "../pages/dashboard/CategoryManagement";
-import SupplierDashboard from "../pages/dashboard/SupplierManagement";
-import StockInFormExample from "../pages/dashboard/AddStockin";
-import StockInManagement from "../pages/dashboard/StockInManagement";
-import StockOutDashboard from "../pages/dashboard/StockOutDashboard";
-import SalesReturnDashboard from "../pages/dashboard/SalesReturnDashboard";
-import SalesReportPage from "../pages/dashboard/SalesReportDashboard";
-import InventoryReportPage from "../pages/dashboard/InventoryReportDashboard";
-import MembershipPlan from "../pages/dashboard/SuperAdmin/MembershipPlan";
+import PricingPage from "../pages/landing/PricingPage";
+// Dashboard Pages
+const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
+const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
+const ParentFishFeedingManagement = lazy(() => import("../pages/dashboard/ParentFishFeedingManagement"));
+const ParentWaterChangingManagement = lazy(() => import("../pages/dashboard/ParentWaterChangingManagement"));
+const ParentFishMedicationManagement = lazy(() => import("../pages/dashboard/ParentFishMedicationManagement"));
+const ParentEggMigrationManagement = lazy(() => import("../pages/dashboard/ParentEggMigrationManagement"));
+const EggFishFeedingManagement = lazy(() => import("../pages/dashboard/EggFishFeedingManagement"));
+const GrownEggPondManagement = lazy(() => import("../pages/dashboard/GrownEggPondManagement"));
+const EggToPondMigrationManagement = lazy(() => import("../pages/dashboard/EggToPondMigrationManagement"));
+const GrownEggPondFeedingManagement = lazy(() => import("../pages/dashboard/GrownEggPondFeedingManagement"));
+
+// Auth Pages
+const SuperAdminLogin = lazy(() => import("../pages/auth/SuperAdmin/SuperLogin"));
+const SuperAdminUnlockScreen = lazy(() => import("../pages/auth/SuperAdmin/SuperUnlockScreen"));
+
+// Company Management
+const CompanyManagement = lazy(() => import("../pages/dashboard/CompanyManagement"));
+const CompanyViewPage = lazy(() => import("../components/dashboard/company/CompanyViewPage"));
+const CompanyForm = lazy(() => import("../components/dashboard/company/CompanyForm"));
+const AssignFeaturesPage = lazy(() => import("../components/dashboard/company/AssignFeaturesPage"));
+
+// Layout
+const SuperDashboardLayout = lazy(() => import("../layout/SuperAdmin/DashboardLayout"));
+
+// Super Admin Pages
+const SystemFeaturesDashboard = lazy(() => import("../pages/dashboard/SuperAdmin/System-features-management"));
+const Demomanagement = lazy(() => import("../pages/dashboard/SuperAdmin/Demo-management"));
+const MembershipPlan = lazy(() => import("../pages/dashboard/SuperAdmin/MembershipPlan"));
+const SuperAdminDashboard = lazy(() => import("../pages/dashboard/SuperAdmin/SuperAdminDashboard"));
+
+// Inventory Management
+const CategoryDashboard = lazy(() => import("../pages/dashboard/CategoryManagement"));
+const SupplierDashboard = lazy(() => import("../pages/dashboard/SupplierManagement"));
+const StockInFormExample = lazy(() => import("../pages/dashboard/AddStockin"));
+const StockInManagement = lazy(() => import("../pages/dashboard/StockInManagement"));
+const StockOutDashboard = lazy(() => import("../pages/dashboard/StockOutDashboard"));
+const SalesReturnDashboard = lazy(() => import("../pages/dashboard/SalesReturnDashboard"));
+const SalesReportPage = lazy(() => import("../pages/dashboard/SalesReportDashboard"));
+const InventoryReportPage = lazy(() => import("../pages/dashboard/InventoryReportDashboard"));
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
@@ -159,7 +172,7 @@ const routes = createBrowserRouter([
             ),
           },
           {
-            path: 'solutions',
+            path: 'features',
             element: (
               <SuspenseWrapper>
                 <ServicesPage />
@@ -171,6 +184,14 @@ const routes = createBrowserRouter([
             element: (
               <SuspenseWrapper>
                 <JobBoard />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'pricing',
+            element: (
+              <SuspenseWrapper>
+                <PricingPage />
               </SuspenseWrapper>
             ),
           },
@@ -294,7 +315,7 @@ const routes = createBrowserRouter([
                 path: '',
                 element: (
                   <SuspenseWrapper>
-                    <DashboardHome role='super-admin'/>
+                    <SuperAdminDashboard role='super-admin'/>
                   </SuspenseWrapper>
                 ),
               },

@@ -1,816 +1,621 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Plus, Edit, Trash2, Search, Eye,
-  ChevronLeft, ChevronRight, AlertTriangle,
-  CheckCircle, XCircle, X, Package, RefreshCw,
-  Grid3X3, List, Minimize2, DollarSign,
-  ShoppingCart, Calendar,
+  Search,
+  Plus,
+  Edit3,
+  Eye,
+  ShoppingCart,
+  DollarSign,
+  Package,
+  CreditCard,
+  TrendingUp,
+  Check,
+  AlertTriangle,
+  Calendar,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  List,
+  Grid3X3,
+  Table as TableIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import stockOutService, {
-  type CreateStockOutInput,
-  type StockOut,
-  type PaymentMethod,
-} from '../../services/stockoutService';
-import stockInService from '../../services/stockInService';
-import { API_URL } from '../../api/api';
-import stockService from '../../services/stockService';
 
-type ViewMode = 'table' | 'grid' | 'list';
-interface OperationStatus {
-  type: 'success' | 'error' | 'info';
-  message: string;
+import stockOutService from '../../services/stockoutService';
+import stockInService from '../../services/stockService';
+import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
+import useEmployeeAuth from '../../context/EmployeeAuthContext';
+import useAdminAuth from '../../context/AdminAuthContext';
+import InvoiceComponent from '../../components/dashboard/stock/out/InvoiceComponent';
+
+// ── Types ─────────────────────────────────────────────────────
+interface StockIn {
+  id: number;
+  sku: string;
+  itemName: string;
+  product?: { productName: string; brand?: string };
+  unitOfMeasure: string;
+  receivedQuantity: number;
+  unitCost?: number;
+  warehouseLocation: string;
 }
-interface StockOutWithRelations extends StockOut {
+
+interface StockOut {
+  id: string;
+  stockinId: number;
+  quantity: number;
+  soldPrice: number;
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  paymentMethod?: string;
+  transactionId?: string;
+  createdAt: string;
   stockin?: {
     itemName: string;
     sku: string;
-    unitOfMeasure: string;
-    unitCost: number;
-  } | null;
-}
-interface StockInOption {
-  id: number;
-  label: string;
-  itemName: string;
-  sku: string;
-  available: number;
-  unitOfMeasure: string;
-  unitCost: number;
+    product?: { productName: string; brand?: string };
+  };
 }
 
-type DateFilterOption = 'all' | 'today' | 'week' | 'month' | 'custom';
+interface Filters {
+  dateRange: 'all' | 'today' | 'week' | 'month' | 'custom';
+  startDate: string;
+  endDate: string;
+}
 
-const StockOutDashboard: React.FC = () => {
-  const [stockOuts, setStockOuts] = useState<StockOutWithRelations[]>([]);
-  const [allStockOuts, setAllStockOuts] = useState<StockOutWithRelations[]>([]);
-  const [transactions, setTransactions] = useState<Map<string, StockOutWithRelations[]>>(new Map());
-  const [stockInOptions, setStockInOptions] = useState<StockInOption[]>([]);
-  const [loadingStockIns, setLoadingStockIns] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortBy, setSortBy] = useState<keyof StockOutWithRelations>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage] = useState<number>(8);
-  const [deleteConfirm, setDeleteConfirm] = useState<StockOutWithRelations | null>(null);
-  const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
-  const [operationLoading, setOperationLoading] = useState<boolean>(false);
+type ViewMode = 'table' | 'grid' | 'list';
+
+const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) => {
+  const [stockOuts, setStockOuts] = useState<StockOut[]>([]);
+  const [filteredStockOuts, setFilteredStockOuts] = useState<StockOut[]>([]);
+  const [stockIns, setStockIns] = useState<StockIn[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedStockOut, setSelectedStockOut] = useState<StockOut | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [transactionId, setTransactionId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<StockOutWithRelations[] | null>(null);
-  const [formData, setFormData] = useState<any>({
-    clientName: '',
-    clientEmail: '',
-    clientPhone: '',
-    paymentMethod: 'CASH' as PaymentMethod,
-    sales: [{ stockinId: '', quantity: 1, soldPrice: undefined }],
+  const [filters, setFilters] = useState<Filters>({
+    dateRange: 'all',
+    startDate: '',
+    endDate: '',
   });
-  const [formError, setFormError] = useState<string>('');
 
-  // === DATE FILTER STATES ===
-  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
-  const [customStartDate, setCustomStartDate] = useState<string>('');
-  const [customEndDate, setCustomEndDate] = useState<string>('');
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
+  const { user: employeeData } = useEmployeeAuth();
+  const { user: adminData } = useAdminAuth();
+
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalRevenue: 0,
+    totalTransactions: 0,
+    averageOrderValue: 0,
+    todaySales: 0,
+    todayRevenue: 0,
+  });
+
+  // ── Fetch Data ───────────────────────────────────────────────
   useEffect(() => {
-    loadStockIns();
-    loadStockOuts();
+    fetchData();
   }, []);
 
   useEffect(() => {
-    handleFilterAndSort();
-  }, [searchTerm, sortBy, sortOrder, allStockOuts, dateFilter, customStartDate, customEndDate]);
+    applyFiltersAndSearch();
+  }, [searchTerm, stockOuts, filters]);
 
-  // === DATE RANGE CALCULATION ===
-  const getDateRange = useMemo(() => {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const trId = params.get('transactionId');
+    if (trId) {
+      setTransactionId(trId);
+      setIsInvoiceOpen(true);
+    }
+  }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [outs, ins] = await Promise.all([
+        stockOutService.getAllStockOuts(),
+        stockInService.getAllStocks(),
+      ]);
+      setStockOuts(outs);
+      setFilteredStockOuts(outs);
+      setStockIns(Array.isArray(ins) ? ins : []);
+      calculateStats(outs);
+    } catch (err: any) {
+      showNotification(`Failed to load data: ${err.message}`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ── Stats & Filters ──────────────────────────────────────────
+  const calculateStats = (data: StockOut[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const totalSales = data.reduce((sum, item) => sum + item.quantity, 0);
+    const totalRevenue = data.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+    const totalTransactions = data.length;
+    const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
+    const todayData = data.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      itemDate.setHours(0, 0, 0, 0);
+      return itemDate.getTime() === today.getTime();
+    });
+
+    const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
+    const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+
+    setStats({
+      totalSales,
+      totalRevenue,
+      totalTransactions,
+      averageOrderValue,
+      todaySales,
+      todayRevenue,
+    });
+  };
+
+  const getDateRange = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+    startOfWeek.setDate(today.getDate() - today.getDay());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    switch (dateFilter) {
-      case 'today':
-        return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
-      case 'week':
-        return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
-      case 'month':
-        return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+    switch (filters.dateRange) {
+      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
       case 'custom':
         return {
-          start: customStartDate ? new Date(customStartDate) : null,
-          end: customEndDate ? new Date(customEndDate + 'T23:59:59') : null,
+          start: filters.startDate ? new Date(filters.startDate) : null,
+          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
         };
-      default:
-        return { start: null, end: null };
-    }
-  }, [dateFilter, customStartDate, customEndDate]);
-
-  // FETCH STOCK-IN (AVAILABLE ONLY)
-  const loadStockIns = async () => {
-    try {
-      setLoadingStockIns(true);
-      const raw = await stockService.getAllStocks();
-      const options: StockInOption[] = raw
-        .filter(s => s.receivedQuantity > 0)
-        .map(s => ({
-          id: s.id,
-          label: `${s.itemName} (${s.sku}) – ${s.receivedQuantity} left (${s.unitOfMeasure})`,
-          itemName: s.itemName,
-          sku: s.sku,
-          available: s.receivedQuantity,
-          unitOfMeasure: s.unitOfMeasure,
-          unitCost: s.unitCost,
-        }));
-      setStockInOptions(options);
-    } catch (e: any) {
-      showOperationStatus('error', 'Failed to load products');
-    } finally {
-      setLoadingStockIns(false);
+      default: return { start: null, end: null };
     }
   };
 
-  const loadStockOuts = async () => {
-    try {
-      setLoading(true);
-      const data = await stockOutService.getAllStockOuts();
-      setAllStockOuts(data);
-      groupByTransaction(data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load sales');
-      setAllStockOuts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const applyFiltersAndSearch = useCallback(() => {
+    const { start, end } = getDateRange();
 
-  const groupByTransaction = (data: StockOutWithRelations[]) => {
-    const map = new Map<string, StockOutWithRelations[]>();
-    data.forEach((so) => {
-      const tid = so.transactionId || 'unknown';
-      if (!map.has(tid)) map.set(tid, []);
-      map.get(tid)!.push(so);
-    });
-    setTransactions(map);
-  };
+    const filtered = stockOuts.filter(item => {
+      const searchMatch =
+        !searchTerm ||
+        item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientPhone?.includes(searchTerm) ||
+        item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const showOperationStatus = (type: OperationStatus['type'], message: string, duration = 3000) => {
-    setOperationStatus({ type, message });
-    setTimeout(() => setOperationStatus(null), duration);
-  };
-
-  const handleFilterAndSort = () => {
-    let filtered = [...allStockOuts];
-
-    // Search filter
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(
-        (so) =>
-          so.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          so.clientPhone?.includes(searchTerm) ||
-          so.transactionId?.includes(searchTerm) ||
-          so.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Date filter
-    if (dateFilter !== 'all' && getDateRange.start && getDateRange.end) {
-      filtered = filtered.filter((so) => {
-        const createdAt = so.createdAt ? new Date(so.createdAt).getTime() : 0;
-        return createdAt >= getDateRange.start!.getTime() && createdAt <= getDateRange.end!.getTime();
-      });
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      const aVal = a[sortBy];
-      const bVal = b[sortBy];
-      if (sortBy === 'createdAt' || sortBy === 'updatedAt') {
-        const aD = aVal ? new Date(aVal).getTime() : 0;
-        const bD = bVal ? new Date(bVal).getTime() : 0;
-        return sortOrder === 'asc' ? aD - bD : bD - aD;
+      let dateMatch = true;
+      if (filters.dateRange !== 'all' && start && end) {
+        const itemDate = new Date(item.createdAt).getTime();
+        dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
       }
-      const aStr = aVal?.toString().toLowerCase() || '';
-      const bStr = bVal?.toString().toLowerCase() || '';
-      return sortOrder === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+
+      return searchMatch && dateMatch;
     });
 
-    setStockOuts(filtered);
+    setFilteredStockOuts(filtered);
     setCurrentPage(1);
+  }, [searchTerm, stockOuts, filters]);
+
+  // ── Helpers ──────────────────────────────────────────────────
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
   };
 
-  const totalTransactions = transactions.size;
-  const totalItemsSold = allStockOuts.reduce((s, so) => s + so.quantity, 0);
-  const totalRevenue = allStockOuts.reduce((s, so) => s + (so.soldPrice || 0) * so.quantity, 0);
-
-  const handleAddStockOut = () => {
-    setFormData({
-      clientName: '',
-      clientEmail: '',
-      clientPhone: '',
-      paymentMethod: 'CASH',
-      sales: [{ stockinId: '', quantity: 1, soldPrice: undefined }],
-    });
-    setFormError('');
-    setShowAddModal(true);
+  const updateSearchParam = (key: string, value?: string) => {
+    const params = new URLSearchParams(window.location.search);
+    if (!value) params.delete(key);
+    else params.set(key, value);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
 
-  const addSaleRow = () => {
-    setFormData({
-      ...formData,
-      sales: [...formData.sales, { stockinId: '', quantity: 1, soldPrice: undefined }],
-    });
+  const handleCloseInvoice = () => {
+    setIsInvoiceOpen(false);
+    setTransactionId(null);
+    updateSearchParam('transactionId');
   };
 
-  const removeSaleRow = (idx: number) => {
-    setFormData({
-      ...formData,
-      sales: formData.sales.filter((_: any, i: number) => i !== idx),
-    });
+  const openEditModal = (stockOut: StockOut) => {
+    setSelectedStockOut(stockOut);
+    setIsAddModalOpen(true);
   };
 
-  const handleProductSelect = (idx: number, stockInId: string) => {
-    const selected = stockInOptions.find(o => o.id == stockInId);
-    if (!selected) return;
-    const updated = [...formData.sales];
-    updated[idx] = {
-      ...updated[idx],
-      stockinId: selected.id,
-      soldPrice: selected.unitCost,
-    };
-    setFormData({ ...formData, sales: updated });
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    idx?: number
-  ) => {
-    const { name, value } = e.target;
-    if (idx !== undefined) {
-      if (name === 'quantity') {
-        const updated = [...formData.sales];
-        updated[idx].quantity = parseInt(value) || 0;
-        setFormData({ ...formData, sales: updated });
-      }
-      if (name === 'soldPrice') {
-        const updated = [...formData.sales];
-        updated[idx].soldPrice = parseFloat(value) || 0;
-        setFormData({ ...formData, sales: updated });
-      }
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const validateForm = (): string | null => {
-    for (const s of formData.sales) {
-      if (!s.stockinId) return 'Select a product for every row';
-      if (s.quantity <= 0) return 'Quantity must be > 0';
-      const opt = stockInOptions.find(o => o.id === s.stockinId);
-      if (opt && s.quantity > opt.available) {
-        return `Only ${opt.available} ${opt.itemName} left`;
-      }
-    }
-    return null;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const err = validateForm();
-    if (err) {
-      setFormError(err);
-      return;
-    }
-    setFormError('');
+  // Unified Create & Edit Handler
+  const handleSubmit = async (data: any) => {
+    setIsLoading(true);
     try {
-      setOperationLoading(true);
-      const result = await stockOutService.createStockOut(formData);
-      setShowAddModal(false);
-      await loadStockOuts();
-      showOperationStatus('success', `Transaction ${result.transactionId} created!`);
+      const userInfo: any = {};
+      if (role === 'admin') userInfo.adminId = adminData?.id;
+      if (role === 'employee') userInfo.employeeId = employeeData?.id;
+
+      let response;
+
+      if (selectedStockOut) {
+        // EDIT EXISTING SALE
+        await stockOutService.updateStockOut(selectedStockOut.id, { ...data, ...userInfo });
+        showNotification('Sale updated successfully!', 'success');
+      } else if (data.salesArray?.length > 0) {
+        // MULTIPLE ITEMS
+        response = await stockOutService.createMultipleStockOut(data.salesArray, data.clientInfo || {}, userInfo);
+        showNotification(`Sale of ${data.salesArray.length} items recorded!`, 'success');
+      } else {
+        // SINGLE ITEM
+        response = await stockOutService.createStockOut({ ...data, ...userInfo });
+        showNotification('Sale recorded successfully!', 'success');
+      }
+
+      if (response?.transactionId && !selectedStockOut) {
+        updateSearchParam('transactionId', response.transactionId);
+        setTransactionId(response.transactionId);
+        setIsInvoiceOpen(true);
+      }
+
+      await fetchData();
+      setIsAddModalOpen(false);
+      setSelectedStockOut(null);
     } catch (err: any) {
-      setFormError(err.message || 'Failed to create sale');
+      showNotification(`Error: ${err.message}`, 'error');
     } finally {
-      setOperationLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleViewTransaction = async (tid: string) => {
-    try {
-      const data = await stockOutService.getStockOutByTransactionId(tid);
-      setSelectedTransaction(data);
-      setShowViewModal(true);
-    } catch (err: any) {
-      showOperationStatus('error', err.message);
-    }
-  };
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const handleDeleteStockOut = async (so: StockOutWithRelations) => {
-    if (!so.id) return;
-    try {
-      setOperationLoading(true);
-      await stockOutService.deleteStockOut(so.id);
-      setDeleteConfirm(null);
-      await loadStockOuts();
-      showOperationStatus('success', 'Sale deleted');
-    } catch (err: any) {
-      showOperationStatus('error', err.message);
-    } finally {
-      setOperationLoading(false);
-    }
-  };
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('en-RW', { maximumFractionDigits: 0 }).format(price || 0);
 
-  const formatDate = (d?: string) =>
-    d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
-  const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
-
-  const totalPages = Math.ceil(stockOuts.length / itemsPerPage);
+  // Pagination
+  const totalPages = Math.ceil(filteredStockOuts.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
-  const endIdx = startIdx + itemsPerPage;
-  const currentStockOuts = stockOuts.slice(startIdx, endIdx);
+  const currentItems = filteredStockOuts.slice(startIdx, startIdx + itemsPerPage);
 
-  const renderTableView = () => (
-    <div className="bg-white rounded-lg shadow border border-gray-100 overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b">
-          <tr>
-            <th className="text-left py-3 px-4 font-semibold">Product</th>
-            <th className="text-left py-3 px-4 font-semibold">Qty</th>
-            <th className="text-left py-3 px-4 font-semibold">Price</th>
-            <th className="text-left py-3 px-4 font-semibold">Total</th>
-            <th className="text-left py-3 px-4 font-semibold hidden sm:table-cell">Client</th>
-            <th className="text-left py-3 px-4 font-semibold hidden md:table-cell">Payment</th>
-            <th className="text-left py-3 px-4 font-semibold">Date</th>
-            <th className="text-right py-3 px-4 font-semibold">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {currentStockOuts.map((so) => (
-            <motion.tr key={so.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-gray-50">
-              <td className="py-3 px-4">
-                <div className="font-medium">{so.stockin?.itemName || 'Unknown'}</div>
-                <div className="text-xs text-gray-500">SKU: {so.stockin?.sku}</div>
-              </td>
-              <td className="py-3 px-4">{so.quantity}</td>
-              <td className="py-3 px-4">{formatCurrency(so.soldPrice || 0)}</td>
-              <td className="py-3 px-4 font-medium">{formatCurrency((so.soldPrice || 0) * so.quantity)}</td>
-              <td className="py-3 px-4 hidden sm:table-cell">{so.clientName || '-'}</td>
-              <td className="py-3 px-4 hidden md:table-cell">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  so.paymentMethod === 'MOMO' ? 'bg-blue-100 text-blue-800' :
-                  so.paymentMethod === 'CARD' ? 'bg-purple-100 text-purple-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {so.paymentMethod}
-                </span>
-              </td>
-              <td className="py-3 px-4 text-gray-600">{formatDate(so.createdAt)}</td>
-              <td className="py-3 px-4 text-right space-x-1">
-                <motion.button whileHover={{ scale: 1.1 }} onClick={() => so.transactionId && handleViewTransaction(so.transactionId)} className="p-1">
-                  <Eye className="w-4 h-4 text-gray-500 hover:text-primary-600" />
-                </motion.button>
-                <motion.button whileHover={{ scale: 1.1 }} onClick={() => setDeleteConfirm(so)} className="p-1">
-                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
-                </motion.button>
-              </td>
-            </motion.tr>
-          ))}
-        </tbody>
-      </table>
+  // Sub-Components
+  const ViewModeSwitcher = () => (
+    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+      {[
+        { mode: 'table' as ViewMode, icon: TableIcon, title: 'Table' },
+        { mode: 'grid' as ViewMode, icon: Grid3X3, title: 'Grid' },
+        { mode: 'list' as ViewMode, icon: List, title: 'List' },
+      ].map(({ mode, icon: Icon, title }) => (
+        <button
+          key={mode}
+          onClick={() => setViewMode(mode)}
+          className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
+          title={title}
+        >
+          <Icon size={18} />
+        </button>
+      ))}
     </div>
   );
 
-  const renderPagination = () => {
-    const pages: number[] = [];
-    const maxVisible = 5;
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-
-    return (
-      <div className="flex justify-between items-center bg-white px-4 py-3 border-t rounded-b-lg">
-        <div className="text-sm text-gray-600">
-          Showing {startIdx + 1}-{Math.min(endIdx, stockOuts.length)} of {stockOuts.length}
-        </div>
-        <div className="flex space-x-1">
-          <motion.button whileHover={{ scale: 1.05 }} onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 border rounded disabled:opacity-50">
-            <ChevronLeft className="w-4 h-4" />
-          </motion.button>
-          {pages.map(p => (
-            <motion.button key={p} whileHover={{ scale: 1.05 }} onClick={() => setCurrentPage(p)} className={`px-3 py-1 rounded text-sm ${currentPage === p ? 'bg-primary-600 text-white' : 'border'}`}>
-              {p}
-            </motion.button>
-          ))}
-          <motion.button whileHover={{ scale: 1.05 }} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 border rounded disabled:opacity-50">
-            <ChevronRight className="w-4 h-4" />
-          </motion.button>
-        </div>
+  const StatsCard = ({ title, value, icon, color }: any) => (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow transition-shadow">
+      <div className="flex items-center justify-between mb-2">
+        <div className={`p-2 rounded ${color}`}>{icon}</div>
       </div>
-    );
-  };
+      <p className="text-xs text-gray-600 font-medium">{title}</p>
+      <p className="text-lg font-bold text-gray-900 mt-1">{value}</p>
+    </div>
+  );
+
+  const ActionButtons = ({ item }: { item: StockOut }) => (
+    <div className="flex items-center gap-3">
+      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700">
+        <Edit3 size={16} />
+      </button>
+      <button className="text-gray-500 hover:text-primary-600">
+        <Eye size={16} />
+      </button>
+    </div>
+  );
+
+  const TableView = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-5 py-3 text-left font-medium text-gray-600">Date</th>
+              <th className="px-5 py-3 text-left font-medium text-gray-600">Product</th>
+              <th className="px-5 py-3 text-left font-medium text-gray-600">Client</th>
+              <th className="px-5 py-3 text-right font-medium text-gray-600">Qty</th>
+              <th className="px-5 py-3 text-right font-medium text-gray-600">Price</th>
+              <th className="px-5 py-3 text-right font-medium text-gray-600">Total</th>
+              <th className="px-5 py-3 text-center font-medium text-gray-600">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {currentItems.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50">
+                <td className="px-5 py-4 text-gray-600">{formatDate(item.createdAt)}</td>
+                <td className="px-5 py-4">
+                  <div className="font-medium">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
+                  <div className="text-xs text-gray-500">{item.stockin?.sku}</div>
+                </td>
+                <td className="px-5 py-4 text-gray-700">{item.clientName || 'Walk-in'}</td>
+                <td className="px-5 py-4 text-right font-medium">{item.quantity}</td>
+                <td className="px-5 py-4 text-right">{formatPrice(item.soldPrice)}</td>
+                <td className="px-5 py-4 text-right font-bold text-green-600">{formatPrice(item.soldPrice * item.quantity)}</td>
+                <td className="px-5 py-4 text-center">
+                  <ActionButtons item={item} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination />
+    </div>
+  );
+
+  const GridView = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      {currentItems.map((item) => (
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-50 rounded-full flex-center">
+                <ShoppingCart size={18} className="text-primary-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+                <p className="text-xs text-gray-500">{item.transactionId || '—'}</p>
+              </div>
+            </div>
+            <ActionButtons item={item} />
+          </div>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Qty:</span>
+              <span className="font-medium">{item.quantity}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Price:</span>
+              <span>{formatPrice(item.soldPrice)}</span>
+            </div>
+            <div className="flex justify-between font-bold text-green-600">
+              <span>Total:</span>
+              <span>{formatPrice(item.soldPrice * item.quantity)}</span>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
+            <span>{item.clientName || 'Walk-in'}</span>
+            <span>{formatDate(item.createdAt)}</span>
+          </div>
+        </motion.div>
+      ))}
+      <div className="col-span-full"><Pagination /></div>
+    </div>
+  );
+
+  const ListView = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+      {currentItems.map((item) => (
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
+        >
+          <div className="flex items-center gap-4 flex-1">
+            <div className="w-10 h-10 bg-primary-50 rounded-full flex-center flex-shrink-0">
+              <ShoppingCart size={18} className="text-primary-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-gray-900 truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+              <p className="text-sm text-gray-500 truncate">{item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-green-600">{formatPrice(item.soldPrice * item.quantity)}</p>
+            <p className="text-xs text-gray-500">{item.quantity} × {formatPrice(item.soldPrice)}</p>
+          </div>
+          <ActionButtons item={item} />
+        </motion.div>
+      ))}
+      <Pagination />
+    </div>
+  );
+
+  const Pagination = () => (
+    <div className="flex items-center justify-between py-4 border-t border-gray-200 bg-gray-50 px-6">
+      <p className="text-sm text-gray-600">
+        Showing {startIdx + 1}–{Math.min(startIdx + itemsPerPage, filteredStockOuts.length)} of {filteredStockOuts.length}
+      </p>
+      <div className="flex gap-2">
+        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
+          <ChevronLeft size={16} />
+        </button>
+        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+          const page = i + Math.max(1, currentPage - 2);
+          if (page > totalPages) return null;
+          return (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-1.5 rounded ${currentPage === page ? 'bg-primary-600 text-white' : 'border hover:bg-gray-100'}`}
+            >
+              {page}
+            </button>
+          );
+        })}
+        <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* HEADER */}
-      <div className="sticky top-0 bg-white shadow-md z-10">
-        <div className="mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Minimize2 className="w-5 h-5" />
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-medium bg-green-600"
+          >
+            <Check size={18} />
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <InvoiceComponent isOpen={isInvoiceOpen} onClose={handleCloseInvoice} transactionId={transactionId} />
+
+      <div className="mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary-600 rounded-xl">
+              <ShoppingCart className="w-7 h-7 text-white" />
+            </div>
             <div>
-              <h1 className="text-xl font-semibold">Stock Out Management</h1>
-              <p className="text-sm text-gray-500">Track sales and outflows</p>
+              <h1 className="text-3xl font-bold text-gray-900">Stock Out Management</h1>
+              <p className="text-gray-600">Record sales & track inventory movement</p>
             </div>
           </div>
-          <div className="flex space-x-3">
-            <motion.button whileHover={{ scale: 1.05 }} onClick={loadStockOuts} disabled={loading} className="flex items-center space-x-2 px-4 py-2 border rounded">
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.05 }} onClick={handleAddStockOut} className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded">
-              <Plus className="w-4 h-4" />
-              <span>New Sale</span>
-            </motion.button>
+          <ViewModeSwitcher />
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <StatsCard title="Total Revenue" value={formatPrice(stats.totalRevenue)} icon={<DollarSign size={18} className="text-white" />} color="bg-green-500" />
+          <StatsCard title="Units Sold" value={stats.totalSales} icon={<Package size={18} className="text-white" />} color="bg-blue-500" />
+          <StatsCard title="Transactions" value={stats.totalTransactions} icon={<CreditCard size={18} className="text-white" />} color="bg-purple-500" />
+          <StatsCard title="Avg Order" value={formatPrice(stats.averageOrderValue)} icon={<TrendingUp size={18} className="text-white" />} color="bg-orange-500" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <p className="text-xs font-medium text-blue-900">Today's Sales</p>
+            <p className="text-xl font-bold text-blue-700 mt-1">{stats.todaySales} units</p>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <p className="text-xs font-medium text-green-900">Today's Revenue</p>
+            <p className="text-xl font-bold text-green-700 mt-1">{formatPrice(stats.todayRevenue)}</p>
           </div>
         </div>
-      </div>
 
-      <div className="mx-auto px-4 py-6 space-y-6">
-        {/* STATS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { title: 'Transactions', count: totalTransactions, icon: ShoppingCart },
-            { title: 'Items Sold', count: totalItemsSold, icon: Package },
-            { title: 'Revenue', count: formatCurrency(totalRevenue), icon: DollarSign },
-          ].map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-lg shadow border">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-primary-50 rounded-full">
-                  <s.icon className="w-5 h-5 text-primary-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{s.title}</p>
-                  <p className="text-xl font-semibold">{s.count}</p>
-                </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row gap-4 justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search product, client, phone, transaction..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
               </div>
-            </motion.div>
-          ))}
-        </div>
 
-        {/* SEARCH & DATE FILTER */}
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex flex-col lg:flex-row justify-between gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search client, product, transaction..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border rounded w-full"
-              />
-            </div>
-
-            {/* Date Filter Buttons */}
-            <div className="flex flex-wrap gap-2 items-center">
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+                {(['all', 'today', 'week', 'month', 'custom'] as const).map(opt => (
                   <button
                     key={opt}
-                    onClick={() => {
-                      setDateFilter(opt);
-                      if (opt !== 'custom') {
-                        setCustomStartDate('');
-                        setCustomEndDate('');
-                      }
-                    }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
-                      dateFilter === opt
-                        ? 'bg-white text-primary-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    onClick={() => setFilters(p => ({
+                      ...p,
+                      dateRange: opt,
+                      startDate: opt !== 'custom' ? '' : p.startDate,
+                      endDate: opt !== 'custom' ? '' : p.endDate,
+                    }))}
+                    className={`px-4 py-2 text-sm font-medium rounded capitalize transition-colors
+                      ${filters.dateRange === opt ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-600'}`}
                   >
                     {opt === 'all' ? 'All Time' : opt}
                   </button>
                 ))}
               </div>
 
-              {/* Custom Date Inputs */}
-              {dateFilter === 'custom' && (
+              {filters.dateRange === 'custom' && (
                 <div className="flex items-center gap-2">
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="px-3 py-1.5 text-xs border rounded"
-                    required
-                  />
-                  <span className="text-gray-500 text-sm">to</span>
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="px-3 py-1.5 text-xs border rounded"
-                    required
-                  />
+                  <input type="date" value={filters.startDate} onChange={e => setFilters(p => ({ ...p, startDate: e.target.value }))} className="px-3 py-2 border rounded" />
+                  <span className="text-gray-500">to</span>
+                  <input type="date" value={filters.endDate} onChange={e => setFilters(p => ({ ...p, endDate: e.target.value }))} className="px-3 py-2 border rounded" />
                 </div>
               )}
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={fetchData} disabled={isLoading}
+                className="flex items-center gap-2 px-5 py-2.5 border rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} /> Refresh
+              </button>
+              <button
+                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm"
+              >
+                <Plus size={20} /> Record Sale
+              </button>
             </div>
           </div>
         </div>
 
-        {/* TABLE & PAGINATION */}
-        {loading ? (
-          <div className="bg-white p-8 text-center rounded-lg shadow">Loading...</div>
-        ) : stockOuts.length === 0 ? (
-          <div className="bg-white p-8 text-center rounded-lg shadow">
-            <p className="text-lg font-semibold">No Sales Found</p>
-            <p className="text-sm text-gray-500">Try adjusting filters or record a sale.</p>
+        {isLoading ? (
+          <div className="bg-white rounded-xl p-16 text-center">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-4 border-primary-600 mb-4"></div>
+            <p>Loading sales...</p>
+          </div>
+        ) : filteredStockOuts.length === 0 ? (
+          <div className="bg-white rounded-xl p-16 text-center border">
+            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No sales found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || filters.dateRange !== 'all' ? 'Try adjusting filters' : 'Start recording your first sale'}
+            </p>
+            <button onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }} className="bg-primary-600 text-white px-6 py-3 rounded-lg">
+              Record First Sale
+            </button>
           </div>
         ) : (
-          <div>
-            {renderTableView()}
-            {renderPagination()}
-          </div>
+          <>
+            {viewMode === 'table' && <TableView />}
+            {viewMode === 'grid' && <GridView />}
+            {viewMode === 'list' && <ListView />}
+          </>
         )}
-
-        {/* ADD MODAL */}
-        <AnimatePresence>
-          {showAddModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
-              >
-                {/* Header */}
-                <div className="px-6 py-4 border-b bg-gradient-to-r from-primary-50 to-white flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-gray-900">New Sale Transaction</h3>
-                  <button
-                    onClick={() => setShowAddModal(false)}
-                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="overflow-y-auto flex-1 px-6 py-5">
-                  {formError && (
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r mb-5 flex items-start gap-3">
-                      <div className="text-red-600 mt-0.5">Warning</div>
-                      <div className="text-red-700 text-sm">{formError}</div>
-                    </div>
-                  )}
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Customer Information */}
-                    <div className="space-y-4">
-                      <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Customer Details</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <input
-                          name="clientName"
-                          placeholder="Customer Name"
-                          value={formData.clientName}
-                          onChange={handleInputChange}
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        />
-                        <input
-                          name="clientEmail"
-                          type="email"
-                          placeholder="Email Address"
-                          value={formData.clientEmail}
-                          onChange={handleInputChange}
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        />
-                        <input
-                          name="clientPhone"
-                          placeholder="Phone Number"
-                          value={formData.clientPhone}
-                          onChange={handleInputChange}
-                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Payment Method</h4>
-                      <select
-                        name="paymentMethod"
-                        value={formData.paymentMethod}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
-                      >
-                        <option value="CASH">Cash</option>
-                        <option value="MOMO">Mobile Money</option>
-                        <option value="CARD">Card</option>
-                      </select>
-                    </div>
-
-                    {/* Items */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Sale Items</h4>
-                        <button
-                          type="button"
-                          onClick={addSaleRow}
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
-                        >
-                          <Plus className="w-4 h-4" /> Add Item
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {formData.sales.map((sale: any, i: number) => {
-                          const opt = stockInOptions.find(o => o.id === sale.stockinId);
-                          const maxQty = opt?.available ?? 0;
-                          return (
-                            <div key={i} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
-                                {/* Product */}
-                                <div className="md:col-span-5">
-                                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">Product</label>
-                                  <select
-                                    value={sale.stockinId}
-                                    onChange={e => handleProductSelect(i, e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-                                    required
-                                  >
-                                    <option value="">Select product...</option>
-                                    {stockInOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
-                                  </select>
-                                </div>
-                                {/* Quantity */}
-                                <div className="md:col-span-3">
-                                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">Quantity</label>
-                                  <input
-                                    type="number"
-                                    name="quantity"
-                                    value={sale.quantity}
-                                    min="1"
-                                    max={maxQty}
-                                    onChange={e => handleInputChange(e, i)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    required
-                                  />
-                                  {maxQty > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">Available: {maxQty}</p>
-                                  )}
-                                </div>
-                                {/* Price */}
-                                <div className="md:col-span-3">
-                                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">Unit Price</label>
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    name="soldPrice"
-                                    value={sale.soldPrice ?? ''}
-                                    onChange={e => handleInputChange(e, i)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                    placeholder="Auto-filled"
-                                  />
-                                </div>
-                                {/* Remove */}
-                                <div className="md:col-span-1 flex items-end justify-end md:pb-2">
-                                  {formData.sales.length > 1 && (
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSaleRow(i)}
-                                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                      title="Remove item"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Footer */}
-                <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={operationLoading}
-                    onClick={handleSubmit}
-                    className="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {operationLoading ? 'Creating...' : 'Create Sale'}
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* VIEW MODAL */}
-        <AnimatePresence>
-          {showViewModal && selectedTransaction && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-screen overflow-y-auto shadow-xl">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Transaction: {selectedTransaction[0].transactionId}</h3>
-                  <button onClick={() => { setShowViewModal(false); setSelectedTransaction(null); }}>
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                {selectedTransaction[0].transactionId && (
-                  <div className="mb-4 text-center">
-                    <img src={`${API_URL}/uploads/barcodes/${selectedTransaction[0].transactionId}.png`} alt="Barcode"
-                      className="mx-auto h-20" />
-                  </div>
-                )}
-                <div className="space-y-3">
-                  {selectedTransaction.map((so) => (
-                    <div key={so.id} className="border rounded p-3 flex justify-between">
-                      <div>
-                        <div className="font-medium">{so.stockin?.itemName || 'Unknown'}</div>
-                        <div className="text-sm text-gray-600">Qty: {so.quantity} × {formatCurrency(so.soldPrice || 0)}</div>
-                      </div>
-                      <div className="text-right font-medium">
-                        {formatCurrency((so.soldPrice || 0) * so.quantity)}
-                      </div>
-                    </div>
-                  ))}
-                  <div className="border-t pt-3 font-semibold text-right">
-                    Total: {formatCurrency(selectedTransaction.reduce((s, so) => s + (so.soldPrice || 0) * so.quantity, 0))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* DELETE CONFIRM MODAL */}
-        <AnimatePresence>
-          {deleteConfirm && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Delete Sale Item</h3>
-                </div>
-                <p className="text-sm text-gray-700 mb-4">
-                  This will restore stock and cannot be undone.
-                </p>
-                <div className="flex justify-end space-x-3">
-                  <motion.button whileHover={{ scale: 1.05 }} onClick={() => setDeleteConfirm(null)}
-                    className="px-4 py-2 border rounded">Cancel</motion.button>
-                  <motion.button whileHover={{ scale: 1.05 }} onClick={() => handleDeleteStockOut(deleteConfirm)}
-                    className="px-4 py-2 bg-red-600 text-white rounded">Delete</motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* TOAST NOTIFICATION */}
-        <AnimatePresence>
-          {operationStatus && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="fixed top-4 right-4 z-50">
-              <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg shadow-lg text-sm border ${
-                operationStatus.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-                'bg-red-50 border-red-200 text-red-800'
-              }`}>
-                {operationStatus.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                <span>{operationStatus.message}</span>
-                <button onClick={() => setOperationStatus(null)}><X className="w-4 h-4" /></button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      <UpsertStockOutModal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedStockOut(null);
+        }}
+        onSubmit={handleSubmit}
+        stockOut={selectedStockOut}
+        stockIns={stockIns}
+        isLoading={isLoading}
+        title={selectedStockOut ? 'Edit Sale' : 'New Sale'}
+      />
     </div>
   );
 };
 
-export default StockOutDashboard;
+export default StockOutManagement;

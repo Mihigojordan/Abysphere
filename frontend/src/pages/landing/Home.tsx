@@ -6,6 +6,7 @@ import Testimonials from '../../components/landing/home/Testimonials';
 import Blog from '../../components/landing/home/Blog';
 import AboutSection from '../../components/landing/home/About';
 import WhyChooseUsSection from '../../components/landing/home/WhyChooseUsSection';
+import FAQ from '../../components/landing/home/FAQ';
 
 const Home = () => {
   return (
@@ -18,6 +19,7 @@ const Home = () => {
         <Featured />
         <Testimonials />
         <WhyChooseUsSection />
+        <FAQ />
         <Blog />
  
       </main>

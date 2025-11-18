@@ -32,10 +32,19 @@ export class AdminService {
           id: id,
         },
         include:{
-          features:true,
+          features:{
+            include:{
+              feature:true,
+            } 
+          },
         }
       });
-      return admin;
+
+      const features = admin?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+  }));
+      return { ...admin, features};
     } catch (error) {
       console.error('error finding admin', error);
       throw new Error(error.message);

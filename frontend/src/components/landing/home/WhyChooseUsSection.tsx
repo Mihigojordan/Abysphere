@@ -1,25 +1,39 @@
 import React from 'react';
-import { Play } from 'lucide-react';
+import { Play, RefreshCw, Building2, FileSpreadsheet, Users } from 'lucide-react';
 
-export default function WhyChooseUsSection() {
-  const stats = [
+export default function WhyIzubaSystemSection() {
+  const features = [
     {
       id: 1,
-      label: "Team",
-      value: "+56M",
-      description: "Promote physical and mental well-being with access to wellness resources, fitness programs, and mental health support."
+      icon: RefreshCw,
+      label: "Real-time Updates",
+      title: "Real-time Stock Updates",
+      description: "Always know what's in, out, or running low. Track inventory movements instantly with live updates across all your devices and locations.",
+      color: "teal"
     },
     {
       id: 2,
-      label: "Awards",
-      value: "32M",
-      description: "Celebrate your team's achievements with recognition programs, incentives, and rewards that foster a culture of appreciation."
+      icon: Building2,
+      label: "Multi-branch",
+      title: "Multi-branch Support",
+      description: "Manage all your locations from one dashboard. Centralized control with branch-specific insights and seamless stock transfers.",
+      color: "amber"
     },
     {
       id: 3,
-      label: "Projects",
-      value: "25M",
-      description: "Foster open dialogue with tools that make it easy for employees to share feedback, ask questions, and stay connected with leadership."
+      icon: FileSpreadsheet,
+      label: "Digital First",
+      title: "Replace Excel & Paper",
+      description: "No more errors, no more manual calculations. Automate your inventory processes and eliminate human mistakes with smart digital tools.",
+      color: "teal"
+    },
+    {
+      id: 4,
+      icon: Users,
+      label: "All Sectors",
+      title: "Designed for All Sectors",
+      description: "Retail, restaurants, clinics, pharmacies, and more. Flexible system that adapts to your industry-specific needs and workflows.",
+      color: "teal"
     }
   ];
 
@@ -28,8 +42,8 @@ export default function WhyChooseUsSection() {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 opacity-20">
         <img 
-          src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1600&h=900&fit=crop" 
-          alt="Team background" 
+          src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1600&h=900&fit=crop" 
+          alt="Stock management background" 
           className="w-full h-full object-cover"
         />
       </div>
@@ -53,7 +67,7 @@ export default function WhyChooseUsSection() {
             <span>Solutions We Provide</span>
           </div>
           <h2 className="text-6xl font-bold text-white mb-12 leading-tight">
-            Why Choose Us
+            Why IzubaSystem?
           </h2>
 
           {/* Video Play Card */}
@@ -62,35 +76,38 @@ export default function WhyChooseUsSection() {
               <Play className="w-10 h-10 text-primary-900 fill-primary-900 ml-1" />
             </button>
             <h3 className="text-2xl font-bold text-white">
-              View What Our<br />Client Feels
+              See How IzubaSystem<br />Transforms Business
             </h3>
           </div>
         </div>
 
-        {/* Right Section - Stats Cards */}
+        {/* Right Section - Feature Cards */}
         <div className="space-y-6">
-          {stats.map((stat, index) => (
+          {features.map((feature, index) => (
             <div 
-              key={stat.id}
-              className="bg-primary-700/40 backdrop-blur-sm border border-primary-600/50 rounded-3xl p-8 flex items-center gap-6 hover:bg-primary-700/50 transition-all"
+              key={feature.id}
+              className="bg-primary-700/40 backdrop-blur-sm border border-primary-600/50 rounded-3xl p-8 flex items-center gap-6 hover:bg-primary-700/50 transition-all group"
               style={{
-                borderColor: index === 1 ? '#fbbf24' : 'rgba(13, 148, 136, 0.5)'
+                borderColor: feature.color === 'amber' ? '#fbbf24' : 'rgba(13, 148, 136, 0.5)'
               }}
             >
-              {/* Stat Box */}
-              <div className="bg-primary-800/60 rounded-2xl px-8 py-6 min-w-[140px] text-center flex-shrink-0">
-                <div className="text-white/80 text-sm font-semibold mb-1">
-                  {stat.label}
-                </div>
-                <div className="text-4xl font-bold text-white">
-                  {stat.value}
+              {/* Icon Box */}
+              <div className="bg-primary-800/60 rounded-2xl px-6 py-6 min-w-[120px] text-center flex-shrink-0 flex flex-col items-center gap-2">
+                <feature.icon className="w-10 h-10 text-secondary-400 group-hover:scale-110 transition-transform" />
+                <div className="text-white/80 text-xs font-semibold">
+                  {feature.label}
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-white/90 text-sm leading-relaxed">
-                {stat.description}
-              </p>
+              <div>
+                <h3 className="text-white font-bold text-lg mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             </div>
           ))}
         </div>

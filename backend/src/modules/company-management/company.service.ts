@@ -144,16 +144,17 @@ export class CompanyService {
   /**
    * Optional: clear message if expired
    */
-  async clearExpiredMessages() {
+  async clearAdminMessages(adminId:string) {
     const now = new Date();
 
     const cleared = await this.prisma.admin.updateMany({
       where: {
-        messageExpiry: { lt: now },
+        id: adminId,
       },
       data: {
         message: null,
         messageExpiry: null,
+        isMessage:false,
       },
     });
 
@@ -170,38 +171,60 @@ export class CompanyService {
     /**
      * ✅ Assign one or more features to an admin
      */
-    async assignFeaturesToCompany(adminId: string, featureIds: string[]) {
-        const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
-        if (!admin) throw new NotFoundException('Company not found');
+async assignFeaturesToCompany(adminId: string, featureIds: string[]) {
+  const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
+  if (!admin) throw new NotFoundException('Company not found');
 
-        return this.prisma.admin.update({
-            where: { id: adminId },
-            data: {
-                features: {
-                    connect: featureIds.map((id) => ({ id })),
-                },
-            },
-            include: { features: true, },
-        });
-    }
+  // Create connections in join table
+  await this.prisma.adminFeature.createMany({
+    data: featureIds.map((featureId) => ({ adminId, featureId })),
+    skipDuplicates: true,
+  });
+
+  // Fetch features joined with their feature data
+  const adminWithFeatures = await this.prisma.admin.findUnique({
+    where: { id: adminId },
+    include: { features: { include: { feature: true } } },
+  });
+
+  // ✅ Transform response to match your desired shape
+  const features = adminWithFeatures?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+  }));
+
+  return {
+    ...adminWithFeatures,
+    features,
+  };
+}
 
     /**
      * 🚫 Remove one or more features from an admin
      */
-    async removeFeaturesFromCompany(adminId: string, featureIds: string[]) {
-        const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
-        if (!admin) throw new NotFoundException('Company not found');
+   async removeFeaturesFromCompany(adminId: string, featureIds: string[]) {
+  const admin = await this.prisma.admin.findUnique({ where: { id: adminId } });
+  if (!admin) throw new NotFoundException('Company not found');
 
-        return this.prisma.admin.update({
-            where: { id: adminId },
-            data: {
-                features: {
-                    disconnect: featureIds.map((id) => ({ id })),
-                },
-            },
-            include: { features: true },
-        });
-    }
+  await this.prisma.adminFeature.deleteMany({
+    where: { adminId, featureId: { in: featureIds } },
+  });
+
+  const adminWithFeatures = await this.prisma.admin.findUnique({
+    where: { id: adminId },
+    include: { features: { include: { feature: true } } },
+  });
+
+  const features = adminWithFeatures?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+  }));
+
+  return {
+    ...adminWithFeatures,
+    features,
+  };
+}
 
     /**
      * 🔍 Get all features assigned to an admin
@@ -209,11 +232,27 @@ export class CompanyService {
     async getCompanyFeatures(adminId: string) {
         const admin = await this.prisma.admin.findUnique({
             where: { id: adminId },
-            include: { features: true },
+           include:{
+          features:{
+            include:{
+              feature:true,
+            } 
+          },
+        }
         });
+
         if (!admin) throw new NotFoundException('Company not found');
 
-        return admin.features;
+
+   
+
+      const features = admin?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+      }))
+
+
+        return features;
     }
 
     /**

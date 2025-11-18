@@ -52,9 +52,28 @@ class CompanyService {
    * Create a new company
    * (backend auto-generates password and emails it)
    */
-  async createCompany(data: CreateCompanyInput): Promise<Company> {
+  async createCompany(data: CreateCompanyInput & { profileImg?: File }): Promise<Company> {
     try {
-      const response: AxiosResponse<Company> = await this.api.post('/company', data);
+      const formData = new FormData();
+
+      // Append regular fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && key !== 'profileImg') {
+          formData.append(key, typeof value === 'boolean' ? String(value) : value as any);
+        }
+      });
+
+      // Append file if provided
+      if (data.profileImg) {
+        formData.append('profileImg', data.profileImg);
+      }
+
+      const response: AxiosResponse<Company> = await this.api.post('/company', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       return response.data;
     } catch (error: any) {
       console.error('Error creating company:', error);
@@ -63,7 +82,6 @@ class CompanyService {
       throw new Error(errorMessage);
     }
   }
-
   /**
    * Get all companies
    */
@@ -98,9 +116,35 @@ class CompanyService {
   /**
    * Update a company
    */
-  async updateCompany(id: string, updateData: UpdateCompanyInput): Promise<Company> {
+  async updateCompany(
+    id: string,
+    updateData: UpdateCompanyInput & { profileImg?: File },
+  ): Promise<Company> {
     try {
-      const response: AxiosResponse<Company> = await this.api.patch(`/company/${id}`, updateData);
+      const formData = new FormData();
+
+      // Append regular fields
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (value !== undefined && key !== 'profileImg') {
+          formData.append(key, typeof value === 'boolean' ? String(value) : value as any);
+        }
+      });
+
+      // Append file if provided
+      if (updateData.profileImg) {
+        formData.append('profileImg', updateData.profileImg);
+      }
+
+      const response: AxiosResponse<Company> = await this.api.patch(
+        `/company/${id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+
       return response.data;
     } catch (error: any) {
       console.error('Error updating company:', error);
@@ -179,6 +223,28 @@ class CompanyService {
       console.error('Error setting company message:', error);
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to set company message';
+      throw new Error(errorMessage);
+    }
+  }
+
+
+      /** 💬 Clea a message and expiry for a company/admin */
+
+  async clearCompanyMessage(
+    adminId: string,
+   
+  ): Promise<any> {
+    try {
+   
+      const response: AxiosResponse<any> = await this.api.post(
+        `/company/${adminId}/clear-message`,
+        
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error clearing company message:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to clear company message';
       throw new Error(errorMessage);
     }
   }

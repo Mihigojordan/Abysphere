@@ -1,6 +1,0 @@
--- AlterTable
-ALTER TABLE `admin` ADD COLUMN `address` VARCHAR(191) NULL,
-    ADD COLUMN `city` VARCHAR(191) NULL,
-    ADD COLUMN `country` VARCHAR(191) NULL,
-    ADD COLUMN `description` VARCHAR(191) NULL,
-    ADD COLUMN `website` VARCHAR(191) NULL;

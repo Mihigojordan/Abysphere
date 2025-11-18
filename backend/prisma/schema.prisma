@@ -34,7 +34,7 @@ model SystemFeature {
   updatedAt   DateTime     @updatedAt
 
   // 🔹 Relation with Admin
-  admins      Admin[]      @relation("AdminFeatures")
+  admins      AdminFeature[]
 }
 
 model DemoRequest {
@@ -50,6 +50,19 @@ model DemoRequest {
   status             String   @default("pending") // New field for approval status
   createdAt          DateTime @default(now())
 }
+
+
+model AdminFeature {
+  adminId   String
+  featureId String
+  createdAt DateTime @default(now())
+
+  admin     Admin         @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  feature   SystemFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@id([adminId, featureId])
+}
+
 
 model Admin {
   id            String          @id @unique @default(uuid())
@@ -68,6 +81,7 @@ model Admin {
 
   message      String?
   messageExpiry  DateTime?
+  isMessage      Boolean?        @default(false)
 
   is2FA         Boolean?        @default(false)
   isLocked      Boolean?        @default(false)
@@ -91,7 +105,7 @@ model Admin {
   stockout StockOut[]
 
   // 🔹 Relation with SystemFeature
-  features      SystemFeature[] @relation("AdminFeatures")
+  features      AdminFeature[]
 
   Stock Stock[]
 
@@ -613,7 +627,7 @@ model StockOut {
   stockinId       Int?
   adminId         String?
   employeeId      String?
-  transactionId   String?        @unique
+  transactionId   String?        
   quantity        Int            @default(0)
   soldPrice       Decimal?       @db.Decimal(10,2)
   clientName      String?

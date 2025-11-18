@@ -67,7 +67,7 @@ function DemoRequest() {
   }
 
   return (
-    <div>
+    <div  className='min-h-screen '>
       <HeaderBanner
         title="Contact Us"
         subtitle="Home / Contact Us"
@@ -75,7 +75,7 @@ function DemoRequest() {
         icon={<PhoneCall className="w-10 h-10 " />}
       />
 
-      <div className="min-h-screen -mt-20 bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center ">
+      <div className="  bg-gradient-to-t min-h-screen from-primary-50 via-white to-secondary-50 flex items-center justify-center ">
         <div className="w-full max-w-7xl">
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <form onSubmit={handleSubmit}>

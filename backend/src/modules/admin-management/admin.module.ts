@@ -4,7 +4,7 @@ import { AdminService } from './admin.service';
 import { JwtModule } from '@nestjs/jwt';
 import { OTPService } from 'src/global/otp/otp.service';
 import { EmailModule } from 'src/global/email/email.module';
-import { RedisModule } from 'src/global/redis/redis.module';
+
 import { GoogleAdminStrategy } from './google.strategy';
 
 @Module({
@@ -18,7 +18,7 @@ import { GoogleAdminStrategy } from './google.strategy';
         expiresIn: "7d"
       }
     }),
-    RedisModule,
+
     EmailModule,
   ]
 })
