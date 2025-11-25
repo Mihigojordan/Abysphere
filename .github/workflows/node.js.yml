@@ -10,24 +10,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # -----------------------------
+      # 1. Checkout Code
+      # -----------------------------
       - name: ⏬ Checkout code
         uses: actions/checkout@v4
 
-      # === BACKEND DEPLOYMENT ===
+      # -----------------------------
+      # 2. Backend: Install
+      # -----------------------------
       - name: 📦 Install backend dependencies
         run: npm install
         working-directory: ./backend
 
+      # -----------------------------
+      # 3. Backend: Build
+      # -----------------------------
       - name: 🛠 Build backend
         run: npm run build
         working-directory: ./backend
 
+      # -----------------------------
+      # 4. Debug paths (IMPORTANT)
+      # -----------------------------
+      - name: 🧐 Debug workspace structure
+        run: |
+          echo "ROOT DIRECTORY:"
+          ls -al
+          echo "BACKEND DIRECTORY:"
+          ls -al backend
+          echo "BACKEND DIST DIRECTORY:"
+          ls -al backend/dist
+
+      # -----------------------------
+      # 5. Upload backend build to VPS
+      # -----------------------------
       - name: 📂 Upload backend to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 162.0.224.102
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/**"
+          
+          # Upload ONLY the build output!
+          source: "backend/dist/**"
           target: "/var/www/izuba"
-          strip_components: 1
+
+          # Remove both "backend" and "dist" folder levels
+          strip_components: 2
