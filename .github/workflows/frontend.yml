@@ -31,9 +31,9 @@ jobs:
     - name: Deploy Frontend to cPanel
       uses: SamKirkland/FTP-Deploy-Action@4.3.0
       with:
-        server: ftp.abydash.com
-        username:  dash@abydash.com
-        password: Abydash123@
+        server: ftp.izubagen.rw
+        username: izuba@system.izubagen.rw
+        password: Izuba123@
         protocol: ftps
         local-dir: ./frontend/dist/   # Path to frontend build output
         server-dir: ./     # Path on cPanel for frontend
