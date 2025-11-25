@@ -28,6 +28,6 @@ jobs:
           host: 162.0.224.102
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "Backend/**"
+          source: "backend/**"
           target: "/var/www/izuba"
           strip_components: 1
