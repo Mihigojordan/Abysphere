@@ -61,10 +61,11 @@ export class AdminController {
 
       // If 2FA not required, set cookie with JWT
       res.cookie('AccessAdminToken', loginResult.token, {
-        httpOnly: true,
-        secure: true, // Set true in production
-        sameSite: 'none', // Required for cross-origin
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+       httpOnly: true,
+  secure: true, // HTTPS required
+  sameSite: 'none', // allows cross-site cookies
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
       });
 
       return res.status(200).json(loginResult);
@@ -88,10 +89,11 @@ export class AdminController {
 
       // Set JWT cookie after successful OTP verification
       res.cookie('AccessAdminToken', verifyResult.token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+       httpOnly: true,
+  secure: true, // HTTPS required
+  sameSite: 'none', // allows cross-site cookies
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
       });
 
       return res.status(200).json(verifyResult);
@@ -122,9 +124,11 @@ export class AdminController {
 
       // Clear the oauth state cookie
       res.clearCookie('oauth_state', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+          httpOnly: true,
+  secure: true, // HTTPS required
+  sameSite: 'none', // allows cross-site cookies
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
       });
 
       let parsedState: OAuthState = {};
@@ -172,10 +176,11 @@ export class AdminController {
 
 
       res.cookie('AccessAdminToken', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+         httpOnly: true,
+  secure: true, // HTTPS required
+  sameSite: 'none', // allows cross-site cookies
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
       });
 
 
