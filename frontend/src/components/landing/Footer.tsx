@@ -26,14 +26,14 @@ const Footer = () => {
   navigate(path)
   }
 
-  const services = [
-    { label: 'Workforce Planning & Strategy', path: '/solutions?service=Workforce+Planning+%26+Strategy' },
-    { label: 'Design & Optimization', path: '/solutions?service=Design+%26+Optimization' },
-    { label: 'Workplace Safety', path: '/solutions?service=Workplace+Safety' },
-    { label: 'Retention Strategies', path: '/solutions?service=Retention+Strategies' },
-    { label: 'Executive Search', path: '/solutions?service=Executive+Search' },
-    { label: 'Leadership Development', path: '/solutions?service=Leadership+Development' }
-  ];
+ const services = [
+  { label: 'Workforce Planning & Strategy', path: '/features' },
+  { label: 'Design & Optimization', path: '/features' },
+  { label: 'Workplace Safety', path: '/features' },
+  { label: 'Retention Strategies', path: '/features' },
+  { label: 'Executive Search', path: '/features' },
+];
+
 
   const socialLinks = [
     { icon: Facebook, href: 'https://www.facebook.com/zubasystem', name: 'Facebook' },
@@ -44,16 +44,17 @@ const Footer = () => {
   return (
     <footer className="relative bg-gray-900 text-white w-full overflow-hidden">
       {/* Background with gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/100 via-gray-800/100 to-gray-900/100 px-4">
-        <div 
-          className="absolute inset-0 opacity-5 h-[10px] border-2"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2074')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        ></div>
-      </div>
+ <div className="absolute bg-gradient-to-br from-gray-900/100 via-gray-800/100 to-gray-900/100 px-4 h-[20px] w-full">
+  <div 
+    className="absolute inset-0 opacity-5 border-2 h-[10px]"
+    style={{
+      backgroundImage: `url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2074')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    }}
+  ></div>
+</div>
+
 
       {/* Content */}
       <div className="relative z-10 w-full mx-auto px-6 sm:px-8 lg:px-16 py-16">
@@ -69,7 +70,7 @@ const Footer = () => {
               {/* Logo */}
          
                <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-<img src={tranLogo} className='w-32 h-32  scale-125' alt="" />
+<img src={tranLogo} className='w-32 h-20 mb-8 ml-4 rounded-xl scale-125' alt="" />
             </div>
       
               
@@ -167,8 +168,8 @@ const Footer = () => {
             <div className="space-y-6">
               <div>
                 <p className="text-secondary-400 text-sm mb-2">Inquiry</p>
-                <a href="tel:+250792888980" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
-                  +(250) 791-813-289
+                <a href="tel:+250 780 854 895" className="text-white text-lg font-semibold hover:text-primary-400 transition-colors">
+              +250 780 854 895
                 </a>
               </div>
               
@@ -178,13 +179,7 @@ const Footer = () => {
                   info@zubasystem.com
                 </a>
               </div>
-              
-              <div className="border-t border-gray-700 pt-6">
-                <p className="text-secondary-400 text-sm mb-2">Location</p>
-                <p className="text-white">
-                  Kigali, Rwanda
-                </p>
-              </div>
+            
             </div>
           </motion.div>
         </div>
@@ -201,7 +196,7 @@ const Footer = () => {
               viewport={{ once: true }}
               className="text-gray-400 text-sm"
             >
-              © Copyright 2025. All rights reserved. <span className="text-primary-400">Zubasystem</span>. Designed by <span className="text-gray-300">Abytech hub team</span>
+              © Copyright 2025. All rights reserved. <span className="text-primary-400">IZubasystem</span>. Designed by <span className="text-gray-300">Izuba Gen </span>
             </motion.p>
             
             <motion.div

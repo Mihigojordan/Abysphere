@@ -45,11 +45,11 @@ const Navbar = () => {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2 text-gray-300">
               <Phone size={16} className="text-primary-400" />
-              <span>+(250) 791-813-289</span>
+              <span>+250 780 854 895</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <Mail size={16} className="text-primary-400" />
-              <span>info@zubasystem.com</span>
+              <span>support@izubasystem.com</span>
             </div>
             <div className="flex items-center space-x-2 text-gray-300">
               <MapPin size={16} className="text-primary-400" />
@@ -57,7 +57,7 @@ const Navbar = () => {
             </div>
           </div>
           <div className="text-gray-300">
-            Streamlining HR Operations Across Rwanda
+            Streamlining Management Solutions Across Rwanda
           </div>
         </div>
       </div>
@@ -68,11 +68,11 @@ const Navbar = () => {
           scrolled ? 'shadow-xl bg-white/98 backdrop-blur-sm' : 'shadow-md'
         }`}
       >
-        <div className="w-full mx-auto px-4 sm:px-10 lg:px-14">
-          <div className="flex justify-between items-center h-20">
+        <div className="w-full mx-auto px-1 sm:px-10 lg:px-4">
+          <div className="flex justify-between items-center h-24">
             {/* Logo */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('/')}>
-<img src={tranLogo} className='w-20 h-20  object-contain ' alt="" />
+<img src={tranLogo} className='w-40 h-28  object-contain ' alt="" />
             </div>
 
             {/* Desktop Navigation */}

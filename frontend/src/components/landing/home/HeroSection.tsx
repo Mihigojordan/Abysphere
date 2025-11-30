@@ -168,7 +168,7 @@ const HRExcellenceHero = () => {
                 >
                   <div className="w-24 h-px bg-slate-300"></div>
                   <a href="tel:+5284567592" className="text-xl font-semibold text-slate-900 hover:text-primary-600 transition-colors">
-                    +(528) 456-7592
+                    +250 780 854 895
                   </a>
                 </div>
               </div>

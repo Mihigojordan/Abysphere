@@ -48,7 +48,7 @@ export default function WhoCanUseSection() {
   ];
 
   return (
-    <div className="bg-gray-50 p-8 md:p-16 py-16">
+    <div className="bg-gray-50 p-8 md:p-16 py-8">
       <div className=" mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16">

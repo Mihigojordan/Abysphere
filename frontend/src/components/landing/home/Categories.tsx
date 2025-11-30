@@ -74,7 +74,7 @@ const StockFeaturesSection = () => {
   ];
 
   return (
-    <div className="bg-slate-50 py-20 px-8 md:px-16">
+    <div className="bg-slate-50 py-5 px-8 md:px-16">
       <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -98,8 +98,8 @@ const StockFeaturesSection = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <div key={index} className="bg-white p-4 rounded-xl text-center hover:shadow-lg transition-shadow">
-              <feature.icon className="w-6 h-6 text-primary-600 mx-auto mb-2" />
-              <p className="text-xs font-medium text-slate-700">{feature.tag}</p>
+              <feature.icon className="w-6 h-10 text-primary-600 mx-auto mb-2" />
+              <p className="text-md font-medium text-slate-700">{feature.tag}</p>
             </div>
           ))}
         </div>

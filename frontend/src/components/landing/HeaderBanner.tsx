@@ -45,12 +45,12 @@ const HeaderBanner = ({
       case 'image':
         return 'bg-cover bg-center bg-no-repeat';
       case 'solid':
-        return 'bg-teal-900';
+        return 'bg-primary-900';
       case 'pattern':
-        return 'bg-gradient-to-br from-teal-800 via-teal-900 to-gray-900';
+        return 'bg-gradient-to-br from-primary-800 via-primary-900 to-gray-900';
       case 'gradient':
       default:
-        return 'bg-gradient-to-br from-teal-700 via-teal-800 to-teal-900';
+        return 'bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900';
     }
   };
 
@@ -95,7 +95,7 @@ const HeaderBanner = ({
       {/* Decorative Geometric Shapes */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary-400 opacity-10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-300 opacity-10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-primary-300 opacity-10 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
         
         {/* Abstract Lines */}
         <svg className="absolute bottom-0 left-0 w-full h-32 text-white opacity-5" preserveAspectRatio="none" viewBox="0 0 1200 120">
@@ -116,7 +116,7 @@ const HeaderBanner = ({
       )}
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-teal-900/40"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary-900/40"></div>
 
       {/* Content Container */}
       <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 h-full flex flex-col justify-center">
@@ -150,7 +150,7 @@ const HeaderBanner = ({
           {icon && (
             <div className="mb-6">
               <div className="inline-flex bg-gradient-to-br from-primary-400 to-primary-500 rounded-2xl w-20 h-20 items-center justify-center shadow-2xl border-4 border-white/20 transform hover:scale-110 transition-transform duration-300">
-                <div className="text-teal-900">
+                <div className="text-primary-900">
                   {icon}
                 </div>
               </div>

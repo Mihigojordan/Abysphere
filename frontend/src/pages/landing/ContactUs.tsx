@@ -41,7 +41,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-blue-50">
     
       <HeaderBanner
         title="Get in Touch"
@@ -51,7 +51,7 @@ export default function ContactPage() {
       />
 
       <div className="text-center mb-6 pt-5">
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-teal-600 to-gray-800 bg-clip-text text-transparent mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-primary-600 to-gray-800 bg-clip-text text-transparent mb-6">
           Have Questions? Need a Demo? We're Here to Help.
         </h1>
         <p className="text-md md:text-lg text-gray-600 mx-auto leading-relaxed mb-6 max-w-3xl">
@@ -60,23 +60,23 @@ export default function ContactPage() {
         
         {/* Quick contact badges */}
         <div className="flex flex-wrap justify-center gap-4 mt-4">
-          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="flex items-center bg-primary-50 text-primary-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Package size={16} className="mr-2" />
             <span className="font-medium">Inventory Solutions</span>
           </div>
-          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="flex items-center bg-primary-50 text-primary-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Phone size={16} className="mr-2" />
             <span className="font-medium">250 788 771 508</span>
           </div>
-          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="flex items-center bg-primary-50 text-primary-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Mail size={16} className="mr-2" />
             <span className="font-medium">support@izubagen.rw</span>
           </div>
-          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="flex items-center bg-primary-50 text-primary-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Clock size={16} className="mr-2" />
             <span className="font-medium">Mon-Fri 8AM-6PM</span>
           </div>
-          <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="flex items-center bg-primary-50 text-primary-700 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-300">
             <Building2 size={16} className="mr-2" />
             <span className="font-medium">Norrsken House Kigali</span>
           </div>
@@ -87,12 +87,12 @@ export default function ContactPage() {
       <div className="w-full mx-auto px-4 lg:px-16 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {/* Office Location */}
-          <div className="bg-teal-600 text-white rounded-2xl p-6 shadow-lg">
+          <div className="bg-primary-600 text-white rounded-2xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-3">
               <MapPin className="w-8 h-8" />
               <h3 className="text-xl font-bold">Our Office</h3>
             </div>
-            <p className="text-teal-100">
+            <p className="text-primary-100">
               Norrsken House Kigali<br/>
               Kigali, Rwanda
             </p>
@@ -101,7 +101,7 @@ export default function ContactPage() {
           {/* Support */}
           <div className="bg-blue-100 rounded-2xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-3">
-              <Headphones className="w-8 h-8 text-teal-600" />
+              <Headphones className="w-8 h-8 text-primary-600" />
               <h3 className="text-xl font-bold text-gray-800">Support</h3>
             </div>
             <p className="text-gray-600">
@@ -111,9 +111,9 @@ export default function ContactPage() {
           </div>
 
           {/* Working Hours */}
-          <div className="bg-white border-2 border-teal-600 rounded-2xl p-6 shadow-lg">
+          <div className="bg-white border-2 border-primary-600 rounded-2xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-3">
-              <Clock className="w-8 h-8 text-teal-600" />
+              <Clock className="w-8 h-8 text-primary-600" />
               <h3 className="text-xl font-bold text-gray-800">Business Hours</h3>
             </div>
             <p className="text-gray-600">
@@ -128,7 +128,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="bg-white rounded-2xl p-8 shadow-lg">
             <div className="flex items-center gap-3 mb-6">
-              <MessageSquare className="w-8 h-8 text-teal-600" />
+              <MessageSquare className="w-8 h-8 text-primary-600" />
               <h2 className="text-3xl font-bold text-gray-800">Send Us a Message</h2>
             </div>
             <p className="text-gray-600 mb-6">
@@ -148,7 +148,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-colors"
                     placeholder="John Doe"
                   />
                 </div>
@@ -163,7 +163,7 @@ export default function ContactPage() {
                     value={formData.businessName}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-colors"
                     placeholder="Your Company Name"
                   />
                 </div>
@@ -181,7 +181,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-colors"
                     placeholder="john@company.com"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-colors"
                     placeholder="+250 788 XXX XXX"
                   />
                 </div>
@@ -213,14 +213,14 @@ export default function ContactPage() {
                   onChange={handleChange}
                   rows="6"
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-colors resize-none"
                   placeholder="Tell us about your inventory management needs or request a demo..."
                 ></textarea>
               </div>
 
               <button
                 onClick={handleSubmit}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer shadow-lg hover:shadow-xl"
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300 flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer shadow-lg hover:shadow-xl"
               >
                 <Send className="w-5 h-5" />
                 Send Message
@@ -231,7 +231,7 @@ export default function ContactPage() {
           {/* Office Map Section */}
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-teal-600" />
+              <MapPin className="w-5 h-5 text-primary-600" />
               Find Us - Norrsken House Kigali
             </h3>
             
@@ -249,8 +249,8 @@ export default function ContactPage() {
               />
             </div>
             
-            <div className="bg-teal-50 rounded-lg p-4">
-              <h4 className="font-bold text-teal-800 mb-2">Office Location</h4>
+            <div className="bg-primary-50 rounded-lg p-4">
+              <h4 className="font-bold text-primary-800 mb-2">Office Location</h4>
               <p className="text-sm text-gray-600 mb-2">
                 Norrsken House Kigali<br/>
                 KN 78 St<br/>
@@ -258,18 +258,18 @@ export default function ContactPage() {
               </p>
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex items-center gap-1">
-                  <span className="text-sm font-semibold text-teal-600">4.9</span>
+                  <span className="text-sm font-semibold text-primary-600">4.9</span>
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-secondary-400 text-secondary-400" />
                   ))}
                 </div>
               </div>
-              <div className="text-xs text-teal-600 mb-2">Client Satisfaction Rating</div>
+              <div className="text-xs text-primary-600 mb-2">Client Satisfaction Rating</div>
               <a 
                 href="https://www.google.com/maps/dir//Norrsken+House+Kigali" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-teal-600 hover:underline flex items-center gap-1"
+                className="text-xs text-primary-600 hover:underline flex items-center gap-1"
               >
                 <MapPin className="w-3 h-3" />
                 Get Directions
@@ -281,12 +281,12 @@ export default function ContactPage() {
         {/* Bottom CTA Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Demo Request Widget */}
-          <div className="bg-teal-600 text-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-primary-600 text-white rounded-2xl p-8 shadow-lg">
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <Package className="w-6 h-6" />
               TRANSFORM YOUR INVENTORY MANAGEMENT!
             </h3>
-            <p className="text-teal-100 mb-4">
+            <p className="text-primary-100 mb-4">
               Schedule a free demo and see how our inventory management system can streamline your business operations
             </p>
             <div className="flex items-center gap-3 mb-4 opacity-90">
@@ -327,17 +327,17 @@ export default function ContactPage() {
         {/* Services Section */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
-            <Package className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <Package className="w-12 h-12 text-primary-600 mx-auto mb-4" />
             <h4 className="text-xl font-bold text-gray-800 mb-2">Inventory Solutions</h4>
             <p className="text-gray-600">Complete stock management & control systems</p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
-            <BarChart3 className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <BarChart3 className="w-12 h-12 text-primary-600 mx-auto mb-4" />
             <h4 className="text-xl font-bold text-gray-800 mb-2">Analytics & Reports</h4>
             <p className="text-gray-600">Real-time insights & business intelligence</p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center">
-            <Building2 className="w-12 h-12 text-teal-600 mx-auto mb-4" />
+            <Building2 className="w-12 h-12 text-primary-600 mx-auto mb-4" />
             <h4 className="text-xl font-bold text-gray-800 mb-2">Multi-Store Support</h4>
             <p className="text-gray-600">Manage unlimited branches seamlessly</p>
           </div>
