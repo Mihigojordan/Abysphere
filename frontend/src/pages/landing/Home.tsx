@@ -7,12 +7,12 @@ import Blog from '../../components/landing/home/Blog';
 import AboutSection from '../../components/landing/home/About';
 import WhyChooseUsSection from '../../components/landing/home/WhyChooseUsSection';
 import FAQ from '../../components/landing/home/FAQ';
-import { 
-  Check, 
-  X, 
-  Zap, 
-  Building2, 
-  Rocket, 
+import {
+  Check,
+  X,
+  Zap,
+  Building2,
+  Rocket,
   ArrowRight,
   Package,
   TrendingUp,
@@ -221,26 +221,23 @@ const Home = () => {
             {coreFeatures.map((service, index) => {
               const Icon = service.icon;
               const isHovered = hoveredService === index;
-              
+
               return (
                 <div
                   key={index}
-                  className={`relative bg-white rounded-2xl p-8 border-2 transition-all duration-300 cursor-pointer group ${
-                    isHovered 
-                      ? 'border-primary-600 shadow-xl -translate-y-2' 
+                  className={`relative bg-white rounded-2xl p-8 border-2 transition-all duration-300 cursor-pointer group ${isHovered
+                      ? 'border-primary-600 shadow-xl -translate-y-2'
                       : 'border-gray-100 shadow-sm hover:shadow-lg'
-                  }`}
+                    }`}
                   onMouseEnter={() => setHoveredService(index)}
                   onMouseLeave={() => setHoveredService(null)}
                 >
-                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ${
-                    isHovered 
-                      ? 'bg-primary-600 scale-110' 
+                  <div className={`w-24 h-24 rounded-xl flex items-center justify-center mb-6 transition-all duration-300 ${isHovered
+                      ? 'bg-primary-600 scale-110'
                       : 'bg-primary-50'
-                  }`}>
-                    <Icon className={`w-8 h-8 transition-colors duration-300 ${
-                      isHovered ? 'text-white' : 'text-primary-600'
-                    }`} />
+                    }`}>
+                    <Icon className={`w-12 h-12 transition-colors duration-300 ${isHovered ? 'text-white' : 'text-primary-600'
+                      }`} />
                   </div>
 
                   <h4 className="text-xl font-bold text-gray-900 mb-3">
@@ -250,16 +247,14 @@ const Home = () => {
                     {service.description}
                   </p>
 
-                  <div className={`flex items-center gap-2 text-primary-600 font-semibold transition-all duration-300 ${
-                    isHovered ? 'opacity-100' : 'opacity-0'
-                  }`}>
+                  <div className={`flex items-center gap-2 text-primary-600 font-semibold transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'
+                    }`}>
                     <span className="text-sm">Learn More</span>
                     <ChevronRight className="w-4 h-4" />
                   </div>
 
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 opacity-0 transition-opacity duration-300 -z-10 ${
-                    isHovered ? 'opacity-5' : ''
-                  }`}></div>
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 opacity-0 transition-opacity duration-300 -z-10 ${isHovered ? 'opacity-5' : ''
+                    }`}></div>
                 </div>
               );
             })}
@@ -287,21 +282,19 @@ const Home = () => {
             <div className="inline-flex items-center gap-4 bg-gray-100 rounded-full p-2">
               <button
                 onClick={() => setBillingCycle("monthly")}
-                className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                  billingCycle === "monthly"
+                className={`px-6 py-2 rounded-full font-semibold transition-all ${billingCycle === "monthly"
                     ? "bg-primary-700 text-white"
                     : "text-gray-600"
-                }`}
+                  }`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setBillingCycle("yearly")}
-                className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                  billingCycle === "yearly"
+                className={`px-6 py-2 rounded-full font-semibold transition-all ${billingCycle === "yearly"
                     ? "bg-primary-700 text-white"
                     : "text-gray-600"
-                }`}
+                  }`}
               >
                 Yearly
                 <span className="ml-2 text-xs bg-secondary-400 text-gray-900 px-2 py-1 rounded-full">
@@ -318,11 +311,10 @@ const Home = () => {
               return (
                 <div
                   key={index}
-                  className={`relative bg-white rounded-3xl p-8 border-2 transition-all duration-300 hover:shadow-2xl ${
-                    plan.popular
+                  className={`relative bg-white rounded-3xl p-8 border-2 transition-all duration-300 hover:shadow-2xl ${plan.popular
                       ? "border-secondary-400 shadow-xl scale-105"
                       : "border-gray-200 hover:border-primary-700"
-                  }`}
+                    }`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -367,11 +359,10 @@ const Home = () => {
                           </div>
                         )}
                         <span
-                          className={`text-sm ${
-                            feature.included
+                          className={`text-sm ${feature.included
                               ? "text-gray-700 font-medium"
                               : "text-gray-400"
-                          }`}
+                            }`}
                         >
                           {feature.text}
                         </span>
@@ -417,7 +408,7 @@ const Home = () => {
             <p className="text-md md:text-lg text-gray-600 mx-auto leading-relaxed mb-6 max-w-3xl">
               Connect with our expert team for inventory management solutions, product demos, and business consultations.
             </p>
-            
+
             {/* Quick contact badges */}
             <div className="flex flex-wrap justify-center gap-4 mt-4">
               <div className="flex items-center bg-teal-50 text-teal-700 px-4 py-2 rounded-full shadow-sm">
@@ -443,7 +434,7 @@ const Home = () => {
                 <h3 className="text-xl font-bold">Our Office</h3>
               </div>
               <p className="text-teal-100">
-                Norrsken House Kigali<br/>
+                Norrsken House Kigali<br />
                 Kigali, Rwanda
               </p>
             </div>
@@ -454,7 +445,7 @@ const Home = () => {
                 <h3 className="text-xl font-bold text-gray-800">Support</h3>
               </div>
               <p className="text-gray-600">
-                250 788 771 508<br/>
+                250 788 771 508<br />
                 support@izubagen.rw
               </p>
             </div>
@@ -465,7 +456,7 @@ const Home = () => {
                 <h3 className="text-xl font-bold text-gray-800">Business Hours</h3>
               </div>
               <p className="text-gray-600">
-                Mon - Fri: 8AM - 6PM<br/>
+                Mon - Fri: 8AM - 6PM<br />
                 Sat: 9AM - 2PM
               </p>
             </div>
@@ -482,7 +473,7 @@ const Home = () => {
               <p className="text-gray-600 mb-6">
                 Fill out the form below and our team will get back to you within 24 hours
               </p>
-              
+
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -582,7 +573,7 @@ const Home = () => {
                 <MapPin className="w-5 h-5 text-teal-600" />
                 Find Us - Norrsken House Kigali
               </h3>
-              
+
               <div className="bg-gray-100 rounded-xl overflow-hidden h-96 relative mb-4">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.5201744334447!2d30.060163!3d-1.9440727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca425d7f48189%3A0x39e5e7a4b99c3e9b!2sNorrsken%20House%20Kigali!5e0!3m2!1sen!2srw!4v1690000000000!5m2!1sen!2srw"
@@ -595,12 +586,12 @@ const Home = () => {
                   title="Norrsken House Kigali Location"
                 />
               </div>
-              
+
               <div className="bg-teal-50 rounded-lg p-4">
                 <h4 className="font-bold text-teal-800 mb-2">Office Location</h4>
                 <p className="text-sm text-gray-600 mb-2">
-                  Norrsken House Kigali<br/>
-                  KN 78 St<br/>
+                  Norrsken House Kigali<br />
+                  KN 78 St<br />
                   Kigali, Rwanda
                 </p>
                 <div className="flex items-center gap-2 mb-2">
@@ -612,8 +603,8 @@ const Home = () => {
                   </div>
                 </div>
                 <div className="text-xs text-teal-600 mb-2">Client Satisfaction Rating</div>
-                <a 
-                  href="https://www.google.com/maps/dir//Norrsken+House+Kigali" 
+                <a
+                  href="https://www.google.com/maps/dir//Norrsken+House+Kigali"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-teal-600 hover:underline flex items-center gap-1"

@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   Menu,
-  X,
-  Phone,
-  Mail,
-  MapPin
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import tranLogo from '../../assets/tran.png';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,28 +60,7 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Top bar */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white py-3 px-4 text-sm hidden lg:block">
-        <div className="w-full mx-auto px-4 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-2 text-gray-300">
-              <Phone size={16} className="text-primary-400" />
-              <span>+(250) 791-813-289</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-300">
-              <Mail size={16} className="text-primary-400" />
-              <span>info@zubasystem.com</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-300">
-              <MapPin size={16} className="text-primary-400" />
-              <span>Kigali, Rwanda</span>
-            </div>
-          </div>
-          <div className="text-gray-300">
-            Streamlining HR Operations Across Rwanda
-          </div>
-        </div>
-      </div>
+      {/* Top bar removed - contact info now in footer */}
 
       {/* Main Navigation */}
       <nav
@@ -96,7 +71,7 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('#home')}>
-              <img src={tranLogo} className='w-20 h-20  object-contain ' alt="ZubaSystem Logo" />
+              <img src="/logo.jpg" className='w-20 h-20  object-contain ' alt="ZubaSystem Logo" />
             </div>
 
             {/* Desktop Navigation */}
@@ -106,7 +81,7 @@ const Navbar = () => {
                   <button
                     key={index}
                     onClick={() => handleNavigate(item.path)}
-                    className="relative px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm transition-all duration-300 rounded-lg group"
+                    className="relative px-4 py-2 text-gray-700 hover:text-primary-600 font-bold text-lg transition-all duration-300 rounded-lg group"
                   >
                     <span className="relative z-10">{item.name}</span>
                     <div className="absolute inset-0 bg-primary-50 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
@@ -146,7 +121,7 @@ const Navbar = () => {
               <button
                 key={index}
                 onClick={() => handleNavigate(item.path)}
-                className="block w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg font-medium transition-all duration-300 transform hover:translate-x-2"
+                className="block w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg font-bold text-lg transition-all duration-300 transform hover:translate-x-2"
               >
                 {item.name}
               </button>
