@@ -1,0 +1,443 @@
+/*  ─────────────────────────────────────────────────────────────────────────────
+    Sidebar.tsx  (updated – feature-based visibility with enhanced dropdowns)
+    ───────────────────────────────────────────────────────────────────────────── */
+import React, { useState, useEffect } from "react";
+import {
+
+  Users,
+  TrendingUp,
+  X,
+  Building,
+  User2,
+  Cog,
+  FolderTree,
+  ChevronDown,
+  ArrowUp,
+  ArrowDown,
+  Loader,
+} from "lucide-react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import useAdminAuth from "../../context/AdminAuthContext";
+import useEmployeeAuth from "../../context/EmployeeAuthContext";
+import { API_URL } from "../../api/api";
+import PWAInstallButton from "./PWAInstallButton";
+
+interface SystemFeature {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Extend the Admin type that comes from the context (only for this file)   */
+/* -------------------------------------------------------------------------- */
+interface Admin {
+  id: string;
+  adminName?: string;
+  adminEmail?: string;
+  profileImage?: string;
+  phone?: string;
+  isLocked?: boolean;
+  features?: SystemFeature[];
+  [key: string]: unknown;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  NavItem / DropdownGroup – now support a `feature` string                 */
+/* -------------------------------------------------------------------------- */
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  path: string;
+  /** optional – if present the item is shown only when admin has this feature */
+  feature?: string;
+  /** keep old role-based guard for backward compatibility */
+  allowedRoles?: string[];
+}
+interface DropdownGroup {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  /** the whole group can be guarded by a feature */
+  feature?: string;
+  items: NavItem[];
+}
+
+/* -------------------------------------------------------------------------- */
+interface SidebarProps {
+  isOpen?: boolean;
+  onToggle: () => void;
+  role: string; // "admin" | "employee"
+}
+
+/* -------------------------------------------------------------------------- */
+const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const location = useLocation();
+
+  const adminAuth = useAdminAuth();
+  const employeeAuth = useEmployeeAuth();
+  const auth = role === "admin" ? adminAuth : employeeAuth;
+  const user = auth.user as Admin | null;               // <-- cast for TS
+
+  const navigate = useNavigate();
+
+  /* ---------------------------------------------------------------------- */
+  /*  Toggle dropdown open/close                                           */
+  /* ---------------------------------------------------------------------- */
+  const toggleDropdown = (dropdownId: string) => {
+    setOpenDropdown(prev => prev === dropdownId ? null : dropdownId);
+  };
+
+  /* ---------------------------------------------------------------------- */
+  /*  Helper – does the current admin have a given feature?                */
+  /* ---------------------------------------------------------------------- */
+  const hasFeature = (name?: string): boolean => {
+    if (!name) return true;                     // no guard → always visible
+    return !!user?.features?.some((f) => f.name === name);
+  };
+
+  /* ---------------------------------------------------------------------- */
+  /*  Build the raw navigation tree                                         */
+  /* ---------------------------------------------------------------------- */
+  const getNavlinks = (role: string): (NavItem | DropdownGroup)[] => {
+    const base = `/${role}/dashboard`;
+
+    return [
+      { id: "dashboard", label: "Dashboard", icon: TrendingUp, path: base },
+
+      {
+        id: "departments",
+        label: "Departments Management",
+        icon: Building,
+        path: `${base}/department-management`,
+        feature: "DEPARTMENTS_MANAGEMENT",   // <-- feature name in DB
+        allowedRoles: ["admin"],
+      },
+
+      {
+        id: "employees",
+        label: "Employees Management",
+        icon: Users,
+        path: `${base}/employee-management`,
+        feature: "EMPLOYEES_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+
+      {
+        id: "clients",
+        label: "Clients Management",
+        icon: User2,
+        path: `${base}/client-management`,
+        feature: "CLIENTS_MANAGEMENT",
+      },
+
+     
+      {
+        id: "category",
+        label: "Category Management",
+        icon: FolderTree,
+        path: `${base}/category-management`,
+        feature: "CATEGORY_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+
+      {
+        id: "supplier",
+        label: "Supplier Management",
+        icon: FolderTree,
+        path: `${base}/supplier-management`,
+        feature: "SUPPLIER_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "stockin",
+        label: "StockIn Management",
+        icon: ArrowUp,
+        path: `${base}/stockin-management`,
+        feature: "STOCKIN_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "stockout",
+        label: "StockOut Management",
+        icon: ArrowDown,
+        path: `${base}/stockout-management`,
+        feature: "STOCKOUT_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "Sales-Return",
+        label: "Sales Return Management",
+        icon: Loader,
+        path: `${base}/sales-return-management`,
+        feature: "SALES_RETURN_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+
+      /* ------------------------------------------------------------------ */
+      /*  Example of a dropdown that is guarded by a single feature        */
+      /* ------------------------------------------------------------------ */
+      {
+        id: "reports",
+        label: "Reports",
+        icon: TrendingUp,
+        feature: "VIEW_REPORTS",               // whole group hidden if missing
+        items: [
+          {
+            id: "sales-report",
+            label: "Sales Report",
+            icon: TrendingUp,
+            path: `${base}/reports/sales`,
+          },
+          {
+            id: "inventory-report",
+            label: "Inventory Report",
+            icon: FolderTree,
+            path: `${base}/reports/inventory`,
+          },
+        ],
+      },
+    ];
+  };
+
+  /* ---------------------------------------------------------------------- */
+  /*  Filter by role **and** by feature                                    */
+  /* ---------------------------------------------------------------------- */
+  const filterNavItems = (
+    items: (NavItem | DropdownGroup)[]
+  ): (NavItem | DropdownGroup)[] => {
+    return items
+      .map((item) => {
+        /* ------------------- DropdownGroup ------------------- */
+        if ("items" in item) {
+          const filtered = item.items
+            .filter(
+              (sub) =>
+                (!sub.allowedRoles || sub.allowedRoles.includes(role)) &&
+                hasFeature(sub.feature)
+            );
+
+          // keep the group only if it has at least one visible child **or**
+          // the group itself is not guarded (feature undefined)
+          const groupVisible =
+            hasFeature(item.feature) && filtered.length > 0;
+
+          return groupVisible ? { ...item, items: filtered } : null;
+        }
+
+        /* ----------------------- NavItem ---------------------- */
+        const visible =
+          (!item.allowedRoles || item.allowedRoles.includes(role)) &&
+          hasFeature(item.feature);
+
+        return visible ? item : null;
+      })
+      .filter((i): i is NavItem | DropdownGroup => i !== null);
+  };
+
+  const navlinks = filterNavItems(getNavlinks(role));
+
+  /* ---------------------------------------------------------------------- */
+  /*  Auto-open dropdown when a child route is active                     */
+  /* ---------------------------------------------------------------------- */
+  useEffect(() => {
+    const cur = location.pathname;
+    for (const it of navlinks) {
+      if ("items" in it && it.items.some((sub) => cur === sub.path)) {
+        setOpenDropdown(it.id);
+        break;
+      }
+    }
+  }, [location.pathname, navlinks]);
+
+  /* ---------------------------------------------------------------------- */
+  /*  Misc helpers                                                          */
+  /* ---------------------------------------------------------------------- */
+  const getProfileRoute = () => `/${role}/dashboard/profile`;
+  const handleNavigateProfile = () => navigate(getProfileRoute(), { replace: true });
+
+  const displayName =
+    role === "admin"
+      ? user?.adminName || "Admin User"
+      : `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Employee User";
+
+  const displayEmail =
+    role === "admin"
+      ? user?.adminEmail || "admin@example.com"
+      : user?.email || "employee@example.com";
+  const displayImage =
+    role === "admin"
+      ? user?.profileImage || "admin@example.com"
+      : user?.email || "employee@example.com";
+
+  const portalTitle = `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
+
+  const isDropdownActive = (dropdown: DropdownGroup) =>
+    dropdown.items.some((i) => location.pathname === i.path);
+
+  /* ---------------------------------------------------------------------- */
+  /*  Renderers                                                            */
+  /* ---------------------------------------------------------------------- */
+  const renderMenuItem = (item: NavItem) => {
+    const Icon = item.icon;
+    return (
+      <NavLink
+        key={item.id}
+        to={item.path}
+        end
+        className={({ isActive }) =>
+          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${
+            isActive
+              ? "bg-primary-500/10 text-primary-700 border-primary-500"
+              : "text-gray-700 hover:bg-gray-50 border-transparent"
+          }`
+        }
+        onClick={() => window.innerWidth < 1024 && onToggle()}
+      >
+        {({ isActive }) => (
+          <>
+            <div
+              className={`p-1 rounded-md ${
+                isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">{item.label}</span>
+          </>
+        )}
+      </NavLink>
+    );
+  };
+
+  const renderDropdown = (dropdown: DropdownGroup) => {
+    const Icon = dropdown.icon;
+    const isOpen = openDropdown === dropdown.id;
+    const active = isDropdownActive(dropdown);
+
+    return (
+      <div key={dropdown.id} className="w-full">
+        <button
+          onClick={() => toggleDropdown(dropdown.id)}
+          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${
+            active
+              ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
+              : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <div
+              className={`p-1 rounded-md ${
+                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+            </div>
+            <span className="text-sm font-medium">{dropdown.label}</span>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            } ${active ? "text-primary-600" : "text-gray-400"}`}
+          />
+        </button>
+
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="ml-4 space-y-0.5 border-l-2 border-primary-100 pl-3 py-0.5">
+            {dropdown.items.map((sub) => {
+              const SubIcon = sub.icon;
+              return (
+                <NavLink
+                  key={sub.id}
+                  to={sub.path}
+                  end
+                  className={({ isActive }) =>
+                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${
+                      isActive
+                        ? "bg-primary-500 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`
+                  }
+                  onClick={() => window.innerWidth < 1024 && onToggle()}
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full -ml-3" />
+                      )}
+                      <SubIcon className="w-4 h-4" />
+                      <span className="text-sm">{sub.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /* ---------------------------------------------------------------------- */
+  /*  JSX                                                                   */
+  /* ---------------------------------------------------------------------- */
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onToggle}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } w-72`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-3 border-b border-primary-200">
+          <div className="flex items-center space-x-2">
+            <img src={`${API_URL}${displayImage}`} className="w-7 h-7" alt="" />
+            <div>
+              <h2 className="font-bold text-base text-primary-800">{displayName}</h2>
+              <p className="text-xs text-primary-500">{portalTitle}</p>
+            </div>
+          </div>
+          <button
+            onClick={onToggle}
+            className="lg:hidden p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto p-2">
+          <nav className="space-y-0.5">
+            {navlinks.length ? (
+              navlinks.map((it) => ("items" in it ? renderDropdown(it) : renderMenuItem(it)))
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-500 text-xs">No menu items available</p>
+              </div>
+            )}
+          </nav>
+        </div>
+
+        {/* Footer – profile */}
+<PWAInstallButton />
+      </div>
+    </>
+  );
+};
+
+export default Sidebar;

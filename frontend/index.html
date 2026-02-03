@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <meta
+    name="description"
+    content="ZubaSystem — Smart and efficient inventory management for modern companies. Manage employees, stock in/out, and reports with ease."
+  />
+  <meta
+    name="keywords"
+    content="ZubaSystem, inventory management, employees, stock, warehouse, logistics, business tools"
+  />
+
+  <!-- PWA Theme Colors -->
+  <meta name="theme-color" content="#1d4ed8" />
+  <meta name="msapplication-TileColor" content="#1d4ed8" />
+  <meta name="msapplication-navbutton-color" content="#1d4ed8" />
+
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="ZubaSystem" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-touch-fullscreen" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- iOS Icons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png" />
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png" />
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png" />
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png" />
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png" />
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Splash Screens (optional) -->
+  <link rel="apple-touch-startup-image" href="/splash/apple-splash-1242-2688.png" media="(device-width: 414px)" />
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1d4ed8" />
+
+  <!-- Windows Tiles -->
+  <meta name="msapplication-TileImage" content="/mstile-144x144.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://zubasystem.com/" />
+  <meta property="og:title" content="ZubaSystem" />
+  <meta
+    property="og:description"
+    content="ZubaSystem — Smart and efficient inventory management for modern companies. Manage employees, stock in/out, and reports with ease."
+  />
+  <meta property="og:image" content="/pwa-512x512.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://zubasystem.com/" />
+  <meta property="twitter:title" content="ZubaSystem" />
+  <meta
+    property="twitter:description"
+    content="ZubaSystem — Smart and efficient inventory management for modern companies."
+  />
+  <meta property="twitter:image" content="/pwa-512x512.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <title>ZubaSystem</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- PWA Install Script -->
+  <script>
+    let deferredPrompt;
+
+    const isPWAInstalled = () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes('android-app://');
+
+    const isIOSDevice = () =>
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    const canInstall = () =>
+      'serviceWorker' in navigator &&
+      ('BeforeInstallPromptEvent' in window || isIOSDevice());
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      window.dispatchEvent(
+        new CustomEvent('pwa-installable', { detail: { platform: 'android-desktop' } })
+      );
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      console.log('ZubaSystem installed successfully');
+    });
+
+    window.installPWA = async () => {
+      if (!deferredPrompt) return false;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      return outcome === 'accepted';
+    };
+
+    window.showIOSInstallInstructions = () => {
+      const instructions = {
+        title: 'Install ZubaSystem',
+        steps: [
+          'Tap the Share button',
+          'Scroll down and tap "Add to Home Screen"',
+          'Tap "Add" to install ZubaSystem'
+        ]
+      };
+      window.dispatchEvent(new CustomEvent('pwa-ios-instructions', { detail: instructions }));
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const installed = isPWAInstalled();
+      const canInstallApp = canInstall();
+      const isIOS = isIOSDevice();
+
+      window.dispatchEvent(
+        new CustomEvent('pwa-status', {
+          detail: { installed, canInstall: canInstallApp, isIOS }
+        })
+      );
+
+      if (isIOS && !installed && !sessionStorage.getItem('ios-install-dismissed')) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('pwa-show-ios-prompt'));
+        }, 3000);
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      window.dispatchEvent(
+        new CustomEvent(document.visibilityState === 'visible' ? 'pwa-focus' : 'pwa-blur')
+      );
+    });
+
+    window.addEventListener('online', () => {
+      window.dispatchEvent(new CustomEvent('pwa-network-status', { detail: { online: true } }));
+    });
+    window.addEventListener('offline', () => {
+      window.dispatchEvent(new CustomEvent('pwa-network-status', { detail: { online: false } }));
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        console.log('Service Worker active:', registration);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              window.dispatchEvent(new CustomEvent('pwa-update-available'));
+            }
+          });
+        });
+      });
+    }
+
+    window.PWAUtils = {
+      isPWAInstalled,
+      isIOSDevice,
+      canInstall,
+      installPWA,
+      showIOSInstallInstructions,
+      dismissIOSPrompt: () => {
+        sessionStorage.setItem('ios-install-dismissed', 'true');
+        window.dispatchEvent(new CustomEvent('pwa-ios-prompt-dismissed'));
+      },
+      refreshApp: () => {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+          window.location.reload();
+        }
+      },
+      shareContent: async (data) => {
+        if (navigator.share) {
+          try {
+            await navigator.share(data);
+            return true;
+          } catch {
+            return false;
+          }
+        }
+        return false;
+      }
+    };
+  </script>
+
+  <noscript>
+    <div
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1d4ed8;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: system-ui, -apple-system, sans-serif;
+        z-index: 9999;
+      "
+    >
+      <div>
+        <h1>JavaScript Required</h1>
+        <p>ZubaSystem requires JavaScript to function properly.</p>
+        <p>Please enable JavaScript in your browser and refresh the page.</p>
+      </div>
+    </div>
+  </noscript>
+</body>
+</html>
