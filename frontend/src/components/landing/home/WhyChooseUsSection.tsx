@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, RefreshCw, Building2, FileSpreadsheet, Users } from 'lucide-react';
 
-export default function WhyIzubaSystemSection() {
+export default function WhyMysystemSection() {
   const features = [
     {
       id: 1,
@@ -41,9 +41,9 @@ export default function WhyIzubaSystemSection() {
     <div className="min-h-screen bg-primary-800 relative overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 opacity-20">
-        <img 
-          src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1600&h=900&fit=crop" 
-          alt="Stock management background" 
+        <img
+          src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=1600&h=900&fit=crop"
+          alt="Stock management background"
           className="w-full h-full object-cover"
         />
       </div>
@@ -51,8 +51,8 @@ export default function WhyIzubaSystemSection() {
       {/* Decorative Vertical Lines */}
       <div className="absolute inset-0 flex justify-around pointer-events-none">
         {[...Array(12)].map((_, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="w-px h-full bg-primary-600/30"
             style={{ opacity: 0.5 }}
           ></div>
@@ -67,7 +67,7 @@ export default function WhyIzubaSystemSection() {
             <span>Solutions We Provide</span>
           </div>
           <h2 className="text-6xl font-bold text-white mb-12 leading-tight">
-            Why IzubaSystem?
+            Why Mysystem?
           </h2>
 
           {/* Video Play Card */}
@@ -76,7 +76,7 @@ export default function WhyIzubaSystemSection() {
               <Play className="w-10 h-10 text-primary-900 fill-primary-900 ml-1" />
             </button>
             <h3 className="text-2xl font-bold text-white">
-              See How IzubaSystem<br />Transforms Business
+              See How Mysystem<br />Transforms Business
             </h3>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function WhyIzubaSystemSection() {
         {/* Right Section - Feature Cards */}
         <div className="space-y-6">
           {features.map((feature, index) => (
-            <div 
+            <div
               key={feature.id}
               className="bg-primary-700/40 backdrop-blur-sm border border-primary-600/50 rounded-3xl p-8 flex items-center gap-6 hover:bg-primary-700/50 transition-all group"
               style={{

@@ -76,6 +76,8 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [messageText, setMessageText] = useState<string>("");
   const [messageExpiry, setMessageExpiry] = useState<string>("");
+  const [messageTextColor, setMessageTextColor] = useState<string>("#FFFFFF");
+  const [messageBgColor, setMessageBgColor] = useState<string>("#2563eb");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const url = `/${role}/dashboard/company-management/`;
   // Fetch companies
@@ -202,9 +204,21 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
     try {
       setOperationLoading(true);
       const expiryISO = messageExpiry ? new Date(messageExpiry).toISOString() : undefined;
-      await companyService.setCompanyMessage(selectedCompany.id, messageText, expiryISO);
+      await companyService.setCompanyMessage(
+        selectedCompany.id,
+        messageText,
+        expiryISO,
+        messageTextColor,
+        messageBgColor
+      );
       setSelectedCompany((prev) =>
-        prev ? { ...prev, message: messageText, messageExpiry: expiryISO } : prev
+        prev ? {
+          ...prev,
+          message: messageText,
+          messageExpiry: expiryISO,
+          messageTextColor: messageTextColor,
+          messageBgColor: messageBgColor
+        } : prev
       );
       showOperationStatus("success", "Message set successfully!");
     } catch (err: any) {
@@ -214,6 +228,8 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
       setShowMessageModal(false);
       setMessageText("");
       setMessageExpiry("");
+      setMessageTextColor("#FFFFFF");
+      setMessageBgColor("#2563eb");
     }
   };
   const toggleGroupExpansion = (groupKey: string) => {
@@ -792,13 +808,15 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                       setShowMessageModal(false);
                       setMessageText("");
                       setMessageExpiry("");
+                      setMessageTextColor("#FFFFFF");
+                      setMessageBgColor("#2563eb");
                     }}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Message *
@@ -825,6 +843,63 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                       Leave empty for a permanent message.
                     </p>
                   </div>
+                  {/* Text Color Picker */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Text Color
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={messageTextColor}
+                        onChange={(e) => setMessageTextColor(e.target.value)}
+                        className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={messageTextColor}
+                        onChange={(e) => setMessageTextColor(e.target.value)}
+                        placeholder="#FFFFFF"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                  {/* Background Color Picker */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Background Color
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={messageBgColor}
+                        onChange={(e) => setMessageBgColor(e.target.value)}
+                        className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={messageBgColor}
+                        onChange={(e) => setMessageBgColor(e.target.value)}
+                        placeholder="#2563eb"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                  {/* Live Preview */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Preview
+                    </label>
+                    <div
+                      className="p-3 rounded-lg text-center font-medium"
+                      style={{
+                        backgroundColor: messageBgColor,
+                        color: messageTextColor,
+                      }}
+                    >
+                      {messageText || "Your message preview will appear here"}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-end space-x-3 mt-6">
                   <button
@@ -832,6 +907,8 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                       setShowMessageModal(false);
                       setMessageText("");
                       setMessageExpiry("");
+                      setMessageTextColor("#FFFFFF");
+                      setMessageBgColor("#2563eb");
                     }}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                   >

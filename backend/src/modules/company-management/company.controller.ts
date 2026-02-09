@@ -79,6 +79,8 @@ export class CompanyController {
     @Param('adminId') adminId: string,
     @Body('message') message: string,
     @Body('expiry') expiry?: string,
+    @Body('textColor') textColor?: string,
+    @Body('bgColor') bgColor?: string,
   ) {
     const expiryDate = expiry ? new Date(expiry) : undefined;
 
@@ -86,6 +88,8 @@ export class CompanyController {
       adminId,
       message,
       expiryDate,
+      textColor,
+      bgColor,
     );
 
     // 🔔 Notify connected clients in real-time
@@ -93,6 +97,8 @@ export class CompanyController {
       adminId,
       message: result.data.message,
       expiry: result.data.messageExpiry,
+      textColor: result.data.messageTextColor,
+      bgColor: result.data.messageBgColor,
     });
 
     return result;

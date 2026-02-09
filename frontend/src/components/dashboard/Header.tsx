@@ -88,7 +88,12 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     return now <= expiry;
   };
 
-  // Detect message type from message content (you can modify this logic or add a field in the schema)
+  // Check if custom colors are defined
+  const hasCustomColors = (): boolean => {
+    return !!(adminUser?.messageTextColor || adminUser?.messageBgColor);
+  };
+
+  // Detect message type from message content (only used when no custom colors)
   const getMessageType = (): MessageType => {
     const msg = adminUser?.message?.toLowerCase() || "";
     if (msg.includes("payment") || msg.includes("subscription") || msg.includes("invoice")) {
@@ -253,24 +258,41 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
 
       {/* Multi-Purpose Alert Banner */}
       {isMessageValid() && (
-        <div className={`alert-banner alert-${messageType}`}>
+        <div
+          className={`alert-banner ${!hasCustomColors() ? `alert-${messageType}` : ''}`}
+          style={hasCustomColors() ? {
+            background: adminUser?.messageBgColor || undefined,
+          } : undefined}
+        >
           <div className="alert-glow"></div>
           <div className="alert-content">
             <div className="marquee-container">
               <div className="marquee-content">
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>

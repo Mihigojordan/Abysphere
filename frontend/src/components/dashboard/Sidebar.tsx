@@ -3,11 +3,9 @@
     ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
-  MapPin,
-  Plane,
+
   Users,
   TrendingUp,
-  User,
   X,
   Building,
   User2,
@@ -21,7 +19,6 @@ import {
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
-import { headWeb } from "../../utils/web-head";
 import { API_URL } from "../../api/api";
 import PWAInstallButton from "./PWAInstallButton";
 

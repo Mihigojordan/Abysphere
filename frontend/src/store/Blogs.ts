@@ -15,7 +15,7 @@ export interface BlogPost {
   tags: string[];
 }
 
-// --- Blog Categories (updated to match IzubaSystem content) ---
+// --- Blog Categories (updated to match Mysystem content) ---
 export const blogsCategories: string[] = [
   'All',
   'Stock Management',
@@ -27,14 +27,14 @@ export const blogsCategories: string[] = [
   'Multi-Branch Operations'
 ];
 
-// --- Blog Data (7 new posts for IzubaSystem - completely replaced) ---
+// --- Blog Data (7 new posts for Mysystem - completely replaced) ---
 export const blogs: BlogPost[] = [
   {
     id: 1,
     title: "Why Your Business Should Stop Using Excel for Stock Management in 2025",
     excerpt: "Excel is useful, but not for modern inventory management. Discover why Rwandan businesses are losing money and time and how a real stock system solves the problem.",
     author: "Jean Paul Mugisha",
-    authorRole: "Founder & CEO, IzubaSystem",
+    authorRole: "Founder & CEO, Mysystem",
     publishDate: "2025-11-15",
     readTime: "7 min read",
     category: "Stock Management",
@@ -49,7 +49,7 @@ export const blogs: BlogPost[] = [
     title: "Top 10 Signs Your Business Needs a Stock Management System Today",
     excerpt: "Learn the warning signs that your shop, supermarket, pharmacy, or restaurant is suffering from stock mismanagement.",
     author: "Claire Uwase",
-    authorRole: "Customer Success Lead, IzubaSystem",
+    authorRole: "Customer Success Lead, Mysystem",
     publishDate: "2025-11-10",
     readTime: "6 min read",
     category: "Inventory Software",
@@ -61,10 +61,10 @@ export const blogs: BlogPost[] = [
   },
   {
     id: 3,
-    title: "How IzubaSystem Helps Rwandan Businesses Reduce Losses and Increase Profit",
+    title: "How Mysystem Helps Rwandan Businesses Reduce Losses and Increase Profit",
     excerpt: "An article explaining how technology directly increases revenue for SMEs.",
     author: "Emmanuel Nkurunziza",
-    authorRole: "Business Development Manager, IzubaSystem",
+    authorRole: "Business Development Manager, Mysystem",
     publishDate: "2025-11-05",
     readTime: "8 min read",
     category: "Business Growth",
@@ -79,7 +79,7 @@ export const blogs: BlogPost[] = [
     title: "Stock Management for Restaurants & Bars: Why It Matters (and How to Do It Right)",
     excerpt: "A practical guide for restaurants, bars, and cafés who struggle with missing drinks, wasted ingredients, or unbalanced reports.",
     author: "Grace Mukamana",
-    authorRole: "Hospitality Solutions Expert, IzubaSystem",
+    authorRole: "Hospitality Solutions Expert, Mysystem",
     publishDate: "2025-10-30",
     readTime: "9 min read",
     category: "Restaurant & Bar",
@@ -94,7 +94,7 @@ export const blogs: BlogPost[] = [
     title: "A Complete Guide to Stock Management for Pharmacies in Rwanda",
     excerpt: "Pharmacies require tighter controls, expiry management, and compliance. Here's a full guide.",
     author: "Dr. Olivier Tuyisenge",
-    authorRole: "Pharmacy Operations Consultant, IzubaSystem",
+    authorRole: "Pharmacy Operations Consultant, Mysystem",
     publishDate: "2025-10-25",
     readTime: "10 min read",
     category: "Retail & Pharmacy",
@@ -109,7 +109,7 @@ export const blogs: BlogPost[] = [
     title: "Why Multi-Branch Businesses Need a Unified Stock System",
     excerpt: "This article explains why supermarkets, wholesalers, clinics, and retail chains struggle without a centralized system.",
     author: "Patrick Habimana",
-    authorRole: "Technical Director, IzubaSystem",
+    authorRole: "Technical Director, Mysystem",
     publishDate: "2025-10-20",
     readTime: "8 min read",
     category: "Multi-Branch Operations",
@@ -124,7 +124,7 @@ export const blogs: BlogPost[] = [
     title: "Digital Transformation for SMEs: Why Inventory Automation Is the First Step",
     excerpt: "Educating business owners about digital growth and the importance of automating operations.",
     author: "Sandrine Iradukunda",
-    authorRole: "Digital Transformation Specialist, IzubaSystem",
+    authorRole: "Digital Transformation Specialist, Mysystem",
     publishDate: "2025-10-15",
     readTime: "9 min read",
     category: "Digital Transformation",

@@ -23,6 +23,8 @@ export interface Company {
   isLocked?: boolean;
   message?: string;
   messageExpiry?: string;
+  messageTextColor?: string;
+  messageBgColor?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -208,11 +210,15 @@ class CompanyService {
   async setCompanyMessage(
     adminId: string,
     message: string,
-    expiry?: string
+    expiry?: string,
+    textColor?: string,
+    bgColor?: string
   ): Promise<any> {
     try {
       const payload: Record<string, any> = { message };
       if (expiry) payload.expiry = expiry;
+      if (textColor) payload.textColor = textColor;
+      if (bgColor) payload.bgColor = bgColor;
 
       const response: AxiosResponse<any> = await this.api.post(
         `/company/${adminId}/set-message`,
