@@ -2,11 +2,13 @@
 
 import api, { API_URL } from '../api/api';
 
-export enum PaymentMethod {
-  CASH = 'CASH',
-  MOMO = 'MOBILE_MONEY',
-  CARD = 'CARD',
-}
+export const PaymentMethod = {
+  CASH: 'CASH',
+  MOMO: 'MOBILE_MONEY',
+  CARD: 'CARD',
+} as const;
+
+export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 
 export interface SaleItem {
   stockinId: number;

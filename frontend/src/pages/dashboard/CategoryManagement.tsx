@@ -14,7 +14,6 @@ import {
   WifiOff,
   RefreshCw,
   RotateCcw,
-  Calendar,
   X,
   AlertTriangle,
   List,
@@ -33,7 +32,7 @@ type ViewMode = 'table' | 'grid' | 'list';
 
 interface CategoryWithSync {
   id?: string;
-  localId?: string;
+  localId?: number;
   name: string;
   description?: string;
   createdAt?: Date | string;
@@ -97,15 +96,17 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       const deleteIds = new Set(offlineDeletes.map(d => d.id));
       const updateMap = new Map(offlineUpdates.map(u => [u.id, u]));
 
-      const combinedCategories = allCategories
+      const offlineAddsWithType = offlineAdds.map(a => ({ ...a, id: '', synced: false }));
+
+      const combinedCategories = (allCategories as any[])
         .filter(c => !deleteIds.has(c.id))
         .map(c => ({
           ...c,
           ...updateMap.get(c.id),
           synced: true,
         }))
-        .concat(offlineAdds.map(a => ({ ...a, synced: false })))
-        .sort((a, b) => Number(a.synced) - Number(b.synced));
+        .concat(offlineAddsWithType)
+        .sort((a, b) => (a.synced === b.synced ? 0 : a.synced ? 1 : -1));
 
       setCategories(combinedCategories);
       setFilteredCategories(combinedCategories);
@@ -189,31 +190,34 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       if (!validation.isValid) throw new Error(validation.errors.join(', '));
 
       const userData = role === 'admin'
-        ? { adminId: adminData.id }
-        : { employeeId: employeeData.id };
+        ? { adminId: adminData?.id || '' }
+        : { employeeId: employeeData?.id || '' };
       const now = new Date();
       const newCategory = {
         ...categoryData,
         ...userData,
-        lastModified: now,
-        createdAt: now,
-        updatedAt: now,
+        lastModified: now.toISOString(),
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
       };
 
       const localId = await db.categories_offline_add.add(newCategory);
 
       if (isOnline) {
         try {
-          const response = await categoryService.createCategory({
+          const response: any = await categoryService.createCategory({
             ...categoryData,
             ...userData,
           });
+
+          const categoryResponse = response.category || response;
+
           await db.categories_all.put({
-            id: response.category.id,
+            id: categoryResponse.id,
             name: categoryData.name,
             description: categoryData.description,
-            lastModified: now,
-            updatedAt: response.category.updatedAt || now,
+            lastModified: now.toISOString(),
+            updatedAt: categoryResponse.updatedAt || now.toISOString(),
           });
           await db.categories_offline_add.delete(localId);
           showNotification('Category added successfully!');
@@ -246,30 +250,33 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       if (!validation.isValid) throw new Error(validation.errors.join(', '));
 
       const userData = role === 'admin'
-        ? { adminId: adminData.id }
-        : { employeeId: employeeData.id };
+        ? { adminId: adminData?.id || '' }
+        : { employeeId: employeeData?.id || '' };
       const now = new Date();
       const updatedData = {
-        id: selectedCategory?.id,
+        id: selectedCategory?.id || '',
         name: categoryData.name,
         description: categoryData.description,
         ...userData,
-        lastModified: now,
-        updatedAt: now,
+        lastModified: now.toISOString(),
+        updatedAt: now.toISOString(),
       };
 
       if (isOnline && selectedCategory?.id) {
         try {
-          const response = await categoryService.updateCategory(
+          const response: any = await categoryService.updateCategory(
             selectedCategory.id,
             { ...categoryData, ...userData }
           );
+
+          const categoryResponse = response.category || response;
+
           await db.categories_all.put({
             id: selectedCategory.id,
             name: categoryData.name,
             description: categoryData.description,
-            lastModified: now,
-            updatedAt: response.category.updatedAt || now,
+            lastModified: now.toISOString(),
+            updatedAt: categoryResponse.updatedAt || now.toISOString(),
           });
           await db.categories_offline_update.delete(selectedCategory.id);
           showNotification('Category updated successfully!');
@@ -301,22 +308,22 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     setIsLoading(true);
     try {
       const userData = role === 'admin'
-        ? { adminId: adminData.id }
-        : { employeeId: employeeData.id };
+        ? { adminId: adminData?.id || '' }
+        : { employeeId: employeeData?.id || '' };
 
       if (isOnline && selectedCategory.id) {
-        await categoryService.deleteCategory(selectedCategory.id, userData);
+        await (categoryService.deleteCategory as any)(selectedCategory.id, userData);
         await db.categories_all.delete(selectedCategory.id);
         showNotification('Category deleted successfully!');
       } else if (selectedCategory.id) {
         await db.categories_offline_delete.add({
           id: selectedCategory.id,
-          deletedAt: new Date(),
+          deletedAt: new Date().toISOString(),
           ...userData,
         });
         showNotification('Category deletion queued (will sync when online)', 'warning');
       } else {
-        await db.categories_offline_add.delete(selectedCategory.localId!);
+        await db.categories_offline_add.delete(selectedCategory.localId as number);
         showNotification('Category deleted!');
       }
 
@@ -371,119 +378,105 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Render Views */
   /* --------------------------------------------------------------------- */
   const renderTableView = () => (
-    <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
-      <table className="w-full text-xs">
-        <thead className="bg-gray-50 border-b">
-          <tr>
-            <th className="text-left py-3 px-4 font-semibold text-gray-600">#</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-600">Category</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-600">Description</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-600">Status</th>
-            <th className="text-left py-3 px-4 font-semibold text-gray-600">Created</th>
-            <th className="text-right py-3 px-4 font-semibold text-gray-600">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {currentItems.map((cat, i) => (
-            <tr key={cat.localId || cat.id} className="hover:bg-gray-50">
-              <td className="py-3 px-4">
-                <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-                  {startIndex + i + 1}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                    {cat.name?.[0] || 'C'}
-                  </div>
-                  <div className="font-medium text-gray-900">{cat.name}</div>
-                </div>
-              </td>
-              <td className="py-3 px-4 text-xs text-gray-600 line-clamp-2">
-                {cat.description || 'No description'}
-              </td>
-              <td className="py-3 px-4">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                    cat.synced
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}
-                >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      cat.synced ? 'bg-green-500' : 'bg-yellow-500'
-                    }`}
-                  />
-                  {cat.synced ? 'Active' : 'Syncing...'}
-                </span>
-              </td>
-              <td className="py-3 px-4 text-xs text-gray-600">
-                {formatDate(cat.createdAt || cat.lastModified)}
-              </td>
-              <td className="py-3 px-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setFormData({ name: cat.name, description: cat.description || '' });
-                      setIsEditModalOpen(true);
-                    }}
-                    className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setIsDeleteModalOpen(true);
-                    }}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-[11px]">
+          <thead className="bg-gray-50/50 border-b border-gray-100">
+            <tr>
+              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">#</th>
+              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Category Name</th>
+              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Description</th>
+              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Status</th>
+              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Created Date</th>
+              <th className="text-right py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {currentItems.map((cat, i) => (
+              <tr key={cat.localId || cat.id} className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-2 px-4">
+                  <span className="font-medium text-gray-400">
+                    {startIndex + i + 1}
+                  </span>
+                </td>
+                <td className="py-2 px-4 font-medium text-gray-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary-100 rounded-lg flex items-center justify-center text-primary-700 text-[10px] font-bold">
+                      {cat.name?.[0] || 'C'}
+                    </div>
+                    <span>{cat.name}</span>
+                  </div>
+                </td>
+                <td className="py-2 px-4 text-gray-500 max-w-xs truncate italic">
+                  {cat.description || 'No description provided'}
+                </td>
+                <td className="py-2 px-4">
+                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+                    }`}>
+                    <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
+                    {cat.synced ? 'Synced' : 'Offline'}
+                  </div>
+                </td>
+                <td className="py-2 px-4 text-gray-500">
+                  {formatDate(cat.createdAt || cat.lastModified)}
+                </td>
+                <td className="py-2 px-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setFormData({ name: cat.name, description: cat.description || '' });
+                        setIsEditModalOpen(true);
+                      }}
+                      className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                      title="Edit Category"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
   const renderGridView = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {currentItems.map((cat) => (
         <motion.div
           key={cat.localId || cat.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow border border-gray-100 p-4 hover:shadow-md transition-shadow"
+          className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 hover:shadow-md transition-all group"
         >
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center">
-              <FolderIcon className="w-6 h-6 text-primary-600" />
+            <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+              <FolderIcon className="w-4.5 h-4.5 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-900 text-xs truncate">{cat.name}</div>
-              <div className="text-gray-500 text-xs truncate">{cat.description || 'No description'}</div>
+              <div className="font-bold text-gray-900 text-xs truncate">{cat.name}</div>
+              <div className="text-gray-400 text-[10px] truncate">{cat.description || 'No description'}</div>
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                cat.synced
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}
-            >
-              <div
-                className={`w-1.5 h-1.5 rounded-full ${
-                  cat.synced ? 'bg-green-500' : 'bg-yellow-500'
-                }`}
-              />
-              {cat.synced ? 'Active' : 'Syncing'}
-            </span>
+          <div className="flex items-center justify-between border-t border-gray-50 pt-2 transition-colors">
+            <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${cat.synced ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+              }`}>
+              <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
+              {cat.synced ? 'Synced' : 'Offline'}
+            </div>
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => {
@@ -491,18 +484,20 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   setFormData({ name: cat.name, description: cat.description || '' });
                   setIsEditModalOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded"
+                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                title="Edit"
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => {
                   setSelectedCategory(cat);
                   setIsDeleteModalOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                title="Delete"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -512,38 +507,29 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   );
 
   const renderListView = () => (
-    <div className="bg-white rounded-lg shadow border border-gray-100 divide-y divide-gray-100">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-50 overflow-hidden">
       {currentItems.map((cat) => (
         <motion.div
           key={cat.localId || cat.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-4 py-4 hover:bg-gray-50 flex items-center justify-between"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="px-4 py-3 hover:bg-gray-50/50 flex items-center justify-between transition-colors"
         >
           <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <FolderIcon className="w-5 h-5 text-primary-600" />
+            <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FolderIcon className="w-4 h-4 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-900 text-xs truncate">{cat.name}</div>
-              <div className="text-gray-500 text-xs truncate">{cat.description || 'No description'}</div>
+              <div className="font-bold text-gray-900 text-xs truncate">{cat.name}</div>
+              <div className="text-gray-400 text-[10px] truncate max-w-md">{cat.description || 'No description provided'}</div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                cat.synced
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}
-            >
-              <div
-                className={`w-1.5 h-1.5 rounded-full ${
-                  cat.synced ? 'bg-green-500' : 'bg-yellow-500'
-                }`}
-              />
-              {cat.synced ? 'Active' : 'Syncing'}
-            </span>
+          <div className="flex items-center space-x-4">
+            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+              }`}>
+              <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
+              {cat.synced ? 'Synced' : 'Offline'}
+            </div>
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => {
@@ -551,18 +537,20 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   setFormData({ name: cat.name, description: cat.description || '' });
                   setIsEditModalOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded"
+                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                title="Edit"
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => {
                   setSelectedCategory(cat);
                   setIsDeleteModalOpen(true);
                 }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                title="Delete"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -586,13 +574,12 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             className="fixed top-4 right-4 z-50"
           >
             <div
-              className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${
-                notification.type === 'success'
-                  ? 'bg-green-500'
-                  : notification.type === 'warning'
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${notification.type === 'success'
+                ? 'bg-green-500'
+                : notification.type === 'warning'
                   ? 'bg-yellow-500'
                   : 'bg-red-500'
-              }`}
+                }`}
             >
               {notification.type === 'success' ? (
                 <CheckCircle className="w-5 h-5" />
@@ -609,35 +596,44 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 bg-white shadow-md z-10">
-        <div className="mx-auto px-4 py-4">
+      <div className="sticky top-0 bg-white shadow-sm z-10 border-b border-gray-100">
+        <div className="mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-600 rounded-lg">
-                <FolderIcon className="w-6 h-5 text-white" />
+              <div className="p-1.5 bg-primary-600 rounded-lg">
+                <FolderIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Category Management</h1>
-                <p className="text-xs text-gray-500">Works offline • Auto-sync enabled</p>
+                <h1 className="text-lg font-semibold text-gray-900">Category Management</h1>
+                <p className="text-[10px] text-gray-500">Manage your product categories • Works offline</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div
-                className={`flex items-center justify-center w-10 h-8 rounded-lg ${
-                  isOnline ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                }`}
-                title={isOnline ? 'Online' : 'Offline'}
+                className={`flex items-center justify-center h-8 px-2 rounded-lg text-[10px] font-medium ${isOnline ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                  }`}
               >
-                {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-5 h-5" />}
+                {isOnline ? (
+                  <div className="flex items-center gap-1">
+                    <Wifi className="w-3 h-3" />
+                    <span>Online</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <WifiOff className="w-3 h-3" />
+                    <span>Offline</span>
+                  </div>
+                )}
               </div>
 
               {isOnline && (
                 <button
                   onClick={handleManualSync}
                   disabled={isLoading}
-                  className="flex items-center justify-center w-10 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg disabled:opacity-50"
+                  className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors border border-blue-100 disabled:opacity-50"
+                  title="Manual Sync"
                 >
-                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
               )}
 
@@ -645,17 +641,18 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <button
                   onClick={() => loadCategories(true)}
                   disabled={isRefreshing}
-                  className="flex items-center justify-center w-10 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg disabled:opacity-50"
+                  className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors border border-gray-200 disabled:opacity-50"
+                  title="Refresh Data"
                 >
-                  <RotateCcw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RotateCcw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </button>
               )}
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium text-sm"
+                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
               >
-                <Plus className="w-3 h-4 text-sm" />
+                <Plus className="w-3.5 h-3.5" />
                 Add Category
               </button>
             </div>
@@ -663,93 +660,72 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         </div>
       </div>
 
-      {/* Main */}
-      <div className="mx-auto px-4 py-6 space-y-6">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Active Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
-          >
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Active</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
-            </div>
-          </motion.div>
-
-          {/* Pending Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
-          >
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Pending Sync</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
-            </div>
-          </motion.div>
-
-          {/* Total Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-lg shadow border border-gray-100 p-5 flex items-center gap-4"
-          >
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-              <FolderIcon className="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-          </motion.div>
+      <div className="mx-auto px-4 py-4 space-y-4">
+        {/* Compact Statistics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { title: 'Active', value: stats.active, icon: CheckCircle, color: 'green' },
+            { title: 'Pending Sync', value: stats.pending, icon: AlertCircle, color: 'yellow' },
+            { title: 'Total Categories', value: stats.total, icon: FolderIcon, color: 'primary' },
+            { title: 'Status', value: isOnline ? 'Online' : 'Offline', icon: isOnline ? Wifi : WifiOff, color: isOnline ? 'green' : 'red' },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="bg-white rounded shadow-sm border border-gray-100 p-3"
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 bg-${stat.color}-50 rounded-full`}>
+                  <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{stat.title}</p>
+                  <p className="text-base font-bold text-gray-900">{stat.value}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Search + View Mode */}
-        <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="bg-white rounded shadow-sm border border-gray-100 p-2 px-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search categories..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-8 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
-            <div className="flex items-center gap-1 border border-gray-200 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-2 rounded ${viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
-                title="Table View"
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded ${viewMode === 'grid' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
-                title="Grid View"
-              >
-                <Grid3X3 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded ${viewMode === 'list' ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
-                title="List View"
-              >
-                <Layout className="w-4 h-4" />
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  title="Table View"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  title="Grid View"
+                >
+                  <Grid3X3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  title="List View"
+                >
+                  <Layout className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -803,9 +779,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   <button
                     key={p}
                     onClick={() => setCurrentPage(p)}
-                    className={`px-3 py-1.5 text-sm rounded ${
-                      currentPage === p ? 'bg-primary-600 text-white' : 'border'
-                    }`}
+                    className={`px-3 py-1.5 text-sm rounded ${currentPage === p ? 'bg-primary-600 text-white' : 'border'
+                      }`}
                   >
                     {p}
                   </button>

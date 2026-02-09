@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Download, Filter, Calendar, DollarSign, Package, TrendingUp, X } from 'lucide-react';
-import stockOutService, { type StockOut, type PaymentMethod } from '../../services/stockoutService';
+import stockOutService, { type StockOut, PaymentMethod } from '../../services/stockoutService';
 
 const SalesReportPage = () => {
   const [stockOuts, setStockOuts] = useState<StockOut[]>([]);
@@ -120,9 +120,9 @@ const SalesReportPage = () => {
 
   const getPaymentMethodColor = (method?: PaymentMethod) => {
     switch (method) {
-      case 'MOMO': return 'bg-yellow-100 text-yellow-800';
-      case 'CARD': return 'bg-blue-100 text-blue-800';
-      case 'CASH': return 'bg-green-100 text-green-800';
+      case PaymentMethod.MOMO: return 'bg-yellow-100 text-yellow-800';
+      case PaymentMethod.CARD: return 'bg-blue-100 text-blue-800';
+      case PaymentMethod.CASH: return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -139,37 +139,47 @@ const SalesReportPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-600 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-gray-50 text-xs">
+      {/* Header Section */}
+      <div className="bg-white shadow-md">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Sales Report</h1>
-              <p className="text-gray-600">Track and analyze all stock-out transactions</p>
+              <h1 className="text-lg font-semibold text-gray-900">Sales Report</h1>
+              <p className="text-xs text-gray-500 mt-0.5">Track and analyze all stock-out transactions</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={exportToCSV}
+                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50"
+                title="Export CSV"
+              >
+                <Download className="w-3 h-3" />
+                <span>Export</span>
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Main Content */}
+      <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { title: 'Total Sales', value: formatCurrency(stats.totalSales), icon: DollarSign, color: 'green' },
             { title: 'Total Quantity', value: stats.totalQuantity, icon: Package, color: 'blue' },
             { title: 'Transactions', value: stats.totalTransactions, icon: TrendingUp, color: 'purple' },
             { title: 'Avg Transaction', value: formatCurrency(stats.avgTransaction), icon: Calendar, color: 'orange' },
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+            <div key={i} className="bg-white rounded shadow p-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
                 </div>
-                <div className={`w-12 h-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+                <div>
+                  <p className="text-xs text-gray-600">{stat.title}</p>
+                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
                 </div>
               </div>
             </div>
@@ -177,23 +187,23 @@ const SalesReportPage = () => {
         </div>
 
         {/* Search + Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-            <div className="flex items-center gap-3 flex-1">
+        <div className="bg-white rounded border border-gray-200 p-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
+            <div className="flex items-center space-x-2 flex-1">
               {/* Search */}
-              <div className="relative flex-grow max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <div className="relative">
+                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search by client, email, phone, or ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
               {/* Date Filter Buttons */}
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+              <div className="flex gap-1 bg-gray-100 p-1 rounded">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
                   <button
                     key={opt}
@@ -203,11 +213,10 @@ const SalesReportPage = () => {
                         setDateRange({ start: '', end: '' });
                       }
                     }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
-                      dateRangeMode === opt
-                        ? 'bg-white text-primary-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-2 py-1 text-xs font-medium rounded capitalize transition-colors ${dateRangeMode === opt
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     {opt === 'all' ? 'All Time' : opt}
                   </button>
@@ -221,106 +230,86 @@ const SalesReportPage = () => {
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => setDateRange(p => ({ ...p, start: e.target.value }))}
-                    className="px-3 py-1.5 text-xs border rounded"
+                    className="px-2 py-1 text-xs border border-gray-200 rounded"
                   />
-                  <span className="text-gray-500 text-sm">to</span>
+                  <span className="text-gray-500 text-xs">to</span>
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => setDateRange(p => ({ ...p, end: e.target.value }))}
-                    className="px-3 py-1.5 text-xs border rounded"
+                    className="px-2 py-1 text-xs border border-gray-200 rounded"
                   />
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <select
-                value={filterMethod}
-                onChange={(e) => setFilterMethod(e.target.value as PaymentMethod | 'ALL')}
-                className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="ALL">All Methods</option>
-                <option value="MOMO">Mobile Money</option>
-                <option value="CARD">Card</option>
-                <option value="CASH">Cash</option>
-              </select>
-
-              <button
-                onClick={exportToCSV}
-                className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-sm"
-              >
-                <Download className="w-5 h-5" />
-                Export CSV
-              </button>
-            </div>
+            <select
+              value={filterMethod}
+              onChange={(e) => setFilterMethod(e.target.value as PaymentMethod | 'ALL')}
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              <option value="ALL">All Methods</option>
+              <option value="MOMO">Mobile Money</option>
+              <option value="CARD">Card</option>
+              <option value="CASH">Cash</option>
+            </select>
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center justify-between">
-            <p className="text-red-800">{error}</p>
-            <button onClick={() => setError('')} className="text-red-600 hover:text-red-800">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded border border-gray-200">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Transaction ID</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Date</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Client</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Contact</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Unit Price</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Total</th>
+                  <th className="text-center py-2 px-2 text-gray-600 font-medium">Payment</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-2 py-8 text-center text-xs text-gray-500">
                       No sales transactions found
                     </td>
                   </tr>
                 ) : (
                   filteredData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={item.id} className="hover:bg-gray-25">
+                      <td className="py-2 px-2 text-gray-700 font-mono">
                         {item.transactionId || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="py-2 px-2 text-gray-700">
                         {new Date(item.createdAt || '').toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
                         })}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="py-2 px-2 text-gray-900">
                         {item.clientName || '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="py-2 px-2 text-gray-700">
                         <div>{item.clientPhone || '-'}</div>
-                        <div className="text-xs text-gray-400">{item.clientEmail || ''}</div>
+                        <div className="text-xs text-gray-500">{item.clientEmail || ''}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      <td className="py-2 px-2 text-gray-700 text-right">
                         {item.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      <td className="py-2 px-2 text-gray-700 text-right">
                         {formatCurrency(Number(item.soldPrice) || 0)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                      <td className="py-2 px-2 text-gray-700 text-right font-medium">
                         {formatCurrency((Number(item.soldPrice) || 0) * item.quantity)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentMethodColor(item.paymentMethod)}`}>
+                      <td className="py-2 px-2">
+                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getPaymentMethodColor(item.paymentMethod)}`}>
                           {item.paymentMethod || 'N/A'}
                         </span>
                       </td>
@@ -330,11 +319,6 @@ const SalesReportPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          Showing {filteredData.length} of {stockOuts.length} transactions
         </div>
       </div>
     </div>

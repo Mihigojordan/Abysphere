@@ -10,21 +10,20 @@ import {
   CreditCard,
   TrendingUp,
   Check,
-  AlertTriangle,
-  Calendar,
-  User,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
   List,
   Grid3X3,
   Table as TableIcon,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
 import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
+import ViewStockOutModal from '../../components/dashboard/stock/out/ViewStockOutModal';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import InvoiceComponent from '../../components/dashboard/stock/out/InvoiceComponent';
@@ -49,7 +48,7 @@ interface StockOut {
   clientName?: string;
   clientPhone?: string;
   clientEmail?: string;
-  paymentMethod?: string;
+  paymentMethod?: "MOMO" | "CARD" | "CASH" | null;
   transactionId?: string;
   createdAt: string;
   stockin?: {
@@ -77,6 +76,8 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedStockOutForView, setSelectedStockOutForView] = useState<StockOut | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [filters, setFilters] = useState<Filters>({
@@ -235,6 +236,30 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     setIsAddModalOpen(true);
   };
 
+  const openViewModal = (stockOut: StockOut) => {
+    setSelectedStockOutForView(stockOut);
+    setIsViewModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this sale? This action cannot be undone.')) return;
+
+    setIsLoading(true);
+    try {
+      const userInfo: any = {};
+      if (role === 'admin') userInfo.adminId = adminData?.id;
+      if (role === 'employee') userInfo.employeeId = employeeData?.id;
+
+      await stockOutService.deleteStockOut(id, userInfo);
+      showNotification('Sale deleted successfully!', 'success');
+      await fetchData();
+    } catch (err: any) {
+      showNotification(`Error: ${err.message}`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Unified Create & Edit Handler
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
@@ -306,23 +331,16 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     </div>
   );
 
-  const StatsCard = ({ title, value, icon, color }: any) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow transition-shadow">
-      <div className="flex items-center justify-between mb-2">
-        <div className={`p-2 rounded ${color}`}>{icon}</div>
-      </div>
-      <p className="text-xs text-gray-600 font-medium">{title}</p>
-      <p className="text-lg font-bold text-gray-900 mt-1">{value}</p>
-    </div>
-  );
-
   const ActionButtons = ({ item }: { item: StockOut }) => (
     <div className="flex items-center gap-3">
-      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700">
+      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title="Edit">
         <Edit3 size={16} />
       </button>
-      <button className="text-gray-500 hover:text-primary-600">
+      <button onClick={() => openViewModal(item)} className="text-gray-500 hover:text-primary-600" title="View Details">
         <Eye size={16} />
+      </button>
+      <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title="Delete">
+        <Trash2 size={16} />
       </button>
     </div>
   );
@@ -472,124 +490,170 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 text-xs">
+      {/* Toast Notification */}
       <AnimatePresence>
         {notification && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-3 rounded-lg shadow-lg text-white text-sm font-medium bg-green-600"
+            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-green-50 border border-green-200 text-green-800 text-sm"
           >
-            <Check size={18} />
-            {notification.message}
+            <Check size={16} />
+            <span className="font-medium">{notification.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       <InvoiceComponent isOpen={isInvoiceOpen} onClose={handleCloseInvoice} transactionId={transactionId} />
 
-      <div className="mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary-600 rounded-xl">
-              <ShoppingCart className="w-7 h-7 text-white" />
-            </div>
+      {/* Header Section */}
+      <div className="bg-white shadow-md">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Stock Out Management</h1>
-              <p className="text-gray-600">Record sales & track inventory movement</p>
+              <h1 className="text-lg font-semibold text-gray-900">Stock Out Management</h1>
+              <p className="text-xs text-gray-500 mt-0.5">Record sales & track inventory movement</p>
             </div>
+            <ViewModeSwitcher />
           </div>
-          <ViewModeSwitcher />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="px-4 py-4 space-y-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
+            { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
+            { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
+            { title: 'Avg Order', value: formatPrice(stats.averageOrderValue), icon: TrendingUp, color: 'orange' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white rounded shadow p-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">{stat.title}</p>
+                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-          <StatsCard title="Total Revenue" value={formatPrice(stats.totalRevenue)} icon={<DollarSign size={18} className="text-white" />} color="bg-green-500" />
-          <StatsCard title="Units Sold" value={stats.totalSales} icon={<Package size={18} className="text-white" />} color="bg-blue-500" />
-          <StatsCard title="Transactions" value={stats.totalTransactions} icon={<CreditCard size={18} className="text-white" />} color="bg-purple-500" />
-          <StatsCard title="Avg Order" value={formatPrice(stats.averageOrderValue)} icon={<TrendingUp size={18} className="text-white" />} color="bg-orange-500" />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        {/* Today's Summary */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-50 rounded p-3 border border-blue-200">
             <p className="text-xs font-medium text-blue-900">Today's Sales</p>
-            <p className="text-xl font-bold text-blue-700 mt-1">{stats.todaySales} units</p>
+            <p className="text-base font-bold text-blue-700 mt-1">{stats.todaySales} units</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="bg-green-50 rounded p-3 border border-green-200">
             <p className="text-xs font-medium text-green-900">Today's Revenue</p>
-            <p className="text-xl font-bold text-green-700 mt-1">{formatPrice(stats.todayRevenue)}</p>
+            <p className="text-base font-bold text-green-700 mt-1">{formatPrice(stats.todayRevenue)}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4 justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+        {/* Search + Filters */}
+        <div className="bg-white rounded border border-gray-200 p-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
+            <div className="flex items-center space-x-2 flex-1">
+              {/* Search */}
+              <div className="relative">
+                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search product, client, phone, transaction..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
-              <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+              {/* Date Filter Buttons */}
+              <div className="flex gap-1 bg-gray-100 p-1 rounded">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map(opt => (
                   <button
                     key={opt}
-                    onClick={() => setFilters(p => ({
-                      ...p,
-                      dateRange: opt,
-                      startDate: opt !== 'custom' ? '' : p.startDate,
-                      endDate: opt !== 'custom' ? '' : p.endDate,
-                    }))}
-                    className={`px-4 py-2 text-sm font-medium rounded capitalize transition-colors
-                      ${filters.dateRange === opt ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-600'}`}
+                    onClick={() => {
+                      setFilters(p => ({
+                        ...p,
+                        dateRange: opt,
+                        startDate: opt !== 'custom' ? '' : p.startDate,
+                        endDate: opt !== 'custom' ? '' : p.endDate,
+                      }));
+                    }}
+                    className={`px-2 py-1 text-xs font-medium rounded capitalize transition-colors ${filters.dateRange === opt
+                      ? 'bg-white text-primary-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     {opt === 'all' ? 'All Time' : opt}
                   </button>
                 ))}
               </div>
 
+              {/* Custom Date Inputs */}
               {filters.dateRange === 'custom' && (
                 <div className="flex items-center gap-2">
-                  <input type="date" value={filters.startDate} onChange={e => setFilters(p => ({ ...p, startDate: e.target.value }))} className="px-3 py-2 border rounded" />
-                  <span className="text-gray-500">to</span>
-                  <input type="date" value={filters.endDate} onChange={e => setFilters(p => ({ ...p, endDate: e.target.value }))} className="px-3 py-2 border rounded" />
+                  <input
+                    type="date"
+                    value={filters.startDate}
+                    onChange={e => setFilters(p => ({ ...p, startDate: e.target.value }))}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                  />
+                  <span className="text-gray-500 text-xs">to</span>
+                  <input
+                    type="date"
+                    value={filters.endDate}
+                    onChange={e => setFilters(p => ({ ...p, endDate: e.target.value }))}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                  />
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3">
-              <button onClick={fetchData} disabled={isLoading}
-                className="flex items-center gap-2 px-5 py-2.5 border rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} /> Refresh
+            <div className="flex gap-2">
+              <button
+                onClick={fetchData}
+                disabled={isLoading}
+                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
               </button>
               <button
                 onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
-                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm"
+                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
               >
-                <Plus size={20} /> Record Sale
+                <Plus className="w-3 h-3" />
+                <span>Record Sale</span>
               </button>
             </div>
           </div>
         </div>
 
+        {/* Loading / Empty / Views */}
         {isLoading ? (
-          <div className="bg-white rounded-xl p-16 text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-4 border-primary-600 mb-4"></div>
-            <p>Loading sales...</p>
+          <div className="bg-white rounded border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-4"></div>
+            <p className="text-gray-600">Loading sales...</p>
           </div>
         ) : filteredStockOuts.length === 0 ? (
-          <div className="bg-white rounded-xl p-16 text-center border">
-            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No sales found</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-white rounded border border-gray-200 p-12 text-center">
+            <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-base font-semibold mb-2">No sales found</h3>
+            <p className="text-xs text-gray-600 mb-6">
               {searchTerm || filters.dateRange !== 'all' ? 'Try adjusting filters' : 'Start recording your first sale'}
             </p>
-            <button onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }} className="bg-primary-600 text-white px-6 py-3 rounded-lg">
+            <button
+              onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+              className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
+            >
               Record First Sale
             </button>
           </div>
@@ -613,6 +677,15 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
         stockIns={stockIns}
         isLoading={isLoading}
         title={selectedStockOut ? 'Edit Sale' : 'New Sale'}
+      />
+
+      <ViewStockOutModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedStockOutForView(null);
+        }}
+        stockOut={selectedStockOutForView}
       />
     </div>
   );
