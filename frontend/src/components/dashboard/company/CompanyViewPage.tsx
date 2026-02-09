@@ -201,6 +201,16 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
   };
   const handleSetMessage = async () => {
     if (!selectedCompany?.id) return;
+
+    // Validate expiry date is not in the past
+    if (messageExpiry) {
+      const expiryDate = new Date(messageExpiry);
+      if (expiryDate <= new Date()) {
+        showOperationStatus("error", "Expiry date must be in the future");
+        return;
+      }
+    }
+
     try {
       setOperationLoading(true);
       const expiryISO = messageExpiry ? new Date(messageExpiry).toISOString() : undefined;
@@ -837,10 +847,11 @@ const CompanyViewPage: React.FC<{ role: string }> = ({ role }) => {
                       type="datetime-local"
                       value={messageExpiry}
                       onChange={(e) => setMessageExpiry(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Leave empty for a permanent message.
+                      Leave empty for a permanent message. Must be a future date.
                     </p>
                   </div>
                   {/* Text Color Picker */}

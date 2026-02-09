@@ -124,6 +124,28 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     }
   };
 
+  // State to force re-render when message expires
+  const [, setForceUpdate] = useState(0);
+
+  // Auto-hide message when it expires
+  useEffect(() => {
+    if (!adminUser?.message || !adminUser?.messageExpiry) return;
+
+    const expiry = new Date(adminUser.messageExpiry);
+    const now = new Date();
+    const timeUntilExpiry = expiry.getTime() - now.getTime();
+
+    // If already expired, no need to set timeout
+    if (timeUntilExpiry <= 0) return;
+
+    // Set timeout to hide message when it expires
+    const timeoutId = setTimeout(() => {
+      setForceUpdate(prev => prev + 1); // Force re-render to hide the message
+    }, timeUntilExpiry);
+
+    return () => clearTimeout(timeoutId);
+  }, [adminUser?.message, adminUser?.messageExpiry]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
