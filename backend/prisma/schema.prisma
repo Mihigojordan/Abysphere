@@ -79,9 +79,11 @@ model Admin {
   country       String?
   description   String?
 
-  message      String?
-  messageExpiry  DateTime?
-  isMessage      Boolean?        @default(false)
+  message           String?
+  messageExpiry     DateTime?
+  isMessage         Boolean?        @default(false)
+  messageTextColor  String?
+  messageBgColor    String?
 
   is2FA         Boolean?        @default(false)
   isLocked      Boolean?        @default(false)

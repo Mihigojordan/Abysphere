@@ -109,11 +109,15 @@ export class CompanyService {
    * @param message - The message text to display.
    * @param expiryDate - Optional expiry date for the message.
    *                     If not provided, defaults to 24 hours from now.
+   * @param messageTextColor - Optional hex color code for text (e.g., "#FFFFFF")
+   * @param messageBgColor - Optional hex color code for background (e.g., "#2563eb")
    */
   async setAdminMessage(
     adminId: string,
     message?: string,
     expiryDate?: Date,
+    messageTextColor?: string,
+    messageBgColor?: string,
   ) {
     // Ensure the admin exists
     const admin = await this.prisma.admin.findUnique({
@@ -131,6 +135,8 @@ export class CompanyService {
       data: {
         message,
         messageExpiry: finalExpiry,
+        messageTextColor,
+        messageBgColor,
       },
     });
 
@@ -145,8 +151,6 @@ export class CompanyService {
    * Optional: clear message if expired
    */
   async clearAdminMessages(adminId:string) {
-    const now = new Date();
-
     const cleared = await this.prisma.admin.updateMany({
       where: {
         id: adminId,
@@ -154,7 +158,9 @@ export class CompanyService {
       data: {
         message: null,
         messageExpiry: null,
-        isMessage:false,
+        isMessage: false,
+        messageTextColor: null,
+        messageBgColor: null,
       },
     });
 
