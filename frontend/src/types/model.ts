@@ -1,58 +1,36 @@
 
 // 1. ======/=> EMPOLOYEE <=/========
 // Interface for employee data (used for validation)
-export const MARITAL_STATUS = ['SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED'] as const;
 export const EMPLOYEE_STATUS = ['ACTIVE', 'TERMINATED', 'RESIGNED', 'PROBATION'] as const;
 export const GENDERS = ['MALE', 'FEMALE', 'OTHER'] as const;
 export type ContractType = 'PERMANENT' | 'TEMPORARY' | 'INTERNSHIP';
 
-export type MaritalStatus = typeof MARITAL_STATUS[number];
 export type EmployeeStatus = typeof EMPLOYEE_STATUS[number];
 export type Gender = typeof GENDERS[number];
 
-export interface Department {
-    id: string;
-    name: string;
-}
-
-export interface Experience {
-    company_name: string;
-    description: string;
-    start_date: string;
-    end_date?: string;
-}
-
 export interface EmployeeData {
-    first_name: string;
-    last_name: string;
-    gender: Gender;
-    date_of_birth: string;
-    phone: string;
+    first_name?: string;
+    last_name?: string;
+    gender?: Gender;
+    phone?: string;
     email: string;
-    address: string;
-    national_id: string;
-    position: string;
-    departmentId: string;
-    marital_status: MaritalStatus;
-    date_hired: string;
-    status: EmployeeStatus;
-    bank_account_number: string;
-    bank_name: string;
-    emergency_contact_name: string;
-    emergency_contact_phone: string;
-    experience: Experience[];
+    national_id?: string;
+    position?: string;
+    department?: string;
+    date_hired?: string;
+    status?: EmployeeStatus;
+    emergency_contact_name?: string;
+    emergency_contact_phone?: string;
     profile_picture?: string;
-    application_letter?: string;
-    cv?: string;
 }
 
 // Interface for employee (includes additional fields like id and timestamps)
 export interface Employee extends EmployeeData {
-    profile_image: string | undefined;
+    profile_image?: string;
     id: string;
-    isLocked:boolean;
-    google_id:boolean;
-    is2FA:boolean;
+    isLocked?: boolean;
+    google_id?: boolean;
+    is2FA?: boolean;
     contract?: Contract; // Assuming one-to-one relationship for simplicity
     created_at?: string; // ISO string
     updated_at?: string; // ISO string

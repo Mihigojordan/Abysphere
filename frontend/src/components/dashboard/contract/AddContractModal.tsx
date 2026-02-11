@@ -1,21 +1,19 @@
 import React, { type FC, useState } from 'react';
 import { X } from 'lucide-react';
-import type { Contract, Department, ContractData, Employee } from '../../../types/model';
+import type { ContractData, Employee } from '../../../types/model';
 
 interface AddContractModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (contractData: ContractData) => void;
-  departments: Department[];
   loading: boolean;
-  employee?: Employee;
+  employee?: Employee | null;
 }
 
 const AddContractModal: FC<AddContractModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  departments,
   loading,
   employee,
 }) => {

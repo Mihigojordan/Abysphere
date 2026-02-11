@@ -102,7 +102,6 @@ model Admin {
   suppliers      Supplier[]
   store  Store[]
   employee Employee[]
-  department Department[]
 
   stockout StockOut[]
 
@@ -136,17 +135,6 @@ model MembershipPlan {
 
   @@index([companyId])
 }
-model Department {
-  id          String     @id @unique @default(uuid())
-  name        String?
-  description String?    @db.VarChar(1000)
-  adminId  String
-  admin       Admin      @relation(fields: [adminId], references: [id])
-  employee    Employee[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
 // Define the enum first
 enum EmployeeStatus {
   ACTIVE
@@ -155,37 +143,20 @@ enum EmployeeStatus {
   PROBATION
 }
 
-// Enum for marital status
-enum MaritalStatus {
-  SINGLE
-  MARRIED
-  DIVORCED
-  WIDOWED
-}
-
 model Employee {
   id                      String         @id @unique @default(uuid())
-  first_name              String
-  last_name               String
-  gender                  String
-  date_of_birth           DateTime
-  phone                   String
+  first_name              String?
+  last_name               String?
+  gender                  String?
+  phone                   String?
   email                   String         @unique
   password                String?
-  address                 String
-  national_id             String         @unique
+  national_id             String?        @unique
   profile_picture         String?
-  bank_account_number     String?
-  bank_name               String?
-  cv                      String?
-  application_letter      String?
-  position                String
-  departmentId            String
-  department              Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  marital_status          MaritalStatus? @default(SINGLE)
-  date_hired              DateTime
+  position                String?
+  department              String?
+  date_hired              DateTime?
   status                  EmployeeStatus @default(ACTIVE)
-  experience              Json?
   emergency_contact_name  String?
   emergency_contact_phone String?
   store  Store[]

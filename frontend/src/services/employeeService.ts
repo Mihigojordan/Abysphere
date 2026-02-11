@@ -217,12 +217,7 @@ async logout(): Promise<any> {
 
   validateEmployeeData(employeeData: EmployeeData): ValidationResult {
     const errors: string[] = [];
-    if (!employeeData.first_name?.trim()) errors.push('First name is required');
-    if (!employeeData.last_name?.trim()) errors.push('Last name is required');
     if (!employeeData.email?.trim()) errors.push('Email is required');
-    if (!employeeData.phone?.trim()) errors.push('Phone number is required');
-    if (!employeeData.position?.trim()) errors.push('Position is required');
-    if (!employeeData.departmentId?.trim()) errors.push('Department ID is required');
 
     return { isValid: errors.length === 0, errors };
   }
