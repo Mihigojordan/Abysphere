@@ -93,8 +93,6 @@ export const deleteFile = (filepath: string) => {
 
 export const EmployeeFileFields = [
   { name: 'profileImg', maxCount:1 },
-  { name: 'applicationLetter', maxCount:1 },
-  { name: 'cv', maxCount:1 },
 ]
 export const ApplicantFileFields = [
   { name: 'cvFile', maxCount:1 },

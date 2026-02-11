@@ -29,10 +29,9 @@ import {
   Mail
 } from "lucide-react";
 import employeeService from "../../services/employeeService";
-import departmentService from "../../services/departmentService";
 import contractService from "../../services/contractService";
 import { useNavigate } from "react-router-dom";
-import type { Employee, Department, ContractData, Contract } from "../../types/model";
+import type { Employee, ContractData, Contract } from "../../types/model";
 import { useSocketEvent } from "../../context/SocketContext";
 import AddContractModal from "../../components/dashboard/contract/AddContractModal";
 
@@ -46,7 +45,6 @@ interface OperationStatus {
 const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -99,12 +97,8 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [employeeData, departmentData] = await Promise.all([
-        employeeService.getAllEmployees(),
-        departmentService.getAllDepartments(),
-      ]);
+      const employeeData = await employeeService.getAllEmployees();
       setAllEmployees(employeeData || []);
-      setDepartments(departmentData || []);
       setError(null);
 
       // Fetch contract status for all employees
@@ -145,7 +139,7 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
 
     // Department filter
     if (selectedDepartment) {
-      filtered = filtered.filter(emp => emp.departmentId === selectedDepartment);
+      filtered = filtered.filter(emp => emp.department?.toLowerCase().includes(selectedDepartment.toLowerCase()));
     }
 
     // Status filter (assuming you have status field, otherwise we'll use contract status)
@@ -283,9 +277,8 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
     return `${API_URL}${url}`;
   };
 
-  const getDepartmentName = (departmentId?: string): string => {
-    const department = departments.find((dept) => dept.id === departmentId);
-    return department ? department.name : "Unknown";
+  const getDepartmentName = (department?: string): string => {
+    return department || "N/A";
   };
 
   const totalPages = Math.ceil(employees.length / itemsPerPage);
@@ -358,7 +351,7 @@ const renderTableView = () => (
               <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{employee.email}</td>
 
               {/* Department */}
-              <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">{getDepartmentName(employee.departmentId)}</td>
+              <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">{getDepartmentName(employee.department)}</td>
 
               {/* Created Date */}
               <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{formatDate(employee.created_at)}</td>
@@ -456,7 +449,7 @@ const renderTableView = () => (
             </div>
             <div className="flex items-center space-x-1 text-xs text-gray-600">
               <MapPin className="w-3 h-3" />
-              <span>{getDepartmentName(employee.departmentId)}</span>
+              <span>{getDepartmentName(employee.department)}</span>
             </div>
             <div className="flex items-center space-x-1 text-xs text-gray-600">
               <Calendar className="w-3 h-3" />
@@ -535,7 +528,7 @@ const renderListView = () => (
           {/* Info Columns */}
           <div className="hidden md:grid grid-cols-4 gap-4 text-xs text-gray-600 flex-1 max-w-3xl px-4">
             <span className="truncate">{employee.email}</span>
-            <span className="truncate">{getDepartmentName(employee.departmentId)}</span>
+            <span className="truncate">{getDepartmentName(employee.department)}</span>
             <span className="text-green-700 font-medium">Active</span>
             <span>{formatDate(employee.created_at)}</span>
           </div>
@@ -803,17 +796,14 @@ const renderListView = () => (
           {showFilters && (
             <div className="mt-3 pt-3 border-t border-gray-100">
               <div className="flex flex-wrap items-center gap-2">
-                <select
+                <input
+                  type="text"
+                  placeholder="Filter by department..."
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
                   className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                >
-                  <option value="">All Departments</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))}
-                </select>
-                
+                />
+
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
@@ -823,7 +813,7 @@ const renderListView = () => (
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
-                
+
                 {(selectedDepartment || selectedStatus) && (
                   <button
                     onClick={() => {
@@ -878,7 +868,6 @@ const renderListView = () => (
           setSelectedEmployee(null);
         }}
         onSubmit={handleContractSubmit}
-        departments={departments}
         loading={operationLoading}
         employee={selectedEmployee}
       />

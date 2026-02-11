@@ -3,24 +3,29 @@
     ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
-
   Users,
   TrendingUp,
   X,
   Building,
   User2,
-  Cog,
   FolderTree,
   ChevronDown,
   ArrowUp,
   ArrowDown,
   Loader,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { API_URL } from "../../api/api";
 import PWAInstallButton from "./PWAInstallButton";
+
+/* -------------------------------------------------------------------------- */
+/*  LocalStorage key for sidebar collapsed state                              */
+/* -------------------------------------------------------------------------- */
+const SIDEBAR_COLLAPSED_KEY = "sidebar_collapsed";
 
 interface SystemFeature {
   id: string;
@@ -75,6 +80,24 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
+
+  /* ---------------------------------------------------------------------- */
+  /*  Collapsed state with localStorage persistence                         */
+  /* ---------------------------------------------------------------------- */
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    // Default to false (expanded) if not stored
+    return stored !== null ? JSON.parse(stored) : false;
+  });
+
+  // Persist collapsed state to localStorage
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => !prev);
+  };
 
   const adminAuth = useAdminAuth();
   const employeeAuth = useEmployeeAuth();
@@ -287,11 +310,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         key={item.id}
         to={item.path}
         end
+        title={isCollapsed ? item.label : undefined}
         className={({ isActive }) =>
-          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${
+          `w-full flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} px-2 py-2 rounded-lg transition-all duration-200 group ${isCollapsed ? '' : 'border-l-4'} ${
             isActive
-              ? "bg-primary-500/10 text-primary-700 border-primary-500"
-              : "text-gray-700 hover:bg-gray-50 border-transparent"
+              ? `bg-primary-500/10 text-primary-700 ${isCollapsed ? '' : 'border-primary-500'}`
+              : `text-gray-700 hover:bg-gray-50 ${isCollapsed ? '' : 'border-transparent'}`
           }`
         }
         onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -299,13 +323,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         {({ isActive }) => (
           <>
             <div
-              className={`p-1 rounded-md ${
+              className={`p-1.5 rounded-md ${
                 isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
             </div>
-            <span className="text-sm font-medium">{item.label}</span>
+            {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
           </>
         )}
       </NavLink>
@@ -314,8 +338,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
   const renderDropdown = (dropdown: DropdownGroup) => {
     const Icon = dropdown.icon;
-    const isOpen = openDropdown === dropdown.id;
+    const isOpenDropdown = openDropdown === dropdown.id;
     const active = isDropdownActive(dropdown);
+
+    // When collapsed, show only icon with tooltip
+    if (isCollapsed) {
+      return (
+        <div key={dropdown.id} className="w-full relative group">
+          <button
+            onClick={() => {
+              setIsCollapsed(false);
+              setOpenDropdown(dropdown.id);
+            }}
+            title={dropdown.label}
+            className={`w-full flex items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 ${
+              active
+                ? "bg-primary-500/10 text-primary-700"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <div
+              className={`p-1.5 rounded-md ${
+                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
+          </button>
+        </div>
+      );
+    }
 
     return (
       <div key={dropdown.id} className="w-full">
@@ -339,14 +391,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </div>
           <ChevronDown
             className={`w-4 h-4 transition-transform duration-300 ${
-              isOpen ? "rotate-180" : ""
+              isOpenDropdown ? "rotate-180" : ""
             } ${active ? "text-primary-600" : "text-gray-400"}`}
           />
         </button>
 
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+            isOpenDropdown ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
           }`}
         >
           <div className="ml-4 space-y-0.5 border-l-2 border-primary-100 pl-3 py-0.5">
@@ -399,24 +451,48 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${
+        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-all duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } w-72`}
+        } ${isCollapsed ? "w-[68px]" : "w-72"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-primary-200">
-          <div className="flex items-center space-x-2">
-            <img src={`${API_URL}${displayImage}`} className="w-7 h-7" alt="" />
-            <div>
-              <h2 className="font-bold text-base text-primary-800">{displayName}</h2>
-              <p className="text-xs text-primary-500">{portalTitle}</p>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3 border-b border-primary-200`}>
+          {isCollapsed ? (
+            <img
+              src={`${API_URL}${displayImage}`}
+              className="w-10 h-10 rounded-full object-cover"
+              alt=""
+              title={displayName}
+            />
+          ) : (
+            <div className="flex items-center space-x-2">
+              <img src={`${API_URL}${displayImage}`} className="w-10 h-10 rounded-full object-cover" alt="" />
+              <div>
+                <h2 className="font-bold text-base text-primary-800">{displayName}</h2>
+                <p className="text-xs text-primary-500">{portalTitle}</p>
+              </div>
             </div>
-          </div>
+          )}
           <button
             onClick={onToggle}
             className="lg:hidden p-1 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Collapse Toggle Button (Desktop only) */}
+        <div className={`hidden lg:flex ${isCollapsed ? 'justify-center' : 'justify-end'} px-2 py-2 border-b border-primary-100`}>
+          <button
+            onClick={toggleCollapse}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-primary-600"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <PanelLeft className="w-5 h-5" />
+            ) : (
+              <PanelLeftClose className="w-5 h-5" />
+            )}
           </button>
         </div>
 
@@ -433,8 +509,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           </nav>
         </div>
 
-        {/* Footer – profile */}
-<PWAInstallButton />
+        {/* Footer – PWA Install */}
+        {!isCollapsed && <PWAInstallButton />}
       </div>
     </>
   );
