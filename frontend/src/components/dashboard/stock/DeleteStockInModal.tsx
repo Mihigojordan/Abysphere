@@ -22,8 +22,8 @@ const DeleteStockInModal: React.FC<Props> = ({ isOpen, stock, onClose, onDelete 
         <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg mb-4">
           <Package className="w-8 h-8 text-red-600" />
           <div>
-            <p className="font-medium text-gray-900">{stock.itemName}</p>
-            <p className="text-xs text-gray-600">SKU: {stock.sku}</p>
+            <p className="font-medium text-gray-900">{stock.itemName || stock.productName}</p>
+            <p className="text-xs text-gray-600">SKU: {stock.sku || 'N/A'}</p>
           </div>
         </div>
         <p className="text-sm text-gray-600 mb-6">This action cannot be undone.</p>

@@ -17,18 +17,16 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import DOMPurify from "dompurify";
 import Quill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import stockService, { type StockIn } from "../../../services/stockInService";
-import { API_URL } from "../../../api/api";
 
 interface OperationStatus {
   type: "success" | "error" | "info";
   message: string;
 }
 
-const StockInViewPage: React.FC<{role:string}> = ({role}) => {
+const StockInViewPage: React.FC<{ role: string }> = ({ role }) => {
   const { id: stockInId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
 
@@ -44,7 +42,7 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
   const [operationLoading, setOperationLoading] = useState<boolean>(false);
   const [deleteConfirm, setDeleteConfirm] = useState<StockIn | null>(null);
 
-  const url  = role == 'admin' ? '/admin/dashboard/stock-management/' : '/employee/dashboard/stock-management/'
+  const url = role == 'admin' ? '/admin/dashboard/stock-management/' : '/employee/dashboard/stock-management/'
 
   // Fetch stock items
   useEffect(() => {
@@ -294,9 +292,8 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
               {currentSidebarStockIns.map((stockIn) => (
                 <div
                   key={stockIn.id}
-                  className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    selectedStockIn.id === stockIn.id ? "bg-primary-50 border-r-2 border-primary-500" : ""
-                  }`}
+                  className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${selectedStockIn.id === stockIn.id ? "bg-primary-50 border-r-2 border-primary-500" : ""
+                    }`}
                   onClick={() => handleStockInSelect(stockIn)}
                 >
                   <div className="flex items-start justify-between">
@@ -356,7 +353,7 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(isLowStock(selectedStockIn))}`}>
                       {isLowStock(selectedStockIn) ? "Low Stock" : "In Stock"}
                     </span>
-                    <span className="text-sm text-gray-500">Added {formatDate(selectedStockIn.createdAt)}</span>
+                    <span className="text-sm text-gray-500">Added {formatDate(selectedStockIn.createdAt as any)}</span>
                   </div>
                 </div>
               </div>
@@ -392,7 +389,7 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
                 </div>
                 <div className="flex items-center">
                   <Package className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">Store: {selectedStockIn.store?.name || 'N/A'}</span>
+                  <span className="text-sm text-gray-900">Store ID: {selectedStockIn.storeId || 'N/A'}</span>
                 </div>
                 <div className="flex items-center">
                   <Package className="w-5 h-5 text-gray-400 mr-3" />
@@ -426,11 +423,11 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
               <div className="space-y-3">
                 <div className="flex items-center">
                   <DollarSign className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">Unit Price: ${Number(selectedStockIn.unitPrice || 0).toFixed(2)}</span>
+                  <span className="text-sm text-gray-900">Unit Price: Rwf {Number(selectedStockIn.unitPrice || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center">
                   <DollarSign className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">Total Value: ${Number((selectedStockIn.unitPrice || 0) * selectedStockIn.quantity).toFixed(2)}</span>
+                  <span className="text-sm text-gray-900">Total Value: Rwf {Number((selectedStockIn.unitPrice || 0) * selectedStockIn.quantity).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -453,12 +450,18 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
                 )}
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">Added {formatDate(selectedStockIn.createdAt)}</span>
+                  <span className="text-sm text-gray-900">Added {formatDate(selectedStockIn.createdAt as any)}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-5 h-5 text-gray-400 mr-3" />
-                  <span className="text-sm text-gray-900">Updated {formatDate(selectedStockIn.updatedAt)}</span>
+                  <span className="text-sm text-gray-900">Updated {formatDate(selectedStockIn.updatedAt as any)}</span>
                 </div>
+                {selectedStockIn.expiryDate && (
+                  <div className="flex items-center text-red-600 font-medium">
+                    <Calendar className="w-5 h-5 mr-3" />
+                    <span className="text-sm">Expires: {formatDate(selectedStockIn.expiryDate as any)}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -491,13 +494,12 @@ const StockInViewPage: React.FC<{role:string}> = ({role}) => {
           {operationStatus && (
             <div className="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out">
               <div
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg shadow-lg border ${
-                  operationStatus.type === "success"
-                    ? "bg-green-50 border-green-200 text-green-800"
-                    : operationStatus.type === "error"
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg shadow-lg border ${operationStatus.type === "success"
+                  ? "bg-green-50 border-green-200 text-green-800"
+                  : operationStatus.type === "error"
                     ? "bg-red-50 border-red-200 text-red-800"
                     : "bg-primary-50 border-primary-200 text-primary-800"
-                }`}
+                  }`}
               >
                 {operationStatus.type === "success" && <CheckCircle className="w-5 h-5 text-green-600" />}
                 {operationStatus.type === "error" && <XCircle className="w-5 h-5 text-red-600" />}

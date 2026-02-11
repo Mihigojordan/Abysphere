@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         feature: "CLIENTS_MANAGEMENT",
       },
 
-     
+
       {
         id: "category",
         label: "Category Management",
@@ -220,10 +220,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             icon: FolderTree,
             path: `${base}/reports/inventory`,
           },
+          {
+            id: "stock-history",
+            label: "Stock History",
+            icon: ArrowUp,
+            path: `${base}/stock-history`,
+          },
         ],
       },
     ];
   };
+  
 
   /* ---------------------------------------------------------------------- */
   /*  Filter by role **and** by feature                                    */
@@ -373,17 +380,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       <div key={dropdown.id} className="w-full">
         <button
           onClick={() => toggleDropdown(dropdown.id)}
-          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${
-            active
+          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${active
               ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
               : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
-          }`}
+            }`}
         >
           <div className="flex items-center space-x-2">
             <div
-              className={`p-1 rounded-md ${
-                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
-              }`}
+              className={`p-1 rounded-md ${active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                }`}
             >
               <Icon className="w-4 h-4" />
             </div>
@@ -410,10 +415,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
                   to={sub.path}
                   end
                   className={({ isActive }) =>
-                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${
-                      isActive
-                        ? "bg-primary-500 text-white shadow-sm"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${isActive
+                      ? "bg-primary-500 text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`
                   }
                   onClick={() => window.innerWidth < 1024 && onToggle()}

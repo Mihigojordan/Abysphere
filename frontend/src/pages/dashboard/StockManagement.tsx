@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Plus,
     Search,
@@ -17,19 +17,19 @@ import {
     Filter,
     RefreshCw,
     Eye,
-    Calendar,
     ChevronDown,
     MoreHorizontal,
     DollarSign,
     Scale
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
-import stockService, { type CreateStockInInput, type UpdateStockInInput, type StockIn, type StockCategory } from '../../services/stockInService';
+import stockService, { type StockIn, type StockCategory } from '../../services/stockInService';
 
 import DeleteStockInModal from '../../components/dashboard/stock/DeleteStockInModal';
-import { API_URL } from '../../api/api';
+import QuickUpdateModal from '../../components/dashboard/stock/QuickUpdateModal';
+import ViewStockInModal from '../../components/dashboard/stock/ViewStockInModal';
 import { useSocketEvent } from '../../context/SocketContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 interface OperationStatus {
@@ -39,7 +39,7 @@ interface OperationStatus {
 
 type ViewMode = 'table' | 'grid' | 'list';
 
-const StockManagement = ({role}:{role:string}) => {
+const StockManagement = () => {
     const [stockins, setStockins] = useState<StockIn[]>([]);
     const [allStockins, setAllStockins] = useState<StockIn[]>([]);
     const [categories, setCategories] = useState<StockCategory[]>([]);
@@ -54,13 +54,16 @@ const StockManagement = ({role}:{role:string}) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [viewMode, setViewMode] = useState<ViewMode>('table');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isQuickUpdateModalOpen, setIsQuickUpdateModalOpen] = useState(false);
     const [selectedStockIn, setSelectedStockIn] = useState<StockIn | null>(null);
     const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-    const pdfContentRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const location = useLocation();
+    const basePath = location.pathname.endsWith('/') ? location.pathname.slice(0, -1) : location.pathname;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -184,7 +187,7 @@ const StockManagement = ({role}:{role:string}) => {
                         <td style="font-size:10px;">${stock.productName}</td>
                         <td style="font-size:10px;">${categoryName}</td>
                         <td style="font-size:10px;">${stock.quantity} ${stock.unit}</td>
-                        <td style="font-size:10px;">$${Number(stock.unitPrice || 0).toFixed(2)}</td>
+                        <td style="font-size:10px;">Rwf ${Number(stock.unitPrice || 0).toLocaleString()}</td>
                         <td style="font-size:10px;">${stock.supplier || 'N/A'}</td>
                         <td style="font-size:10px;">${stock.location || 'N/A'}</td>
                     </tr>
@@ -246,17 +249,17 @@ const StockManagement = ({role}:{role:string}) => {
     };
 
     const handleAddStockIn = () => {
-      navigate(`create`)
+        navigate(`${basePath}/create`);
     };
 
-    const handleEditStockIn = async (stockIn:StockIn) => {
-    if(!stockIn.id) return Swal.fire({}) 
-      navigate(`update/${stockIn.id}`)
+    const handleEditStockIn = async (stockIn: StockIn) => {
+        if (!stockIn.id) return Swal.fire({});
+        navigate(`${basePath}/update/${stockIn.id}`);
     };
 
     const handleViewStockIn = (stockIn: StockIn) => {
-         if(!stockIn.id) return Swal.fire({}) 
-      navigate(`${stockIn.id}`)
+        setSelectedStockIn(stockIn);
+        setIsViewModalOpen(true);
     };
 
     const handleDeleteStockIn = (stockIn: StockIn) => {
@@ -275,6 +278,26 @@ const StockManagement = ({role}:{role:string}) => {
         } finally {
             setOperationLoading(false);
             setIsDeleteModalOpen(false);
+            setSelectedStockIn(null);
+        }
+    };
+
+    const handleQuickUpdate = async (id: string, addedQuantity: number, expiryDate?: string) => {
+        try {
+            setOperationLoading(true);
+            const currentStock = allStockins.find(s => s.id === id);
+            const newTotal = (currentStock?.quantity || 0) + addedQuantity;
+            const updateData: any = { quantity: newTotal };
+            if (expiryDate) updateData.expiryDate = expiryDate;
+            await stockService.updateStockIn(id, updateData);
+            setAllStockins(prev => prev.map(s => s.id === id ? { ...s, quantity: newTotal, ...(expiryDate ? { expiryDate } : {}) } : s));
+            showOperationStatus('success', `Added ${addedQuantity} units successfully (Total: ${newTotal})`);
+        } catch (error: any) {
+            console.error('Error updating quantity:', error);
+            showOperationStatus('error', error.message || 'Failed to update quantity');
+        } finally {
+            setOperationLoading(false);
+            setIsQuickUpdateModalOpen(false);
             setSelectedStockIn(null);
         }
     };
@@ -384,13 +407,12 @@ const StockManagement = ({role}:{role:string}) => {
                     </div>
                     <div className="flex items-center space-x-1 text-xs text-gray-600">
                         <DollarSign className="w-3 h-3" />
-                        <span>${Number(stockIn.unitPrice || 0).toFixed(2)}</span>
+                        <span>Rwf {Number(stockIn.unitPrice || 0).toLocaleString()}</span>
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        isLowStock(stockIn) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${isLowStock(stockIn) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
                         {isLowStock(stockIn) ? '• Low Stock' : '• In Stock'}
                     </span>
                 </div>
@@ -453,18 +475,28 @@ const StockManagement = ({role}:{role:string}) => {
                                 </td>
                                 <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{stockIn.stockcategory?.name || 'N/A'}</td>
                                 <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{stockIn.quantity} {stockIn.unit}</td>
-                                <td className="py-2 px-2 text-gray-700 hidden md:table-cell">${Number(stockIn.unitPrice || 0).toFixed(2)}</td>
+                                <td className="py-2 px-2 text-gray-700 hidden md:table-cell">Rwf {Number(stockIn.unitPrice || 0).toLocaleString()}</td>
                                 <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">{stockIn.supplier || 'N/A'}</td>
                                 <td className="py-2 px-2">
-                                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                        isLowStock(stockIn) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                                    }`}>
+                                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${isLowStock(stockIn) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                                        }`}>
                                         {isLowStock(stockIn) ? '• Low Stock' : '• In Stock'}
                                     </span>
                                 </td>
                                 <td className="py-2 px-2 text-gray-700 hidden xl:table-cell">{formatDate(stockIn.createdAt)}</td>
                                 <td className="py-2 px-2">
                                     <div className="flex items-center justify-end space-x-1">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedStockIn(stockIn);
+                                                setIsQuickUpdateModalOpen(true);
+                                            }}
+                                            disabled={operationLoading}
+                                            className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
+                                            title="Quick Update"
+                                        >
+                                            <RefreshCw className="w-3 h-3" />
+                                        </button>
                                         <button
                                             onClick={() => handleViewStockIn(stockIn)}
                                             className="text-gray-400 hover:text-primary-600 p-1"
@@ -524,7 +556,7 @@ const StockManagement = ({role}:{role:string}) => {
                         </div>
                         <div className="hidden md:grid grid-cols-2 gap-4 text-xs text-gray-600 flex-1 max-w-xl px-4">
                             <span className="truncate">{stockIn.quantity} {stockIn.unit}</span>
-                            <span>${Number(stockIn.unitPrice || 0).toFixed(2)}</span>
+                            <span>Rwf {Number(stockIn.unitPrice || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center space-x-1 flex-shrink-0">
                             <button
@@ -588,11 +620,10 @@ const StockManagement = ({role}:{role:string}) => {
                         <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`px-2 py-1 text-xs rounded ${
-                                currentPage === page
-                                    ? 'bg-primary-500 text-white'
-                                    : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'
-                            }`}
+                            className={`px-2 py-1 text-xs rounded ${currentPage === page
+                                ? 'bg-primary-500 text-white'
+                                : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'
+                                }`}
                         >
                             {page}
                         </button>
@@ -611,24 +642,35 @@ const StockManagement = ({role}:{role:string}) => {
 
     return (
         <div className="min-h-screen bg-gray-50 text-xs">
-        
-            
+
+
             <DeleteStockInModal
                 isOpen={isDeleteModalOpen}
-                stockIn={selectedStockIn}
+                stock={selectedStockIn}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onDelete={handleDelete}
+            />
+
+            <ViewStockInModal
+                isOpen={isViewModalOpen}
+                stock={selectedStockIn}
+                onClose={() => { setIsViewModalOpen(false); setSelectedStockIn(null); }}
+            />
+            <QuickUpdateModal
+                isOpen={isQuickUpdateModalOpen}
+                stock={selectedStockIn}
+                onClose={() => setIsQuickUpdateModalOpen(false)}
+                onUpdate={handleQuickUpdate}
             />
             {operationStatus && (
                 <div className="fixed top-4 right-4 z-50">
                     <div
-                        className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${
-                            operationStatus.type === 'success'
-                                ? 'bg-green-50 border border-green-200 text-green-800'
-                                : operationStatus.type === 'error'
+                        className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === 'success'
+                            ? 'bg-green-50 border border-green-200 text-green-800'
+                            : operationStatus.type === 'error'
                                 ? 'bg-red-50 border border-red-200 text-red-800'
                                 : 'bg-primary-50 border border-primary-200 text-primary-800'
-                        }`}
+                            }`}
                     >
                         {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
                         {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
@@ -752,9 +794,8 @@ const StockManagement = ({role}:{role:string}) => {
                             </div>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${
-                                    showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                                }`}
+                                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                                    }`}
                             >
                                 <Filter className="w-3 h-3" />
                                 <span>Filter</span>
@@ -781,27 +822,24 @@ const StockManagement = ({role}:{role:string}) => {
                             <div className="flex items-center border border-gray-200 rounded">
                                 <button
                                     onClick={() => setViewMode('table')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                                        }`}
                                     title="Table View"
                                 >
                                     <List className="w-3 h-3" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                                        }`}
                                     title="Grid View"
                                 >
                                     <Grid3X3 className="w-3 h-3" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                                        }`}
                                     title="List View"
                                 >
                                     <Package className="w-3 h-3" />

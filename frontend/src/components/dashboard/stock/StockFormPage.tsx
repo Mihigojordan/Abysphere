@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
-import { Check, X, Package, Scale, DollarSign } from 'lucide-react';
+import { Check, X, Package } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import stockService, { type StockIn, type CreateStockInInput, type UpdateStockInInput, type StockCategory } from '../../../services/stockInService';
 import storeService, { type Store } from '../../../services/storeService';
@@ -17,6 +17,7 @@ interface StockInFormData {
   description: string;
   stockcategoryId: string;
   storeId: string;
+  expiryDate: string;
 }
 
 interface Errors {
@@ -39,6 +40,7 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
     description: '',
     stockcategoryId: '',
     storeId: '',
+    expiryDate: '',
   });
   const navigate = useNavigate();
   const { id: stockInId } = useParams<{ id?: string }>();
@@ -53,7 +55,7 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
           storeService.getAllStores()
         ]);
         setCategories(catData || []);
-        setStores(storeData.stores || []);
+        setStores(Array.isArray(storeData) ? storeData : (storeData as any).stores || []);
 
         if (stockInId) {
           const stockIn = await stockService.getStockInById(stockInId);
@@ -69,6 +71,7 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
               description: stockIn.description || '',
               stockcategoryId: stockIn.stockcategoryId || '',
               storeId: stockIn.storeId || '',
+              expiryDate: stockIn.expiryDate ? new Date(stockIn.expiryDate).toISOString().split('T')[0] : '',
             });
           } else {
             throw new Error('Stock item not found');
@@ -104,20 +107,6 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
     const newErrors: Errors = {};
 
     if (!formData.productName.trim()) newErrors.productName = 'Product name is required';
-    if (!formData.stockcategoryId) newErrors.stockcategoryId = 'Category is required';
-    if (!formData.storeId) newErrors.storeId = 'Store is required';
-    if (formData.quantity === '' || Number(formData.quantity) <= 0) {
-      newErrors.quantity = 'Quantity must be greater than 0';
-    }
-    if (!['PCS', 'KG', 'LITERS', 'METER', 'BOX', 'PACK', 'OTHER'].includes(formData.unit)) {
-      newErrors.unit = 'Unit is required';
-    }
-    if (formData.unitPrice === '' || Number(formData.unitPrice) <= 0) {
-      newErrors.unitPrice = 'Unit price must be greater than 0';
-    }
-    if (formData.reorderLevel !== '' && Number(formData.reorderLevel) < 0) {
-      newErrors.reorderLevel = 'Reorder level cannot be negative';
-    }
     if (formData.description && formData.description.length > 1000) {
       newErrors.description = 'Description must not exceed 1000 characters';
     }
@@ -146,18 +135,19 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
         productName: formData.productName,
         quantity: Number(formData.quantity),
         unit: formData.unit as 'PCS' | 'KG' | 'LITERS' | 'METER' | 'BOX' | 'PACK' | 'OTHER',
-        unitPrice: Number(formData.unitPrice),
+        unitPrice: Number(formData.unitPrice) || 0,
         reorderLevel: formData.reorderLevel ? Number(formData.reorderLevel) : undefined,
         supplier: formData.supplier || undefined,
         location: formData.location || undefined,
         description: formData.description || undefined,
         stockcategoryId: formData.stockcategoryId,
-        storeId: formData.storeId,
+        storeId: formData.storeId || undefined,
+        expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : undefined,
       };
 
       let response: StockIn;
       if (stockInId) {
-        response = await stockService.updateStockIn(stockInId, stockInData);
+        response = await stockService.updateStockIn(stockInId, stockInData as UpdateStockInInput);
         Swal.fire({
           icon: 'success',
           title: 'Success',
@@ -168,7 +158,7 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
           timer: 3000,
         });
       } else {
-        response = await stockService.createStockIn(stockInData);
+        response = await stockService.createStockIn(stockInData as CreateStockInInput);
         Swal.fire({
           icon: 'success',
           title: 'Success',
@@ -282,7 +272,7 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Store <span className="text-red-500">*</span>
+                  Store
                 </label>
                 <select
                   value={formData.storeId}
@@ -294,20 +284,11 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
                     <option key={store.id} value={store.id}>{store.name}</option>
                   ))}
                 </select>
-                {errors.storeId && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <X className="h-3 w-3" />
-                    {errors.storeId}
-                  </p>
-                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Unit <span className="text-red-500">*</span>
-                </label>
                 <select
                   value={formData.unit}
                   onChange={(e) => handleInputChange('unit', e.target.value as StockInFormData['unit'])}
@@ -322,17 +303,11 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
                   <option value="PACK">Packs (PACK)</option>
                   <option value="OTHER">Other (OTHER)</option>
                 </select>
-                {errors.unit && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <X className="h-3 w-3" />
-                    {errors.unit}
-                  </p>
-                )}
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Quantity <span className="text-red-500">*</span>
+                  Quantity
                 </label>
                 <input
                   type="number"
@@ -342,19 +317,13 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
                   placeholder="Enter quantity"
                   min="0"
                 />
-                {errors.quantity && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <X className="h-3 w-3" />
-                    {errors.quantity}
-                  </p>
-                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Unit Price ($) <span className="text-red-500">*</span>
+                  Unit Price (Rwf)
                 </label>
                 <input
                   type="number"
@@ -365,12 +334,6 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
                   min="0"
                   step="0.01"
                 />
-                {errors.unitPrice && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <X className="h-3 w-3" />
-                    {errors.unitPrice}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -418,6 +381,20 @@ const StockInForm: React.FC<{ role: string }> = ({ role }) => {
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Enter location"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Expiry Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiryDate}
+                  onChange={(e) => handleInputChange('expiryDate', e.target.value)}
+                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
             </div>

@@ -25,6 +25,8 @@ import {
 import html2pdf from 'html2pdf.js';
 import stockService, { type Stock } from '../../services/stockService';
 import DeleteStockModal from '../../components/dashboard/stock/DeleteStockInModal';
+import QuickUpdateStockModal from '../../components/dashboard/stock/QuickUpdateStockModal';
+import ViewStockModal from '../../components/dashboard/stock/ViewStockModal';
 import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
@@ -55,13 +57,15 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
+    const [isQuickUpdateModalOpen, setIsQuickUpdateModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     // === DATE FILTER STATES ===
     const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
 
-    const pdfContentRef = useRef<HTMLDivElement>(null);
+    // const pdfContentRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
     // Helper: Safely parse number
@@ -72,7 +76,7 @@ const StockInManagement = ({ role }: { role: string }) => {
 
     // Helper: Format currency
     const formatCurrency = (value: any): string => {
-        return `R${toNumber(value).toFixed(2)}`;
+        return `Rwf ${toNumber(value).toLocaleString()}`;
     };
 
     // === DATE RANGE CALCULATION ===
@@ -156,14 +160,14 @@ const StockInManagement = ({ role }: { role: string }) => {
             reorderLevel: parseInt(stockData.reorderLevel as any) || 0,
         };
         setAllStocks((prev) =>
-            prev.map((s) => (s.id === stockData.id ? normalized : s))
+            prev.map((s) => (s.id.toString() === stockData.id.toString() ? normalized : s))
         );
         showOperationStatus('success', `Stock item ${stockData.itemName} updated`);
     });
 
     useSocketEvent('stockDeleted', ({ id }: { id: string }) => {
         console.log('Stock deleted via WebSocket:', id);
-        setAllStocks((prev) => prev.filter((s) => s.id !== id));
+        setAllStocks((prev) => prev.filter((s) => s.id.toString() !== id.toString()));
         showOperationStatus('success', 'Stock item deleted');
     });
 
@@ -317,8 +321,8 @@ const StockInManagement = ({ role }: { role: string }) => {
     };
 
     const handleViewStock = (stock: Stock) => {
-        if (!stock.id) return Swal.fire({});
-        navigate(`/${role}/dashboard/stockin-management/${stock.id}`);
+        setSelectedStock(stock);
+        setIsViewModalOpen(true);
     };
 
     const handleDeleteStock = (stock: Stock) => {
@@ -329,7 +333,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     const handleDelete = async (stock: Stock) => {
         try {
             setOperationLoading(true);
-            await fetch(`${API_URL}/stockin/delete/${stock.id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}/stock/stockin/${stock.id}`, { method: 'DELETE' });
             setAllStocks((prev) => prev.filter((s) => s.id !== stock.id));
             showOperationStatus('success', `Stock item "${stock.itemName}" deleted`);
         } catch (err: any) {
@@ -338,6 +342,26 @@ const StockInManagement = ({ role }: { role: string }) => {
         } finally {
             setOperationLoading(false);
             setIsDeleteModalOpen(false);
+            setSelectedStock(null);
+        }
+    };
+
+    const handleQuickUpdate = async (id: number, addedQuantity: number, expiryDate?: string) => {
+        try {
+            setOperationLoading(true);
+            const currentStock = allStocks.find(s => s.id === id);
+            const newTotal = (currentStock?.receivedQuantity || 0) + addedQuantity;
+            const updateData: any = { receivedQuantity: newTotal, totalValue: newTotal * (currentStock?.unitCost || 0) };
+            if (expiryDate) updateData.expiryDate = expiryDate;
+            await stockService.updateStock(String(id), updateData);
+            setAllStocks(prev => prev.map(s => s.id === id ? { ...s, receivedQuantity: newTotal, totalValue: newTotal * s.unitCost, ...(expiryDate ? { expiryDate } : {}) } : s));
+            showOperationStatus('success', `Added ${addedQuantity} units successfully (Total: ${newTotal})`);
+        } catch (error: any) {
+            console.error('Error updating quantity:', error);
+            showOperationStatus('error', error.message || 'Failed to update quantity');
+        } finally {
+            setOperationLoading(false);
+            setIsQuickUpdateModalOpen(false);
             setSelectedStock(null);
         }
     };
@@ -408,6 +432,12 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
                                 >
                                     <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                </button>
+                                <button
+                                    onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); setIsDropdownOpen(false); }}
+                                    className="flex items-center px-2 py-1 text-xs text-primary-700 hover:bg-primary-50 w-full"
+                                >
+                                    <RefreshCw className="w-3 h-3 mr-1" /> Quick Update
                                 </button>
                             </div>
                         )}
@@ -503,9 +533,8 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     </td>
                                     <td className="py-2 px-2 text-gray-700 hidden xl:table-cell">{stock.warehouseLocation}</td>
                                     <td className="py-2 px-2">
-                                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                            isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                                        }`}>
+                                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                                            }`}>
                                             {isLowStock ? 'Low Stock' : 'In Stock'}
                                         </span>
                                     </td>
@@ -519,6 +548,9 @@ const StockInManagement = ({ role }: { role: string }) => {
                                             </button>
                                             <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50" title="Delete">
                                                 <Trash2 className="w-3 h-3" />
+                                            </button>
+                                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50" title="Quick Update">
+                                                <RefreshCw className="w-3 h-3" />
                                             </button>
                                         </div>
                                     </td>
@@ -569,6 +601,9 @@ const StockInManagement = ({ role }: { role: string }) => {
                                 </button>
                                 <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50" title="Delete Stock">
                                     <Trash2 className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50" title="Quick Update">
+                                    <RefreshCw className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
@@ -621,13 +656,23 @@ const StockInManagement = ({ role }: { role: string }) => {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onDelete={handleDelete}
             />
+            <QuickUpdateStockModal
+                isOpen={isQuickUpdateModalOpen}
+                stock={selectedStock}
+                onClose={() => { setIsQuickUpdateModalOpen(false); setSelectedStock(null); }}
+                onUpdate={handleQuickUpdate}
+            />
+            <ViewStockModal
+                isOpen={isViewModalOpen}
+                stock={selectedStock}
+                onClose={() => { setIsViewModalOpen(false); setSelectedStock(null); }}
+            />
             {operationStatus && (
                 <div className="fixed top-4 right-4 z-50">
-                    <div className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${
-                        operationStatus.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+                    <div className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
                         operationStatus.type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
-                        'bg-primary-50 border border-primary-200 text-primary-800'
-                    }`}>
+                            'bg-primary-50 border border-primary-200 text-primary-800'
+                        }`}>
                         {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
                         {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
                         {operationStatus.type === 'info' && <AlertCircle className="w-4 h-4 text-primary-600" />}
@@ -763,11 +808,10 @@ const StockInManagement = ({ role }: { role: string }) => {
                                                 setCustomEndDate('');
                                             }
                                         }}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${
-                                            dateFilter === opt
-                                                ? 'bg-white text-primary-600 shadow-sm'
-                                                : 'text-gray-600 hover:text-gray-900'
-                                        }`}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${dateFilter === opt
+                                            ? 'bg-white text-primary-600 shadow-sm'
+                                            : 'text-gray-600 hover:text-gray-900'
+                                            }`}
                                     >
                                         {opt === 'all' ? 'All Time' : opt}
                                     </button>

@@ -77,7 +77,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
     paymentMethod: "",
     salesEntries: [] as ValidationError[],
   });
-  
+
   const [touched, setTouched] = useState({
     stockinId: false,
     quantity: false,
@@ -124,7 +124,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
       paymentMethod: "",
       salesEntries: [],
     });
-    
+
     setTouched({
       stockinId: false,
       quantity: false,
@@ -133,7 +133,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
       clientPhone: false,
       salesEntries: [],
     });
-    
+
     setShowWarnings(false);
   }, [stockOut, isOpen, isUpdateMode]);
 
@@ -147,7 +147,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
   const validateQuantity = (qty: string, stockinId?: string): string => {
     if (!qty) return "Quantity is required";
-    
+
     const num = Number(qty);
     if (isNaN(num)) return "Quantity must be a valid number";
     if (num <= 0) return "Quantity must be greater than 0";
@@ -168,12 +168,12 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
   const validateSoldPrice = (price: string, stockinId?: string): string => {
     if (!price) return ""; // Optional field
-    
+
     const num = Number(price);
     if (isNaN(num)) return "Price must be a valid number";
     if (num < 0) return "Price cannot be negative";
     if (num > 999999999) return "Price is too large";
-    
+
     // Check decimal places
     const decimalPlaces = (price.split('.')[1] || '').length;
     if (decimalPlaces > 2) return "Price can have maximum 2 decimal places";
@@ -183,34 +183,34 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
   const validateEmail = (email: string): string => {
     if (!email) return ""; // Optional field
-    
+
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!regex.test(email)) return "Invalid email format";
-    
+
     if (email.length > 255) return "Email is too long";
-    
+
     return "";
   };
 
   const validatePhone = (phone: string): string => {
     if (!phone) return ""; // Optional field
-    
+
     const cleaned = phone.replace(/[\s\-\(\)]/g, '');
-    
+
     if (!/^\+?\d+$/.test(cleaned)) return "Phone number can only contain digits and optional +";
-    
+
     if (cleaned.length < 9) return "Phone number is too short";
     if (cleaned.length > 15) return "Phone number is too long";
-    
+
     return "";
   };
 
   const validateClientName = (name: string): string => {
     if (!name) return ""; // Optional field
-    
+
     if (name.length > 255) return "Name is too long";
     if (name.trim().length === 0) return "Name cannot be only spaces";
-    
+
     return "";
   };
 
@@ -290,9 +290,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
         if (!updated[index].quantity) {
           updated[index].quantity = calculateSuggestedQuantity(stock.receivedQuantity).toString();
         }
-        if (!updated[index].soldPrice) {
-          updated[index].soldPrice = calculateSuggestedPrice(value);
-        }
+        // Price is NOT auto-filled — user enters it manually
       }
     }
 
@@ -456,8 +454,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
       <div className="bg-white rounded-lg p-6 w-full max-w-6xl my-8 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             type="button"
           >
@@ -485,11 +483,10 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                       }));
                     }}
                     onBlur={() => setTouched(prev => ({ ...prev, stockinId: true }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      touched.stockinId && validationErrors.stockinId
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.stockinId && validationErrors.stockinId
                         ? "border-red-500 bg-red-50"
                         : "border-gray-300"
-                    }`}
+                      }`}
                   >
                     <option value="">Select stock item</option>
                     {stockIns.map(s => (
@@ -523,11 +520,10 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                       }));
                     }}
                     onBlur={() => setTouched(prev => ({ ...prev, quantity: true }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      touched.quantity && validationErrors.quantity
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.quantity && validationErrors.quantity
                         ? "border-red-500 bg-red-50"
                         : "border-gray-300"
-                    }`}
+                      }`}
                   />
                   {touched.quantity && validationErrors.quantity && (
                     <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -556,11 +552,10 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                     }}
                     onBlur={() => setTouched(prev => ({ ...prev, soldPrice: true }))}
                     placeholder="Optional"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      touched.soldPrice && validationErrors.soldPrice
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.soldPrice && validationErrors.soldPrice
                         ? "border-red-500 bg-red-50"
                         : "border-gray-300"
-                    }`}
+                      }`}
                   />
                   {touched.soldPrice && validationErrors.soldPrice && (
                     <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -568,15 +563,15 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                       {validationErrors.soldPrice}
                     </p>
                   )}
-                  {showWarnings && 
-                    formData.soldPrice && 
-                    !validationErrors.soldPrice && 
+                  {showWarnings &&
+                    formData.soldPrice &&
+                    !validationErrors.soldPrice &&
                     isSellingBelowCost(formData.soldPrice, formData.stockinId) && (
-                    <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      Warning: Selling below unit cost
-                    </p>
-                  )}
+                      <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        Warning: Selling below unit cost
+                      </p>
+                    )}
                 </div>
               </div>
             </div>
@@ -613,9 +608,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                         <select
                           value={entry.stockinId}
                           onChange={e => handleSalesEntryChange(i, "stockinId", e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            isTouched && entryErrors.stockinId ? "border-red-500 bg-red-50" : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.stockinId ? "border-red-500 bg-red-50" : "border-gray-300"
+                            }`}
                         >
                           <option value="">Select item...</option>
                           {stockIns.map(s => (
@@ -642,9 +636,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                           min="1"
                           value={entry.quantity}
                           onChange={e => handleSalesEntryChange(i, "quantity", e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            isTouched && entryErrors.quantity ? "border-red-500 bg-red-50" : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.quantity ? "border-red-500 bg-red-50" : "border-gray-300"
+                            }`}
                         />
                         {isTouched && entryErrors.quantity && (
                           <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -664,9 +657,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                           value={entry.soldPrice}
                           onChange={e => handleSalesEntryChange(i, "soldPrice", e.target.value)}
                           placeholder="Optional"
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                            isTouched && entryErrors.soldPrice ? "border-red-500 bg-red-50" : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.soldPrice ? "border-red-500 bg-red-50" : "border-gray-300"
+                            }`}
                         />
                         {isTouched && entryErrors.soldPrice && (
                           <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -674,15 +666,15 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                             {entryErrors.soldPrice}
                           </p>
                         )}
-                        {showWarnings && 
-                          entry.soldPrice && 
-                          !entryErrors.soldPrice && 
+                        {showWarnings &&
+                          entry.soldPrice &&
+                          !entryErrors.soldPrice &&
                           isSellingBelowCost(entry.soldPrice, entry.stockinId) && (
-                          <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
-                            <AlertCircle size={12} />
-                            Below cost
-                          </p>
-                        )}
+                            <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              Below cost
+                            </p>
+                          )}
                       </div>
 
                       {/* Stock Info */}
@@ -743,9 +735,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                       clientName: validateClientName(e.target.value),
                     }));
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.clientName ? "border-red-500 bg-red-50" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.clientName ? "border-red-500 bg-red-50" : "border-gray-300"
+                    }`}
                   maxLength={255}
                 />
                 {validationErrors.clientName && (
@@ -771,11 +762,10 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                     }));
                   }}
                   onBlur={() => setTouched(prev => ({ ...prev, clientEmail: true }))}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    touched.clientEmail && validationErrors.clientEmail
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.clientEmail && validationErrors.clientEmail
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300"
-                  }`}
+                    }`}
                   maxLength={255}
                 />
                 {touched.clientEmail && validationErrors.clientEmail && (
@@ -801,11 +791,10 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                     }));
                   }}
                   onBlur={() => setTouched(prev => ({ ...prev, clientPhone: true }))}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    touched.clientPhone && validationErrors.clientPhone
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.clientPhone && validationErrors.clientPhone
                       ? "border-red-500 bg-red-50"
                       : "border-gray-300"
-                  }`}
+                    }`}
                 />
                 {touched.clientPhone && validationErrors.clientPhone && (
                   <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -820,18 +809,17 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
                 <select
                   value={formData.paymentMethod}
                   onChange={e => {
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      paymentMethod: e.target.value as PaymentMethod | "" 
+                    setFormData(prev => ({
+                      ...prev,
+                      paymentMethod: e.target.value as PaymentMethod | ""
                     }));
                     setValidationErrors(prev => ({
                       ...prev,
                       paymentMethod: validatePaymentMethod(e.target.value),
                     }));
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    validationErrors.paymentMethod ? "border-red-500 bg-red-50" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${validationErrors.paymentMethod ? "border-red-500 bg-red-50" : "border-gray-300"
+                    }`}
                 >
                   <option value="">Select method...</option>
                   <option value="CASH">Cash</option>
@@ -899,8 +887,8 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
               {isLoading
                 ? "Processing..."
                 : isUpdateMode
-                ? "Update Sale"
-                : "Complete Sale"}
+                  ? "Update Sale"
+                  : "Complete Sale"}
             </button>
           </div>
         </form>

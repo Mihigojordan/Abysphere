@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Package, Calendar, Download, ArrowLeft, RefreshCw, CheckCircle, XCircle, AlertCircle, X, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Package, Calendar, Download, ArrowLeft, RefreshCw, CheckCircle, XCircle, AlertCircle, X, ChevronLeft, ChevronRight, Filter, Search, ArrowUpCircle, ArrowDownCircle, Settings } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
-import stockService, { type StockIn, type StockHistory } from '../../services/stockInService';
+import stockService, { type Stock, type StockHistoryRecord } from '../../services/stockService';
 import { useSocketEvent } from '../../context/SocketContext';
 
 interface OperationStatus {
   type: 'success' | 'error' | 'info';
   message: string;
-}
-
-interface ExtendedStockHistory extends StockHistory {
-  stockIn?: StockIn;
 }
 
 interface Props {
@@ -21,9 +17,7 @@ interface Props {
 const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [history, setHistory] = useState<ExtendedStockHistory[]>([]);
-  const [filteredHistory, setFilteredHistory] = useState<ExtendedStockHistory[]>([]);
-  const [stockIns, setStockIns] = useState<StockIn[]>([]);
+  const [history, setHistory] = useState<StockHistoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
@@ -31,21 +25,18 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const [startDate, setStartDate] = useState<string>(searchParams.get('startDate') || '');
   const [endDate, setEndDate] = useState<string>(searchParams.get('endDate') || '');
   const [currentPage, setCurrentPage] = useState<number>(parseInt(searchParams.get('page') || '1', 10));
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [movementFilter, setMovementFilter] = useState<'ALL' | 'IN' | 'OUT' | 'ADJUSTMENT'>('ALL');
   const itemsPerPage = 20;
   const pdfContentRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all stock history and stock items
+  // Fetch all stock history
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const extendedHistory = await stockService.getAllStockHistory();
-        setHistory(extendedHistory || []);
-        // Apply filters from URL params
-        const filtered = startDate && endDate
-          ? extendedHistory.filter((record) => isWithinDateRange(record, startDate, endDate))
-          : extendedHistory;
-        setFilteredHistory(filtered || []);
+        const records = await stockService.getStockHistory();
+        setHistory(records || []);
         setError(null);
       } catch (err: any) {
         const errorMessage = err.message || 'Failed to load stock history';
@@ -69,27 +60,16 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   }, [startDate, endDate, currentPage, setSearchParams]);
 
   // WebSocket event handlers
-  useSocketEvent('stockHistoryCreated', async (historyData: ExtendedStockHistory) => {
-    console.log('Stock history created via WebSocket:', historyData);
-    const extendedHistory = await stockService.getAllStockHistory();
-    setHistory(extendedHistory || []);
-    // Apply filters from URL params
-    const filtered = startDate && endDate
-      ? extendedHistory.filter((record) => isWithinDateRange(record, startDate, endDate))
-      : extendedHistory;
-    setFilteredHistory(filtered || []);
+  useSocketEvent('stockHistoryCreated', async () => {
+    const records = await stockService.getStockHistory();
+    setHistory(records || []);
     showOperationStatus('success', 'New stock history record added');
   });
 
-  useSocketEvent('stockInUpdated', async (stockInData: StockIn) => {
-    const extendedHistory = await stockService.getAllStockHistory();
-    setHistory(extendedHistory || []);
-    // Apply filters from URL params
-    const filtered = startDate && endDate
-      ? extendedHistory.filter((record) => isWithinDateRange(record, startDate, endDate))
-      : extendedHistory;
-    setFilteredHistory(filtered || []);
-    showOperationStatus('success', `Stock item ${stockInData.productName} updated`);
+  useSocketEvent('stockUpdated', async (stockData: Stock) => {
+    const records = await stockService.getStockHistory();
+    setHistory(records || []);
+    showOperationStatus('success', `Stock item ${stockData.itemName} updated`);
   });
 
   // Operation status handler
@@ -110,26 +90,29 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
     });
   };
 
-  // Format price
-  const formatPrice = (value: number | undefined): string => {
+  // Format currency in Rwf
+  const formatCurrency = (value: number | undefined): string => {
     if (value === undefined || value === null) return 'N/A';
-    return `$${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+    }).format(value);
   };
 
   // Get created by
-  const getCreatedBy = (history: ExtendedStockHistory): string => {
-    const admin = history.createdByAdmin;
-    const employee = history.createdByEmployee;
-    if (history.createdByAdminId && admin) {
+  const getCreatedBy = (record: StockHistoryRecord): string => {
+    const admin = record.createdByAdmin;
+    const employee = record.createdByEmployee;
+    if (record.createdByAdminId && admin) {
       return admin.adminName || 'N/A';
-    } else if (history.createdByEmployeeId && employee) {
+    } else if (record.createdByEmployeeId && employee) {
       return `${employee.first_name} ${employee.last_name}`;
     }
     return 'N/A';
   };
 
   // Check if record is within date range
-  const isWithinDateRange = (record: ExtendedStockHistory, start: string, end: string): boolean => {
+  const isWithinDateRange = (record: StockHistoryRecord, start: string, end: string): boolean => {
     if (!record.createdAt || !start || !end) return true;
     const recordDate = new Date(record.createdAt).getTime();
     const startTime = new Date(start).getTime();
@@ -137,26 +120,63 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
     return recordDate >= startTime && recordDate <= endTime;
   };
 
+  // Filtered + searched data
+  const filteredHistory = useMemo(() => {
+    return history.filter((record) => {
+      // Movement type filter
+      if (movementFilter !== 'ALL' && record.movementType !== movementFilter) return false;
+
+      // Date range filter
+      if (startDate && endDate && !isWithinDateRange(record, startDate, endDate)) return false;
+
+      // Search filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const productName = record.stock?.itemName?.toLowerCase() || '';
+        const notes = record.notes?.toLowerCase() || '';
+        const createdBy = getCreatedBy(record).toLowerCase();
+        const sourceType = record.sourceType?.toLowerCase() || '';
+        if (!productName.includes(term) && !notes.includes(term) && !createdBy.includes(term) && !sourceType.includes(term)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [history, movementFilter, startDate, endDate, searchTerm]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const inRecords = filteredHistory.filter(r => r.movementType === 'IN');
+    const outRecords = filteredHistory.filter(r => r.movementType === 'OUT');
+    const adjustmentRecords = filteredHistory.filter(r => r.movementType === 'ADJUSTMENT');
+    const totalIn = inRecords.reduce((sum, r) => sum + Number(r.qtyChange || 0), 0);
+    const totalOut = outRecords.reduce((sum, r) => sum + Number(r.qtyChange || 0), 0);
+    return {
+      totalIn,
+      totalOut,
+      netChange: totalIn - totalOut,
+      inCount: inRecords.length,
+      outCount: outRecords.length,
+      adjustmentCount: adjustmentRecords.length,
+    };
+  }, [filteredHistory]);
+
   // Handle date filter
   const handleFilter = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!startDate || !endDate) {
-      setFilteredHistory(history);
-      setCurrentPage(1);
-      showOperationStatus('info', 'Date filter cleared');
-      return;
-    }
-    const filtered = history.filter((record) => isWithinDateRange(record, startDate, endDate));
-    setFilteredHistory(filtered);
     setCurrentPage(1);
-    showOperationStatus('success', 'Date filter applied');
+    if (!startDate || !endDate) {
+      showOperationStatus('info', 'Date filter cleared');
+    } else {
+      showOperationStatus('success', 'Date filter applied');
+    }
   };
 
   // Clear date filter
   const handleClearFilter = () => {
     setStartDate('');
     setEndDate('');
-    setFilteredHistory(history);
     setCurrentPage(1);
     setSearchParams({}, { replace: true });
     showOperationStatus('info', 'Date filter cleared');
@@ -172,13 +192,13 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       const tableRows = filteredHistory.map((record, index) => `
         <tr>
           <td style="font-size:10px;">${index + 1}</td>
-          <td style="font-size:10px;">${record.stockIn?.productName || 'N/A'}</td>
+          <td style="font-size:10px;">${record.stock?.itemName || 'N/A'}</td>
           <td style="font-size:10px;">${record.movementType}</td>
           <td style="font-size:10px;">${record.sourceType}</td>
-          <td style="font-size:10px;">${record.qtyBefore.toFixed(3)} ${record.stockIn?.unit || ''}</td>
-          <td style="font-size:10px;">${record.qtyChange.toFixed(3)} ${record.stockIn?.unit || ''}</td>
-          <td style="font-size:10px;">${record.qtyAfter.toFixed(3)} ${record.stockIn?.unit || ''}</td>
-          <td style="font-size:10px;">${formatPrice(record.unitPrice)}</td>
+          <td style="font-size:10px;">${(Number(record.qtyBefore) || 0).toFixed(3)} ${record.stock?.unitOfMeasure || ''}</td>
+          <td style="font-size:10px;">${(Number(record.qtyChange) || 0).toFixed(3)} ${record.stock?.unitOfMeasure || ''}</td>
+          <td style="font-size:10px;">${(Number(record.qtyAfter) || 0).toFixed(3)} ${record.stock?.unitOfMeasure || ''}</td>
+          <td style="font-size:10px;">${record.unitPrice !== undefined ? formatCurrency(Number(record.unitPrice)) : 'N/A'}</td>
           <td style="font-size:10px;">${record.notes || 'N/A'}</td>
           <td style="font-size:10px;">${getCreatedBy(record)}</td>
           <td style="font-size:10px;">${formatDate(record.createdAt)}</td>
@@ -199,7 +219,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
           </style>
         </head>
         <body>
-          <h1>All Stock History</h1>
+          <h1>All Stock History${movementFilter !== 'ALL' ? ` — ${movementFilter} Movements` : ''}</h1>
           <p>Exported on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Johannesburg' })}</p>
           ${startDate && endDate ? `<p>Filtered: ${startDate} to ${endDate}</p>` : ''}
           <table>
@@ -231,7 +251,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         filename,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
       };
 
       await html2pdf().from(htmlContent).set(opt).save();
@@ -248,23 +268,8 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const handleRefresh = async () => {
     try {
       setLoading(true);
-      const [historyData, stockInData] = await Promise.all([
-        stockService.getAllStockHistory(),
-        stockService.getAllStockIns(),
-      ]);
-      
-      const extendedHistory = historyData.map((record) => ({
-        ...record,
-        stockIn: stockInData.find((stock) => stock.id === record.stockInId),
-      }));
-      setHistory(extendedHistory || []);
-      setStockIns(stockInData || []);
-      // Apply current filter to refreshed data
-      const filtered = startDate && endDate
-        ? extendedHistory.filter((record) => isWithinDateRange(record, startDate, endDate))
-        : extendedHistory;
-      setFilteredHistory(filtered || []);
-      setCurrentPage(parseInt(searchParams.get('page') || '1', 10));
+      const records = await stockService.getStockHistory();
+      setHistory(records || []);
       setError(null);
       showOperationStatus('success', 'Data refreshed');
     } catch (err: any) {
@@ -289,6 +294,20 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
     }
   };
 
+  // Movement type badge
+  const getMovementBadge = (type: string) => {
+    switch (type) {
+      case 'IN':
+        return 'bg-green-100 text-green-800';
+      case 'OUT':
+        return 'bg-red-100 text-red-800';
+      case 'ADJUSTMENT':
+        return 'bg-amber-100 text-amber-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -308,13 +327,12 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       {operationStatus && (
         <div className="fixed top-4 right-4 z-50">
           <div
-            className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${
-              operationStatus.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : operationStatus.type === 'error'
+            className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : operationStatus.type === 'error'
                 ? 'bg-red-50 border border-red-200 text-red-800'
                 : 'bg-primary-50 border border-primary-200 text-primary-800'
-            }`}
+              }`}
           >
             {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
             {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
@@ -344,12 +362,12 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">All Stock History</h1>
-              <p className="text-xs text-gray-500 mt-0.5">View all stock movement history</p>
+              <h1 className="text-lg font-semibold text-gray-900">Stock History</h1>
+              <p className="text-xs text-gray-500 mt-0.5">Track all stock movement transactions</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => navigate('/stock')}
+                onClick={() => navigate(`/${role}/dashboard/stock-management`)}
                 className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50"
                 title="Back to Stock Management"
               >
@@ -379,46 +397,110 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         </div>
       </div>
 
-      {/* Date Filter */}
-      <div className="px-4 py-4">
-        <div className="bg-white rounded border border-gray-200 p-4 mb-4">
-          <h3 className="text-sm font-semibold text-gray-900 flex items-center mb-3">
-            <Filter className="w-4 h-4 mr-2 text-primary-600" />
-            Filter by Date
-          </h3>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <label className="block text-xs text-gray-600 mb-1">Start Date</label>
+      {/* Main Content */}
+      <div className="px-4 py-4 space-y-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="bg-white rounded shadow p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
+                <ArrowUpCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Stock In</p>
+                <p className="text-lg font-semibold text-gray-900">{stats.totalIn.toFixed(1)}</p>
+                <p className="text-xs text-gray-400">{stats.inCount} movements</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded shadow p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
+                <ArrowDownCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Stock Out</p>
+                <p className="text-lg font-semibold text-gray-900">{stats.totalOut.toFixed(1)}</p>
+                <p className="text-xs text-gray-400">{stats.outCount} movements</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded shadow p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-blue-100 rounded-full flex items-center justify-center">
+                <Settings className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Net Change</p>
+                <p className={`text-lg font-semibold ${stats.netChange >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  {stats.netChange >= 0 ? '+' : ''}{stats.netChange.toFixed(1)}
+                </p>
+                <p className="text-xs text-gray-400">{stats.adjustmentCount} adjustments</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search + Movement Filter + Date Filter */}
+        <div className="bg-white rounded border border-gray-200 p-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search product, notes, user..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="w-56 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+              />
+            </div>
+
+            {/* Movement Type Tabs */}
+            <div className="flex gap-1 bg-gray-100 p-1 rounded">
+              {(['ALL', 'IN', 'OUT', 'ADJUSTMENT'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => { setMovementFilter(type); setCurrentPage(1); }}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${movementFilter === type
+                    ? 'bg-white text-primary-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  {type === 'ALL' ? 'All' : type}
+                </button>
+              ))}
+            </div>
+
+            {/* Date Filters */}
+            <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs text-gray-600 mb-1">End Date</label>
+              <span className="text-gray-400 text-xs">to</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
-            </div>
-            <div className="flex space-x-2">
               <button
                 onClick={handleFilter}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 text-xs"
+                className="px-3 py-1.5 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 text-xs"
               >
-                Apply Filter
+                Apply
               </button>
-              <button
-                onClick={handleClearFilter}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 text-xs"
-                disabled={!startDate && !endDate}
-              >
-                Clear Filter
-              </button>
+              {(startDate || endDate) && (
+                <button
+                  onClick={handleClearFilter}
+                  className="px-3 py-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded hover:bg-gray-50 text-xs"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -437,52 +519,66 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                 <tr>
                   <th className="text-left py-2 px-2 text-gray-600 font-medium">#</th>
                   <th className="text-left py-2 px-2 text-gray-600 font-medium">Product Name</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Movement Type</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Source Type</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Qty Before</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Qty Change</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Qty After</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Movement</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Source</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty Before</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty Change</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty After</th>
                   {role === 'admin' && (
-                    <th className="text-left py-2 px-2 text-gray-600 font-medium">Unit Price</th>
+                    <th className="text-right py-2 px-2 text-gray-600 font-medium">Unit Price</th>
                   )}
                   <th className="text-left py-2 px-2 text-gray-600 font-medium">Notes</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Created By</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Created At</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">By</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedHistory.map((record, index) => (
-                  <tr key={record.id} className="hover:bg-gray-25">
-                    <td className="py-2 px-2 text-gray-700">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                    <td className="py-2 px-2 text-gray-700">{record.stockIn?.productName || 'N/A'}</td>
-                    <td className={`py-2 px-2 text-gray-700 ${record.movementType === 'OUT' ? 'text-red-600' : 'text-green-600'}`}>
-                      {record.movementType}
+                {paginatedHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={role === 'admin' ? 11 : 10} className="px-2 py-8 text-center text-xs text-gray-500">
+                      No stock history records found
                     </td>
-                    <td className="py-2 px-2 text-gray-700">{record.sourceType}</td>
-                    <td className="py-2 px-2 text-gray-700">
-                      {(Number(record.qtyBefore) || 0).toFixed(3)} {record.stockIn?.unit || ''}
-                    </td>
-                    <td className="py-2 px-2 text-gray-700">
-                      <span className={record.movementType === 'OUT' ? 'text-red-600' : 'text-green-600'}>
-                        {record.movementType === 'OUT' ? '-' : '+'}{(Number(record.qtyChange) || 0).toFixed(3)} {record.stockIn?.unit || ''}
-                      </span>
-                    </td>
-                    <td className="py-2 px-2 text-gray-700">
-                      {(Number(record.qtyAfter) || 0).toFixed(3)} {record.stockIn?.unit || ''}
-                    </td>
-                    {role === 'admin' && (
-                      <td className="py-2 px-2 text-gray-700">
-                        {record.unitPrice !== undefined ? formatPrice(Number(record.unitPrice)) : 'N/A'}
-                      </td>
-                    )}
-                    <td className="py-2 px-2 text-gray-700">{record.notes || 'N/A'}</td>
-                    <td className="py-2 px-2 text-gray-700">{getCreatedBy(record)}</td>
-                    <td className="py-2 px-2 text-gray-700">{formatDate(record.createdAt)}</td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedHistory.map((record, index) => (
+                    <tr key={record.id} className="hover:bg-gray-25">
+                      <td className="py-2 px-2 text-gray-700">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                      <td className="py-2 px-2 text-gray-900 font-medium">{record.stock?.itemName || 'N/A'}</td>
+                      <td className="py-2 px-2">
+                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getMovementBadge(record.movementType)}`}>
+                          {record.movementType}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-gray-700">{record.sourceType}</td>
+                      <td className="py-2 px-2 text-gray-700 text-right">
+                        {(Number(record.qtyBefore) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
+                      </td>
+                      <td className="py-2 px-2 text-right">
+                        <span className={record.movementType === 'OUT' ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+                          {record.movementType === 'OUT' ? '-' : '+'}{(Number(record.qtyChange) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-gray-700 text-right font-medium">
+                        {(Number(record.qtyAfter) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
+                      </td>
+                      {role === 'admin' && (
+                        <td className="py-2 px-2 text-gray-700 text-right">
+                          {record.unitPrice !== undefined && record.unitPrice !== null ? formatCurrency(Number(record.unitPrice)) : 'N/A'}
+                        </td>
+                      )}
+                      <td className="py-2 px-2 text-gray-700 max-w-[120px] truncate" title={record.notes || ''}>
+                        {record.notes || '—'}
+                      </td>
+                      <td className="py-2 px-2 text-gray-700">{getCreatedBy(record)}</td>
+                      <td className="py-2 px-2 text-gray-700">{formatDate(record.createdAt)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
           {filteredHistory.length > itemsPerPage && (
             <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
               <div className="text-gray-600 text-xs">
@@ -498,19 +594,30 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                   <span>Previous</span>
                 </button>
                 <div className="flex items-center space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-2 py-1 text-xs rounded ${
-                        currentPage === page
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let page: number;
+                    if (totalPages <= 7) {
+                      page = i + 1;
+                    } else if (currentPage <= 4) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      page = totalPages - 6 + i;
+                    } else {
+                      page = currentPage - 3 + i;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-2 py-1 text-xs rounded ${currentPage === page
                           ? 'bg-primary-600 text-white'
                           : 'text-gray-600 hover:bg-gray-50 border border-gray-200'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
                 </div>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
@@ -524,12 +631,6 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
             </div>
           )}
         </div>
-
-        {filteredHistory.length === 0 && (
-          <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500 text-xs">
-            No stock history records found
-          </div>
-        )}
       </div>
     </div>
   );

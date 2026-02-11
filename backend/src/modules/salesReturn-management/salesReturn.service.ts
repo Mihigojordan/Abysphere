@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
+import { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class SalesReturnService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // Create a new sales return
   async create(data: {
@@ -68,11 +69,30 @@ export class SalesReturnService {
 
           if (!stock) throw new Error('Related stock not found');
 
+          const oldQty = Number(stock.receivedQuantity) || 0;
+          const newQty = oldQty + quantity;
+
           // Restore stock quantity
           await this.prisma.stock.update({
             where: { id: stock.id },
             data: {
-              receivedQuantity: (stock.receivedQuantity ?? 0) + quantity,
+              receivedQuantity: newQty,
+            },
+          });
+
+          // Record stock history — IN (sales return)
+          await this.prisma.stockHistory.create({
+            data: {
+              stockId: stock.id,
+              movementType: 'IN',
+              sourceType: 'RECEIPT',
+              qtyBefore: new Prisma.Decimal(oldQty),
+              qtyChange: new Prisma.Decimal(quantity),
+              qtyAfter: new Prisma.Decimal(newQty),
+              unitPrice: stockout.soldPrice ? new Prisma.Decimal(Number(stockout.soldPrice)) : null,
+              notes: `Sales return: ${stock.itemName} +${quantity} (CreditNote: ${creditnoteId})`,
+              createdByAdminId: adminId,
+              createdByEmployeeId: employeeId || null,
             },
           });
         }
@@ -108,7 +128,7 @@ export class SalesReturnService {
           include: {
             stockout: {
               include: {
-                stockin: true, // now includes the Stock model
+                stockin: true,
               },
             },
           },
@@ -136,7 +156,7 @@ export class SalesReturnService {
           include: {
             stockout: {
               include: {
-                stockin: true, // includes Stock model
+                stockin: true,
               },
             },
           },
@@ -161,7 +181,7 @@ export class SalesReturnService {
           include: {
             stockout: {
               include: {
-                stockin: true, // includes Stock model
+                stockin: true,
               },
             },
           },

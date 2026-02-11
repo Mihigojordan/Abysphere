@@ -352,6 +352,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-5 py-3 text-left font-medium text-gray-600">Date</th>
+              <th className="px-5 py-3 text-left font-medium text-gray-600">Transaction ID</th>
               <th className="px-5 py-3 text-left font-medium text-gray-600">Product</th>
               <th className="px-5 py-3 text-left font-medium text-gray-600">Client</th>
               <th className="px-5 py-3 text-right font-medium text-gray-600">Qty</th>
@@ -364,6 +365,9 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
             {currentItems.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-5 py-4 text-gray-600">{formatDate(item.createdAt)}</td>
+                <td className="px-5 py-4">
+                  <span className="font-mono text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{item.transactionId || '—'}</span>
+                </td>
                 <td className="px-5 py-4">
                   <div className="font-medium">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
                   <div className="text-xs text-gray-500">{item.stockin?.sku}</div>
@@ -444,7 +448,10 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
-              <p className="text-sm text-gray-500 truncate">{item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}</p>
+              <p className="text-sm text-gray-500 truncate">
+                <span className="font-mono text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded mr-2">{item.transactionId || '—'}</span>
+                {item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}
+              </p>
             </div>
           </div>
           <div className="text-right">

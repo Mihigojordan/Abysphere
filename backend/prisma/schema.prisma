@@ -256,12 +256,14 @@ model Stock {
   warehouseLocation String    // Warehouse Location – where the item is stored
   receivedDate      DateTime  // Received Date – when it arrived
   reorderLevel      Int       // Reorder Level – stock level that triggers reordering
+  expiryDate        DateTime? // Expiry Date – optional product expiration
 
   // Admin foreign key (matches Admin.id which is String)
   adminId           String
   admin             Admin     @relation(fields: [adminId], references: [id])
 
   stockout StockOut[]
+  stockhistory StockHistory[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -565,6 +567,8 @@ model StockIn {
   location         String?
   description      String?
 
+  expiryDate       DateTime?
+
   // Relation: belongs to a category
   stockcategoryId  String
   stockcategory    StockCategory  @relation(fields: [stockcategoryId], references: [id])
@@ -789,13 +793,16 @@ enum SourceType {
 model StockHistory {
   id             String        @id @default(uuid())
 
-  stockInId      String
-  stockIn        StockIn       @relation(fields: [stockInId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stockInId      String?
+  stockIn        StockIn?      @relation(fields: [stockInId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  stockId        Int?
+  stock          Stock?        @relation(fields: [stockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   movementType   MovementType
   sourceType     SourceType
   sourceId       String?       
-  request         Request?    @relation(fields: [sourceId], references: [id])
+  request        Request?      @relation(fields: [sourceId], references: [id])
 
   qtyBefore      Decimal       @db.Decimal(12, 3) 
   qtyChange      Decimal       @db.Decimal(12, 3)
