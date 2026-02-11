@@ -17,7 +17,7 @@ export class StockController {
   constructor(
     private readonly stockService: StockService,
     private readonly stockGateway: StockGateway, // inject gateway
-  ) {}
+  ) { }
 
   // --------------------------
   // CATEGORY ROUTES
@@ -66,14 +66,15 @@ export class StockController {
       productName: string;
       sku?: string;
       quantity?: number;
-      unit: Unit;
-      unitPrice: number;
+      unit?: Unit;
+      unitPrice?: number;
       reorderLevel?: number;
       supplier?: string;
       location?: string;
       description?: string;
-      stockcategoryId: string;
-      storeId: string;
+      stockcategoryId?: string;
+      storeId?: string;
+      expiryDate?: string | Date;
     },
   ) {
     const stock = await this.stockService.createStockIn(body);
@@ -112,7 +113,7 @@ export class StockController {
   @Get('history/movement')
   async getByMovement(
     @Query('type') type: 'IN' | 'OUT' | 'ADJUSTMENT',
-   ) {
+  ) {
     return this.stockService.getStockHistoryByMovement(type);
   }
 
@@ -132,6 +133,7 @@ export class StockController {
       description?: string;
       stockcategoryId?: string;
       storeId?: string;
+      expiryDate?: string | Date;
     },
   ) {
     const stock = await this.stockService.updateStockIn(id, body);

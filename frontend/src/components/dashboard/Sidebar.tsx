@@ -133,7 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         feature: "CLIENTS_MANAGEMENT",
       },
 
-     
+
       {
         id: "category",
         label: "Category Management",
@@ -196,6 +196,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             label: "Inventory Report",
             icon: FolderTree,
             path: `${base}/reports/inventory`,
+          },
+          {
+            id: "stock-history",
+            label: "Stock History",
+            icon: ArrowUp,
+            path: `${base}/stock-history`,
           },
         ],
       },
@@ -288,10 +294,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         to={item.path}
         end
         className={({ isActive }) =>
-          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${
-            isActive
-              ? "bg-primary-500/10 text-primary-700 border-primary-500"
-              : "text-gray-700 hover:bg-gray-50 border-transparent"
+          `w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-200 group border-l-4 ${isActive
+            ? "bg-primary-500/10 text-primary-700 border-primary-500"
+            : "text-gray-700 hover:bg-gray-50 border-transparent"
           }`
         }
         onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -299,9 +304,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         {({ isActive }) => (
           <>
             <div
-              className={`p-1 rounded-md ${
-                isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
-              }`}
+              className={`p-1 rounded-md ${isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                }`}
             >
               <Icon className="w-4 h-4" />
             </div>
@@ -321,33 +325,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       <div key={dropdown.id} className="w-full">
         <button
           onClick={() => toggleDropdown(dropdown.id)}
-          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${
-            active
+          className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${active
               ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
               : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
-          }`}
+            }`}
         >
           <div className="flex items-center space-x-2">
             <div
-              className={`p-1 rounded-md ${
-                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
-              }`}
+              className={`p-1 rounded-md ${active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                }`}
             >
               <Icon className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">{dropdown.label}</span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 transition-transform duration-300 ${
-              isOpen ? "rotate-180" : ""
-            } ${active ? "text-primary-600" : "text-gray-400"}`}
+            className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+              } ${active ? "text-primary-600" : "text-gray-400"}`}
           />
         </button>
 
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="ml-4 space-y-0.5 border-l-2 border-primary-100 pl-3 py-0.5">
             {dropdown.items.map((sub) => {
@@ -358,10 +358,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
                   to={sub.path}
                   end
                   className={({ isActive }) =>
-                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${
-                      isActive
-                        ? "bg-primary-500 text-white shadow-sm"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${isActive
+                      ? "bg-primary-500 text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`
                   }
                   onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -399,9 +398,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } w-72`}
+        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-transform duration-300 z-50 lg:relative lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } w-72`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-primary-200">
@@ -434,7 +432,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         </div>
 
         {/* Footer – profile */}
-<PWAInstallButton />
+        <PWAInstallButton />
       </div>
     </>
   );

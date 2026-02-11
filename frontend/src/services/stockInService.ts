@@ -30,6 +30,7 @@ export interface StockIn {
   storeId: string;
   createdAt?: Date;
   updatedAt?: Date;
+  expiryDate?: Date | string;
   stockcategory?: StockCategory;
 }
 export type MovementType = 'IN' | 'OUT' | 'ADJUSTMENT';
@@ -40,8 +41,8 @@ export interface StockHistory {
   movementType: MovementType;
   sourceType: SourceType;
   sourceId?: string; // request id 
-  request:any; // request object here
-   qtyBefore: number;
+  request: any; // request object here
+  qtyBefore: number;
   qtyChange: number;
   qtyAfter: number;
   unitPrice?: number;
@@ -58,7 +59,7 @@ export type CreateCategoryInput = Omit<StockCategory, 'id' | 'createdAt' | 'upda
 export type UpdateCategoryInput = Partial<CreateCategoryInput>;
 
 export type CreateStockInInput = Omit<StockIn, 'id' | 'createdAt' | 'updatedAt' | 'stockcategory' | 'storeId'> & {
-  storeId: string;
+  storeId?: string; // made optional
 };
 export type UpdateStockInInput = Partial<CreateStockInInput>;
 
@@ -209,7 +210,7 @@ class StockService {
     return { isValid: errors.length === 0, errors };
   }
 
- // Inside StockService class
+  // Inside StockService class
   // -----------------------------
   // STOCK HISTORY
   // -----------------------------
@@ -253,7 +254,7 @@ class StockService {
       console.error('Error fetching stock history by movement type:', error);
       throw new Error(error.response?.data?.message || error.message || 'Failed to fetch stock history by movement type');
     }
-  } 
+  }
 }
 
 // Singleton

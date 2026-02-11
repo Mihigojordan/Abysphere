@@ -8,10 +8,11 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
 import { generateAndSaveBarcodeImage } from 'src/common/utils/generate-barcode.util';
+import { Prisma } from 'generated/prisma';
 
 @Injectable()
 export class StockoutService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(data: {
     sales: {
@@ -76,6 +77,9 @@ export class StockoutService {
           );
         }
 
+        const oldQty = Number(stock.receivedQuantity);
+        const newQty = oldQty - quantity;
+
         // Decrement Stock quantity
         const updatedStock = await tx.stock.updateMany({
           where: { id: stockinId, receivedQuantity: { gte: quantity } },
@@ -103,6 +107,22 @@ export class StockoutService {
             employeeId,
             transactionId,
             paymentMethod,
+          },
+        });
+
+        // Record stock history — OUT (sale)
+        await tx.stockHistory.create({
+          data: {
+            stockId: stockinId,
+            movementType: 'OUT',
+            sourceType: 'ISSUE',
+            qtyBefore: new Prisma.Decimal(oldQty),
+            qtyChange: new Prisma.Decimal(quantity),
+            qtyAfter: new Prisma.Decimal(newQty),
+            unitPrice: new Prisma.Decimal(Number(soldPrice)),
+            notes: `Sold: ${stock.itemName} x${quantity} to ${clientName || 'N/A'} (Tx: ${transactionId})`,
+            createdByAdminId: adminId,
+            createdByEmployeeId: employeeId || null,
           },
         });
 
@@ -202,10 +222,34 @@ export class StockoutService {
 
     // Restore Stock quantity
     if (stockout.stockinId && stockout.quantity > 0) {
+      const stock = await this.prisma.stock.findUnique({
+        where: { id: stockout.stockinId },
+      });
+
+      const oldQty = stock ? Number(stock.receivedQuantity) : 0;
+      const restoredQty = oldQty + stockout.quantity;
+
       await this.prisma.stock.update({
         where: { id: stockout.stockinId },
         data: { receivedQuantity: { increment: stockout.quantity } },
       });
+
+      // Record stock history — IN (stockout reversal)
+      if (stock) {
+        await this.prisma.stockHistory.create({
+          data: {
+            stockId: stockout.stockinId,
+            movementType: 'IN',
+            sourceType: 'ADJUSTMENT',
+            qtyBefore: new Prisma.Decimal(oldQty),
+            qtyChange: new Prisma.Decimal(stockout.quantity),
+            qtyAfter: new Prisma.Decimal(restoredQty),
+            unitPrice: stockout.soldPrice ? new Prisma.Decimal(Number(stockout.soldPrice)) : null,
+            notes: `StockOut reversed: restored ${stockout.quantity} units of ${stock.itemName}`,
+            createdByAdminId: stockout.adminId || null,
+          },
+        });
+      }
     }
 
     return this.prisma.stockOut.delete({ where: { id } });

@@ -15,7 +15,7 @@ import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 
 @Controller('stock')
 export class StockController {
-  constructor(private readonly stockService: StockService) {}
+  constructor(private readonly stockService: StockService) { }
 
   // ✅ Create Stock
   @Post('create')
@@ -30,7 +30,7 @@ export class StockController {
   @UseGuards(AdminJwtAuthGuard)
   async getAllStocks(@Req() req: RequestWithAdmin) {
     const adminId = req.admin!.id;
-    return await this.stockService.findAll(adminId); // Optional: pass adminId if needed
+    return await this.stockService.findAll(adminId);
   }
 
   // ✅ Get Stock by ID
@@ -43,8 +43,9 @@ export class StockController {
   // ✅ Update Stock
   @Put('update/:id')
   @UseGuards(AdminJwtAuthGuard)
-  async updateStock(@Param('id') id: string, @Body() data) {
-    return await this.stockService.update(Number(id), data);
+  async updateStock(@Req() req: RequestWithAdmin, @Param('id') id: string, @Body() data) {
+    const adminId = req.admin!.id;
+    return await this.stockService.update(Number(id), data, adminId);
   }
 
   // ✅ Delete Stock
@@ -52,5 +53,19 @@ export class StockController {
   @UseGuards(AdminJwtAuthGuard)
   async deleteStock(@Param('id') id: string) {
     return await this.stockService.remove(Number(id));
+  }
+
+  // ── Stock History Endpoints ──────────────────────────────────────
+
+  @Get('history/all')
+  @UseGuards(AdminJwtAuthGuard)
+  async getStockHistory() {
+    return await this.stockService.getStockHistory();
+  }
+
+  @Get('history/:stockId')
+  @UseGuards(AdminJwtAuthGuard)
+  async getStockHistoryByStockId(@Param('stockId') stockId: string) {
+    return await this.stockService.getStockHistoryByStockId(Number(stockId));
   }
 }

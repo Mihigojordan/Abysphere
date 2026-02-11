@@ -21,6 +21,7 @@ interface StockInFormData {
   warehouseLocation: string;
   receivedDate: string;
   reorderLevel: string;
+  expiryDate: string;
   description?: string | null;
   adminId: string;
 }
@@ -82,9 +83,8 @@ const SearchableCategorySelect: React.FC<{
     <div className="relative" ref={dropdownRef}>
       <div
         onClick={toggle}
-        className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${
-          error ? 'border-red-300' : 'border-gray-200'
-        } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
+        className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-gray-200'
+          } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
       >
         <div className="flex items-center justify-between">
           <span className={selected ? 'text-gray-900' : 'text-gray-500'}>
@@ -121,9 +121,8 @@ const SearchableCategorySelect: React.FC<{
                     setIsOpen(false);
                     setSearchTerm('');
                   }}
-                  className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${
-                    cat.id === selectedId ? 'bg-primary-50 text-primary-900' : ''
-                  }`}
+                  className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${cat.id === selectedId ? 'bg-primary-50 text-primary-900' : ''
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{cat.name}</span>
@@ -187,22 +186,20 @@ const SearchableSupplierSelect: React.FC<{
         <button
           type="button"
           onClick={() => onToggleManual(false)}
-          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-            !isManual
-              ? 'bg-primary-100 text-primary-700 border border-primary-300'
-              : 'bg-white text-gray-600 border border-gray-300'
-          }`}
+          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${!isManual
+            ? 'bg-primary-100 text-primary-700 border border-primary-300'
+            : 'bg-white text-gray-600 border border-gray-300'
+            }`}
         >
           Select Existing
         </button>
         <button
           type="button"
           onClick={() => onToggleManual(true)}
-          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${
-            isManual
-              ? 'bg-primary-100 text-primary-700 border border-primary-300'
-              : 'bg-white text-gray-600 border border-gray-300'
-          }`}
+          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${isManual
+            ? 'bg-primary-100 text-primary-700 border border-primary-300'
+            : 'bg-white text-gray-600 border border-gray-300'
+            }`}
         >
           <Plus className="h-3 w-3" />
           New Supplier
@@ -215,17 +212,15 @@ const SearchableSupplierSelect: React.FC<{
           value={selectedName}
           onChange={(e) => onChange(null, e.target.value)}
           placeholder="Enter supplier name"
-          className={`w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-            error ? 'border-red-300' : 'border-gray-200'
-          }`}
+          className={`w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${error ? 'border-red-300' : 'border-gray-200'
+            }`}
         />
       ) : (
         <div className="relative" ref={dropdownRef}>
           <div
             onClick={toggle}
-            className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${
-              error ? 'border-red-300' : 'border-gray-200'
-            } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
+            className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-gray-200'
+              } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
           >
             <div className="flex items-center justify-between">
               <span className={selected ? 'text-gray-900' : 'text-gray-500'}>
@@ -262,9 +257,8 @@ const SearchableSupplierSelect: React.FC<{
                         setIsOpen(false);
                         setSearchTerm('');
                       }}
-                      className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${
-                        sup.id?.toString() === selectedId ? 'bg-primary-50 text-primary-900' : ''
-                      }`}
+                      className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${sup.id?.toString() === selectedId ? 'bg-primary-50 text-primary-900' : ''
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span>{sup.name}</span>
@@ -305,11 +299,12 @@ const StockInForm: React.FC<{
     warehouseLocation: '',
     receivedDate: new Date().toISOString().split('T')[0],
     reorderLevel: '',
+    expiryDate: '',
     description: '',
     adminId: '', // Will be set from auth
   });
 
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -335,6 +330,7 @@ const StockInForm: React.FC<{
             warehouseLocation: stock.warehouseLocation,
             receivedDate: new Date(stock.receivedDate).toISOString().split('T')[0],
             reorderLevel: stock.reorderLevel.toString(),
+            expiryDate: stock.expiryDate ? new Date(stock.expiryDate).toISOString().split('T')[0] : '',
             description: stock.description || '',
             adminId: stock.adminId,
           });
@@ -365,19 +361,8 @@ const StockInForm: React.FC<{
   const validate = (): boolean => {
     const err: Errors = {};
 
-    if (!formData.sku) err.sku = 'SKU is required';
     if (!formData.itemName.trim()) err.itemName = 'Item name is required';
     if (!formData.categoryId) err.categoryId = 'Category is required';
-    if (!formData.supplierName.trim()) err.supplierName = 'Supplier is required';
-    if (!formData.unitOfMeasure.trim()) err.unitOfMeasure = 'Unit is required';
-    if (!formData.receivedQuantity || parseFloat(formData.receivedQuantity) <= 0)
-      err.receivedQuantity = 'Valid quantity required';
-    if (!formData.unitCost || parseFloat(formData.unitCost) <= 0)
-      err.unitCost = 'Valid cost required';
-    if (!formData.warehouseLocation.trim()) err.warehouseLocation = 'Location required';
-    if (!formData.receivedDate) err.receivedDate = 'Date required';
-    if (!formData.reorderLevel || parseInt(formData.reorderLevel) < 0)
-      err.reorderLevel = 'Valid reorder level required';
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -398,8 +383,9 @@ const StockInForm: React.FC<{
         unitCost: parseFloat(formData.unitCost),
         totalValue: parseFloat(calculateTotal()),
         warehouseLocation: formData.warehouseLocation,
-        receivedDate: new Date(formData.receivedDate),
-        reorderLevel: parseInt(formData.reorderLevel),
+        receivedDate: formData.receivedDate ? new Date(formData.receivedDate) : undefined as any,
+        reorderLevel: parseInt(formData.reorderLevel) || 0,
+        expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : undefined,
         description: formData.description || undefined,
         adminId: formData.adminId || 'current-admin-id', // Replace with auth
       };
@@ -527,11 +513,12 @@ const StockInForm: React.FC<{
                   className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Select unit</option>
-                  <option value="pcs">Pieces (pcs)</option>
-                  <option value="box">Box</option>
-                  <option value="kg">Kilogram (kg)</option>
-                  <option value="liter">Liter</option>
-                  <option value="meter">Meter</option>
+                  <option value="PCS">Pieces (PCS)</option>
+                  <option value="BOX">Box</option>
+                  <option value="KG">Kilogram (KG)</option>
+                  <option value="LITERS">Liter</option>
+                  <option value="METER">Meter</option>
+                  <option value="OTHER">Other</option>
                 </select>
                 {errors.unitOfMeasure && <ErrorMsg msg={errors.unitOfMeasure} />}
               </div>
@@ -550,7 +537,7 @@ const StockInForm: React.FC<{
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Unit Cost ($) <span className="text-red-500">*</span>
+                  Unit Cost (Rwf)
                 </label>
                 <input
                   type="number"
@@ -568,7 +555,7 @@ const StockInForm: React.FC<{
             <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-primary-900">Total Value</span>
-                <span className="text-lg font-bold text-primary-700">${calculateTotal()}</span>
+                <span className="text-lg font-bold text-primary-700">Rwf {Number(calculateTotal()).toLocaleString()}</span>
               </div>
             </div>
 
@@ -576,7 +563,7 @@ const StockInForm: React.FC<{
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Warehouse Location <span className="text-red-500">*</span>
+                  Warehouse Location
                 </label>
                 <input
                   type="text"
@@ -589,7 +576,7 @@ const StockInForm: React.FC<{
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Received Date <span className="text-red-500">*</span>
+                  Received Date
                 </label>
                 <input
                   type="date"
@@ -601,7 +588,7 @@ const StockInForm: React.FC<{
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Reorder Level <span className="text-red-500">*</span>
+                  Reorder Level
                 </label>
                 <input
                   type="number"
@@ -611,6 +598,17 @@ const StockInForm: React.FC<{
                   placeholder="e.g., 20"
                 />
                 {errors.reorderLevel && <ErrorMsg msg={errors.reorderLevel} />}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Expiry Date
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiryDate}
+                  onChange={(e) => handleChange('expiryDate', e.target.value)}
+                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
               </div>
             </div>
 
