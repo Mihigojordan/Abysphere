@@ -8,7 +8,6 @@ import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdm
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/fine_fish_logo.png";
-import PricingPage from "../pages/landing/PricingPage";
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
@@ -97,27 +96,23 @@ const TermsOfService = lazy(() => import("../pages/landing/TermsOfService"));
 const ServiceAgreement = lazy(() => import("../pages/landing/ServiceAgreement"));
 const DataProtection = lazy(() => import("../pages/landing/DataProtection"));
 const EnvironmentalCompliance = lazy(() => import("../pages/landing/EnvironmentalCompliance"));
-const DemoRequest = lazy(()=>import("../pages/landing/DemoRequest"))
-const ProductPage = lazy(() => import('../pages/landing/FeaturesPage'));
-const ServicesPage = lazy(() => import('../pages/landing/ServicePage'));
-const ContactPage = lazy(() => import('../pages/landing/ContactUs'));
-const AboutPage = lazy(() => import('../pages/landing/AboutPage'));
+const DemoRequest = lazy(() => import("../pages/landing/DemoRequest"))
 const DepartmentDashboard = lazy(() => import('../pages/dashboard/DepartmentManagement'));
-const SiteManagement = lazy(() => import('../pages/dashboard/SiteManagement')); 
-const SiteAssignmentManagement = lazy(()=> import('../pages/dashboard/SiteAssignmentManagement'));
+const SiteManagement = lazy(() => import('../pages/dashboard/SiteManagement'));
+const SiteAssignmentManagement = lazy(() => import('../pages/dashboard/SiteAssignmentManagement'));
 const AssetRequestManagement = lazy(() => import('../pages/dashboard/AssetRequestManagement'));
 const RequestAssetsManagement = lazy(() => import('../pages/dashboard/admin/RequestedAssetsManagement'));
 const ProcurementManagement = lazy(() => import('../pages/dashboard/ProcurementManagement'));
 const MedicineManagement = lazy(() => import('../pages/dashboard/MedecineManagment'));
-const LaboratoryBoxManagement = lazy(()=> import('../pages/dashboard/LaboratoryBoxManagement'))
-const EggFishMedicationManagement = lazy(()=> import('../pages/dashboard/EggFishMedicationManagement'))
-const BoxWaterChangingManagement = lazy(()=> import('../pages/dashboard/BoxWaterChangingManagement'))
-const PondWaterChangingManagement = lazy(()=> import('../pages/dashboard/PondWaterChangingManagment'))
-const PondMedicationManagement = lazy(()=> import('../pages/dashboard/PondMedicationManagement'))
+const LaboratoryBoxManagement = lazy(() => import('../pages/dashboard/LaboratoryBoxManagement'))
+const EggFishMedicationManagement = lazy(() => import('../pages/dashboard/EggFishMedicationManagement'))
+const BoxWaterChangingManagement = lazy(() => import('../pages/dashboard/BoxWaterChangingManagement'))
+const PondWaterChangingManagement = lazy(() => import('../pages/dashboard/PondWaterChangingManagment'))
+const PondMedicationManagement = lazy(() => import('../pages/dashboard/PondMedicationManagement'))
 /**
  * Loading spinner component for Suspense fallback
  */
-const LoadingSpinner:React.FC = () => (
+const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center h-screen bg-white">
     <img src={logo} alt="Loading..." className="h-40 animate-zoomInOut" />
   </div>
@@ -143,158 +138,13 @@ const routes = createBrowserRouter([
     path: '/',
     element: <Outlet />,
     children: [
+     {
+      path:'',
+      element: <Navigate to={'/auth/admin/login'} />
+
+     },
       {
-        path: '',
-        element: <MainLayout />,
-        children: [
-          {
-            index: true,
-            element: (
-              <SuspenseWrapper>
-                <Home />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'about',
-            element: (
-              <SuspenseWrapper>
-                <AboutPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'features',
-            element: (
-              <SuspenseWrapper>
-                <ProductPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'features',
-            element: (
-              <SuspenseWrapper>
-                <ServicesPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'jobs',
-            element: (
-              <SuspenseWrapper>
-                <JobBoard />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'pricing',
-            element: (
-              <SuspenseWrapper>
-                <PricingPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'jobs',
-            element: (
-              <SuspenseWrapper>
-                <JobBoard />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'jobs/:id',
-            element: (
-              <SuspenseWrapper>
-                <JobPostView />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: '/jobs/apply-job/:id',
-            element: (
-              <SuspenseWrapper>
-                <JobApplicationForm />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'contact',
-            element: (
-              <SuspenseWrapper>
-                <ContactPage />
-              </SuspenseWrapper>
-            ),
-          },
-           {
-            path: 'demo-request',
-            element: (
-              <SuspenseWrapper>
-                <DemoRequest />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'blogs',
-            element: (
-              <SuspenseWrapper>
-                <BlogsPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'blogs/:id',
-            element: (
-              <SuspenseWrapper>
-                <BlogViewPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'legal/privacy-policy',
-            element: (
-              <SuspenseWrapper>
-                <PrivacyPolicy />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'legal/terms',
-            element: (
-              <SuspenseWrapper>
-                <TermsOfService />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'legal/environmental',
-            element: (
-              <SuspenseWrapper>
-                <EnvironmentalCompliance />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'legal/data-protection',
-            element: (
-              <SuspenseWrapper>
-                <DataProtection />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'legal/service-agreement',
-            element: (
-              <SuspenseWrapper>
-                <ServiceAgreement />
-              </SuspenseWrapper>
-            ),
-          },
-        ],
-      },
-      {
-           path: 'super-admin',
+        path: 'super-admin',
         element: (
           <SuspenseWrapper>
             <ProtectPrivateSuperAdminRoute>
@@ -302,12 +152,12 @@ const routes = createBrowserRouter([
             </ProtectPrivateSuperAdminRoute>
           </SuspenseWrapper>
         ),
-        children:[
-            {
+        children: [
+          {
             index: true,
             element: <Navigate to="/super-admin/dashboard" replace />,
           },
-           {
+          {
             path: 'dashboard',
             element: <SuperDashboardLayout role='super-admin' />,
             children: [
@@ -315,7 +165,7 @@ const routes = createBrowserRouter([
                 path: '',
                 element: (
                   <SuspenseWrapper>
-                    <SuperAdminDashboard role='super-admin'/>
+                    <SuperAdminDashboard role='super-admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -323,7 +173,7 @@ const routes = createBrowserRouter([
                 path: 'company-management',
                 element: (
                   <SuspenseWrapper>
-                    <CompanyManagement role='super-admin'/>
+                    <CompanyManagement role='super-admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -331,7 +181,7 @@ const routes = createBrowserRouter([
                 path: 'company-management/create',
                 element: (
                   <SuspenseWrapper>
-                    <CompanyForm role='super-admin'/>
+                    <CompanyForm role='super-admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -339,7 +189,7 @@ const routes = createBrowserRouter([
                 path: 'company-management/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <CompanyForm role='super-admin'/>
+                    <CompanyForm role='super-admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -347,7 +197,7 @@ const routes = createBrowserRouter([
                 path: 'company-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <CompanyViewPage role='super-admin'/>
+                    <CompanyViewPage role='super-admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -359,15 +209,15 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
-                   {
+              {
                 path: 'profile',
                 element: (
                   <SuspenseWrapper>
-                    <AdminProfile  />
+                    <AdminProfile />
                   </SuspenseWrapper>
                 ),
               },
-                 {
+              {
                 path: 'system-feature',
                 element: (
                   <SuspenseWrapper>
@@ -376,15 +226,15 @@ const routes = createBrowserRouter([
                 ),
               },
 
-                {
+              {
                 path: 'demo-management',
                 element: (
                   <SuspenseWrapper>
-                    <Demomanagement role={""}  />
+                    <Demomanagement role={""} />
                   </SuspenseWrapper>
                 ),
               },
-                   {
+              {
                 path: 'membership-plan',
                 element: (
                   <SuspenseWrapper>
@@ -393,8 +243,8 @@ const routes = createBrowserRouter([
                 ),
               },
             ]
-            
-            }
+
+          }
         ]
 
       },
@@ -421,7 +271,7 @@ const routes = createBrowserRouter([
                 path: '',
                 element: (
                   <SuspenseWrapper>
-                    <DashboardHome role='admin'/>
+                    <DashboardHome role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -429,7 +279,7 @@ const routes = createBrowserRouter([
                 path: 'profile',
                 element: (
                   <SuspenseWrapper>
-                    <AdminProfile  />
+                    <AdminProfile />
                   </SuspenseWrapper>
                 ),
               },
@@ -477,7 +327,7 @@ const routes = createBrowserRouter([
                 path: 'contract-management',
                 element: (
                   <SuspenseWrapper>
-                    <ContractDashboard role='admin'/>
+                    <ContractDashboard role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -537,19 +387,19 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
-                 {
+              {
                 path: 'FeedStock-management',
                 element: (
                   <SuspenseWrapper>
-                    <FeedstockDashboard  role="admin"  />
+                    <FeedstockDashboard role="admin" />
                   </SuspenseWrapper>
                 ),
               },
-                 {
+              {
                 path: 'parent-fish-management',
                 element: (
                   <SuspenseWrapper>
-                   <ParentFishPoolManagement role="admin" />
+                    <ParentFishPoolManagement role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -568,7 +418,7 @@ const routes = createBrowserRouter([
                     <ProcurementManagement role='admin' />
                   </SuspenseWrapper>
                 ),
-              },              
+              },
               {
                 path: 'asset-management/create',
                 element: (
@@ -578,7 +428,7 @@ const routes = createBrowserRouter([
                 ),
               },
 
-                  {
+              {
                 path: 'stockin-management/create',
                 element: (
                   <SuspenseWrapper>
@@ -590,17 +440,17 @@ const routes = createBrowserRouter([
                 path: 'stockin-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockInManagement  role="admin" />
+                    <StockInManagement role="admin" />
                   </SuspenseWrapper>
                 ),
               },
 
-          
+
               {
                 path: 'stockin-management/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm  role='admin' />
+                    <StockInForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -608,7 +458,7 @@ const routes = createBrowserRouter([
                 path: 'stockin-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInViewPage  role='admin' />
+                    <StockInViewPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -656,23 +506,23 @@ const routes = createBrowserRouter([
                 path: 'asset-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <AssetViewPage  role='admin' />
+                    <AssetViewPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
               {
-                path:'site-management',
-                element:(
+                path: 'site-management',
+                element: (
                   <SuspenseWrapper>
-                    <SiteManagement role='admin'/>
+                    <SiteManagement role='admin' />
                   </SuspenseWrapper>
                 )
               },
               {
-                path:'assign-management',
-                element:(
+                path: 'assign-management',
+                element: (
                   <SuspenseWrapper>
-                    <SiteAssignmentManagement role='admin'/>
+                    <SiteAssignmentManagement role='admin' />
                   </SuspenseWrapper>
                 )
               },
@@ -704,19 +554,19 @@ const routes = createBrowserRouter([
                 path: 'store-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StoreViewPage  role='admin' />
+                    <StoreViewPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'cage-management',
                 element: (
                   <SuspenseWrapper>
-                    <CageManagement  role='admin' />
+                    <CageManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'cage-management/create',
                 element: (
                   <SuspenseWrapper>
@@ -736,7 +586,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/view/:id',
                 element: (
                   <SuspenseWrapper>
-                    <CageViewPage  role='admin' />
+                    <CageViewPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -744,7 +594,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/m/create',
                 element: (
                   <SuspenseWrapper>
-                    <MedicationForm  role='admin' />
+                    <MedicationForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -752,7 +602,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/m/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <MedicationForm  role='admin' />
+                    <MedicationForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -760,7 +610,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/f/create',
                 element: (
                   <SuspenseWrapper>
-                    <DailyFeedRecordForm  role='admin' />
+                    <DailyFeedRecordForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -768,7 +618,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/f/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <DailyFeedRecordForm  role='admin' />
+                    <DailyFeedRecordForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -776,7 +626,7 @@ const routes = createBrowserRouter([
                 path: 'stock-category-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockCategoryManagement  role='admin' />
+                    <StockCategoryManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -784,7 +634,7 @@ const routes = createBrowserRouter([
                 path: 'category-management',
                 element: (
                   <SuspenseWrapper>
-                    <CategoryDashboard  role="admin" />
+                    <CategoryDashboard role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -792,7 +642,7 @@ const routes = createBrowserRouter([
                 path: 'supplier-management',
                 element: (
                   <SuspenseWrapper>
-                    <SupplierDashboard  role="admin" />
+                    <SupplierDashboard role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -800,7 +650,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockManagement  role='admin' />
+                    <StockManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -808,7 +658,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/create',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm  role='admin' />
+                    <StockInForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -816,7 +666,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm  role='admin' />
+                    <StockInForm role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -824,7 +674,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInViewPage  role='admin' />
+                    <StockInViewPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -832,31 +682,31 @@ const routes = createBrowserRouter([
                 path: 'stock-request',
                 element: (
                   <SuspenseWrapper>
-                    <StockRequestManagement  role='admin' />
+                    <StockRequestManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'stock-request/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockRequestManagementDetails  role='admin' />
+                    <StockRequestManagementDetails role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'stock-history',
                 element: (
                   <SuspenseWrapper>
-                    <StockHistory  role='admin' />
+                    <StockHistory role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'ParentFish-Feeding',
                 element: (
                   <SuspenseWrapper>
-                    <ParentFishFeedingManagement  role='admin' />
+                    <ParentFishFeedingManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -864,15 +714,15 @@ const routes = createBrowserRouter([
                 path: 'stock-history/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockHistory  role='employee' />
+                    <StockHistory role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'Laboratory-Box-management',
                 element: (
                   <SuspenseWrapper>
-                    <LaboratoryBoxManagement  role='admin' />
+                    <LaboratoryBoxManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -880,23 +730,23 @@ const routes = createBrowserRouter([
                 path: 'parent-egg-migration',
                 element: (
                   <SuspenseWrapper>
-                    <ParentEggMigrationManagement  role='admin' />
+                    <ParentEggMigrationManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'egg-feed-management',
                 element: (
                   <SuspenseWrapper>
-                    <EggFishFeedingManagement  role='employee' />
+                    <EggFishFeedingManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-                 {
+              {
                 path: 'grown-egg-pond',
                 element: (
                   <SuspenseWrapper>
-                    <GrownEggPondManagement  role='admin' />
+                    <GrownEggPondManagement role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -904,7 +754,7 @@ const routes = createBrowserRouter([
           },
         ],
       },
-         {
+      {
         path: 'employee',
         element: (
           <SuspenseWrapper>
@@ -934,11 +784,11 @@ const routes = createBrowserRouter([
                 path: 'profile',
                 element: (
                   <SuspenseWrapper>
-                    <EmployeeProfilePage  />
+                    <EmployeeProfilePage />
                   </SuspenseWrapper>
                 ),
               },
-          
+
               {
                 path: 'client-management',
                 element: (
@@ -951,15 +801,15 @@ const routes = createBrowserRouter([
                 path: 'asset-management',
                 element: (
                   <SuspenseWrapper>
-                    <AssetManagement role='employee'/>
+                    <AssetManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-                {
+              {
                 path: 'ParentFish-Feeding',
                 element: (
                   <SuspenseWrapper>
-                    <ParentFishFeedingManagement  role='employee' />
+                    <ParentFishFeedingManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -983,7 +833,7 @@ const routes = createBrowserRouter([
                 path: 'asset-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <AssetViewPage  role='employee' />
+                    <AssetViewPage role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -991,7 +841,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management',
                 element: (
                   <SuspenseWrapper>
-                    <CageManagement  role='employee' />
+                    <CageManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1015,7 +865,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/view/:id',
                 element: (
                   <SuspenseWrapper>
-                    <CageViewPage  role='employee' />
+                    <CageViewPage role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1023,7 +873,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/m/create',
                 element: (
                   <SuspenseWrapper>
-                    <MedicationForm  role='employee' />
+                    <MedicationForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1031,7 +881,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/m/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <MedicationForm  role='employee' />
+                    <MedicationForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1039,7 +889,7 @@ const routes = createBrowserRouter([
                 path: 'cage-management/f/create',
                 element: (
                   <SuspenseWrapper>
-                    <DailyFeedRecordForm  role='employee' />
+                    <DailyFeedRecordForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1047,33 +897,33 @@ const routes = createBrowserRouter([
                 path: 'cage-management/f/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <DailyFeedRecordForm  role='employee' />
+                    <DailyFeedRecordForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-      
+
               {
                 path: 'asset-request-management',
                 element: (
                   <SuspenseWrapper>
-                    <AssetRequestManagement  role='employee' />
+                    <AssetRequestManagement role='employee' />
                   </SuspenseWrapper>
                 )
               },
-               {
+              {
                 path: 'stock-category-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockCategoryManagement  role='employee' />
+                    <StockCategoryManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-              
+
               {
                 path: 'stock-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockManagement  role='employee' />
+                    <StockManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1081,7 +931,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/create',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm  role='employee' />
+                    <StockInForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1089,7 +939,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm  role='employee' />
+                    <StockInForm role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1097,7 +947,7 @@ const routes = createBrowserRouter([
                 path: 'stock-management/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInViewPage  role='employee' />
+                    <StockInViewPage role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1105,7 +955,7 @@ const routes = createBrowserRouter([
                 path: 'stock-request',
                 element: (
                   <SuspenseWrapper>
-                    <StockRequestManagement  role='employee' />
+                    <StockRequestManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1113,7 +963,7 @@ const routes = createBrowserRouter([
                 path: 'stock-request/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockRequestManagementDetails  role='employee' />
+                    <StockRequestManagementDetails role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1121,7 +971,7 @@ const routes = createBrowserRouter([
                 path: 'stock-history',
                 element: (
                   <SuspenseWrapper>
-                    <StockHistory  role='employee' />
+                    <StockHistory role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1129,23 +979,23 @@ const routes = createBrowserRouter([
                 path: 'stock-history/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockHistory  role='employee' />
+                    <StockHistory role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'parent-fish-management',
                 element: (
                   <SuspenseWrapper>
-                   <ParentFishPoolManagement role="employee" />
+                    <ParentFishPoolManagement role="employee" />
                   </SuspenseWrapper>
                 ),
               },
-               {
+              {
                 path: 'parent-water-changing',
                 element: (
                   <SuspenseWrapper>
-                   <ParentWaterChangingManagement role="employee" />
+                    <ParentWaterChangingManagement role="employee" />
                   </SuspenseWrapper>
                 ),
               },
@@ -1153,7 +1003,7 @@ const routes = createBrowserRouter([
                 path: 'medicine-management',
                 element: (
                   <SuspenseWrapper>
-                    <MedicineManagement  role='employee' />
+                    <MedicineManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1161,7 +1011,7 @@ const routes = createBrowserRouter([
                 path: 'Parent-Fish-medication-management',
                 element: (
                   <SuspenseWrapper>
-                    <ParentFishMedicationManagement  role='employee' />
+                    <ParentFishMedicationManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1169,7 +1019,7 @@ const routes = createBrowserRouter([
                 path: 'Laboratory-Box-management',
                 element: (
                   <SuspenseWrapper>
-                    <LaboratoryBoxManagement  role='employee' />
+                    <LaboratoryBoxManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1177,7 +1027,7 @@ const routes = createBrowserRouter([
                 path: 'parent-egg-migration',
                 element: (
                   <SuspenseWrapper>
-                    <ParentEggMigrationManagement  role='employee' />
+                    <ParentEggMigrationManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1185,7 +1035,7 @@ const routes = createBrowserRouter([
                 path: 'egg-medication-management',
                 element: (
                   <SuspenseWrapper>
-                    <EggFishMedicationManagement  role='employee' />
+                    <EggFishMedicationManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1193,7 +1043,7 @@ const routes = createBrowserRouter([
                 path: 'box-water-changing-management',
                 element: (
                   <SuspenseWrapper>
-                    <BoxWaterChangingManagement  role='employee' />
+                    <BoxWaterChangingManagement role='employee' />
                   </SuspenseWrapper>
                 )
               },
@@ -1201,7 +1051,7 @@ const routes = createBrowserRouter([
                 path: 'egg-feed-management',
                 element: (
                   <SuspenseWrapper>
-                    <EggFishFeedingManagement  role='employee' />
+                    <EggFishFeedingManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1209,7 +1059,7 @@ const routes = createBrowserRouter([
                 path: 'grown-egg-pond',
                 element: (
                   <SuspenseWrapper>
-                    <GrownEggPondManagement  role='employee' />
+                    <GrownEggPondManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1217,16 +1067,16 @@ const routes = createBrowserRouter([
                 path: 'egg-to-pond-migration',
                 element: (
                   <SuspenseWrapper>
-                    <EggToPondMigrationManagement  role='employee' />
+                    <EggToPondMigrationManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
 
-                {
+              {
                 path: 'grown-egg-pond-feeding',
                 element: (
                   <SuspenseWrapper>
-                    <GrownEggPondFeedingManagement  role='employee' />
+                    <GrownEggPondFeedingManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1235,7 +1085,7 @@ const routes = createBrowserRouter([
                 path: 'pond-water-changing-management',
                 element: (
                   <SuspenseWrapper>
-                    <PondWaterChangingManagement  role='employee' />
+                    <PondWaterChangingManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1243,15 +1093,15 @@ const routes = createBrowserRouter([
                 path: 'pond-medication-management',
                 element: (
                   <SuspenseWrapper>
-                    <PondMedicationManagement  role='employee' />
+                    <PondMedicationManagement role='employee' />
                   </SuspenseWrapper>
                 ),
               },
-                 {
+              {
                 path: 'category-management',
                 element: (
                   <SuspenseWrapper>
-                    <CategoryDashboard  role="employee" />
+                    <CategoryDashboard role="employee" />
                   </SuspenseWrapper>
                 ),
               },
@@ -1273,7 +1123,7 @@ const routes = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
-         {
+      {
         path: 'super-admin/login',
         element: (
           <SuspenseWrapper>
@@ -1281,7 +1131,7 @@ const routes = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
-         {
+      {
         path: 'super-admin/unlock',
         element: (
           <SuspenseWrapper>

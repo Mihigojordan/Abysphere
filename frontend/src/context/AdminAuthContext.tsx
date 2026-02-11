@@ -23,7 +23,11 @@ interface Admin {
   profileImage?: string;
   phone?: string;
   isLocked?: boolean;
-  features?: SystemFeature[]; // Add this
+  features?: SystemFeature[];
+  message?: string | null;
+  messageExpiry?: string | null;
+  messageTextColor?: string | null;
+  messageBgColor?: string | null;
   [key: string]: unknown;
 }
 interface LoginData {
@@ -113,15 +117,19 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
     adminId: string;
     message: string;
     expiry: string | null;
+    textColor: string | null;
+    bgColor: string | null;
   }) => {
     if (user?.id === data.adminId) {
-      // ✅ Update user state with the new message and expiry
+      // ✅ Update user state with the new message, expiry and colors
       setUser(prev =>
         prev
           ? {
               ...prev,
               message: data.message,
               messageExpiry: data.expiry,
+              messageTextColor: data.textColor,
+              messageBgColor: data.bgColor,
             }
           : prev
       );
@@ -136,16 +144,17 @@ export const AdminAuthContextProvider: React.FC<AdminAuthContextProviderProps> =
   'clearedCompanyMessages',
   (data: {
     adminId: string;
-
   }) => {
     if (user?.id === data.adminId) {
-      // ✅ Update user state with the new message and expiry
+      // ✅ Update user state - clear message, expiry and colors
       setUser(prev =>
         prev
           ? {
               ...prev,
               message: null,
               messageExpiry: null,
+              messageTextColor: null,
+              messageBgColor: null,
             }
           : prev
       );

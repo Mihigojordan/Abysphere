@@ -88,7 +88,12 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     return now <= expiry;
   };
 
-  // Detect message type from message content (you can modify this logic or add a field in the schema)
+  // Check if custom colors are defined
+  const hasCustomColors = (): boolean => {
+    return !!(adminUser?.messageTextColor || adminUser?.messageBgColor);
+  };
+
+  // Detect message type from message content (only used when no custom colors)
   const getMessageType = (): MessageType => {
     const msg = adminUser?.message?.toLowerCase() || "";
     if (msg.includes("payment") || msg.includes("subscription") || msg.includes("invoice")) {
@@ -118,6 +123,28 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
         return <Info className="alert-icon" />;
     }
   };
+
+  // State to force re-render when message expires
+  const [, setForceUpdate] = useState(0);
+
+  // Auto-hide message when it expires
+  useEffect(() => {
+    if (!adminUser?.message || !adminUser?.messageExpiry) return;
+
+    const expiry = new Date(adminUser.messageExpiry);
+    const now = new Date();
+    const timeUntilExpiry = expiry.getTime() - now.getTime();
+
+    // If already expired, no need to set timeout
+    if (timeUntilExpiry <= 0) return;
+
+    // Set timeout to hide message when it expires
+    const timeoutId = setTimeout(() => {
+      setForceUpdate(prev => prev + 1); // Force re-render to hide the message
+    }, timeUntilExpiry);
+
+    return () => clearTimeout(timeoutId);
+  }, [adminUser?.message, adminUser?.messageExpiry]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -253,24 +280,41 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
 
       {/* Multi-Purpose Alert Banner */}
       {isMessageValid() && (
-        <div className={`alert-banner alert-${messageType}`}>
+        <div
+          className={`alert-banner ${!hasCustomColors() ? `alert-${messageType}` : ''}`}
+          style={hasCustomColors() ? {
+            background: adminUser?.messageBgColor || undefined,
+          } : undefined}
+        >
           <div className="alert-glow"></div>
           <div className="alert-content">
             <div className="marquee-container">
               <div className="marquee-content">
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
-                <span className="message-item">
+                <span
+                  className="message-item"
+                  style={hasCustomColors() ? { color: adminUser?.messageTextColor || undefined } : undefined}
+                >
                   {getIcon()}
                   <span className="message-text">{adminUser?.message}</span>
                 </span>
