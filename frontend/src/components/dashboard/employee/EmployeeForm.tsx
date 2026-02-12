@@ -264,7 +264,7 @@ const EmployeeForm: React.FC<{
           {/* Profile Picture */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture
+              Profile Picture / national id picture
             </label>
             {!profileImgPreview ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
