@@ -9,6 +9,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ComposedChart
 } from 'recharts';
 
+
+
+
 import clientService from '../../services/clientService';
 import assetService from '../../services/assetService';
 import supplierService from '../../services/supplierService';
@@ -16,9 +19,10 @@ import employeeService from '../../services/employeeService';
 import stockService from '../../services/stockInService';
 import stockOutService from '../../services/stockoutService';
 import salesReturnService from '../../services/salesReturnService';
+import { useNavigate } from 'react-router-dom';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
-function formatCurrency(amount, currency = "RWF", locale = "en-RW") {
+function formatCurrency(amount, currency = "RWF", locale = "en-USD") {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
@@ -54,46 +58,59 @@ const MultiTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle }: any) => (
-  <div className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border p-3 hover:shadow-md transition-all">
-    <div className="flex items-start justify-between">
-      <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-medium text-theme-text-secondary uppercase tracking-wide">{title}</p>
-        <p className="text-xl font-bold text-theme-text-primary mt-0.5 truncate">{value}</p>
-        {subtitle && <p className="text-[9px] text-theme-text-secondary mt-0.5">{subtitle}</p>}
-        {change !== undefined && (
-          <p className={`text-[10px] mt-1 font-semibold flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {change}%
-          </p>
-        )}
-      </div>
-      <div className={`p-2 rounded-lg ${color} flex-shrink-0`}>
-        <Icon className="w-4 h-4 text-white" />
+const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle, link }: any) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    if (link) {
+      navigate(link);
+    }
+  };
+
+  return (
+    <div 
+      className={`bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border p-3 hover:shadow-md transition-all ${link ? 'cursor-pointer hover:scale-[1.02]' : ''}`}
+      onClick={handleClick}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-theme-text-secondary uppercase tracking-wide">{title}</p>
+          <p className="text-xl font-bold text-theme-text-primary mt-0.5 truncate">{value}</p>
+          {subtitle && <p className="text-[9px] text-theme-text-secondary mt-0.5">{subtitle}</p>}
+          {change !== undefined && (
+            <p className={`text-[10px] mt-1 font-semibold flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              {change}%
+            </p>
+          )}
+        </div>
+        <div className={`p-2 rounded-lg ${color} flex-shrink-0`}>
+          <Icon className="w-4 h-4 text-white" />
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
+};
 const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalClients: 0,
-    totalEmployees: 0,
-    totalSuppliers: 0,
-    totalStockValue: 0,
-    totalStockItems: 0,
-    todaySales: 0,
-    weekSales: 0,
-    monthSales: 0,
-    avgOrderValue: 0,
-    lowStock: 0,
-    outOfStock: 0,
-    pendingReturns: 0,
-    totalReturnsValue: 0,
-    profitMargin: 0,
-    totalAssets: 0
-  });
+const [stats, setStats] = useState({
+  totalClients: 0,
+  totalEmployees: 0,
+  totalSuppliers: 0,
+  totalStockValue: 0,
+  totalStockItems: 0,
+  todaySales: 0,
+  weekSales: 0,
+  monthSales: 0,
+  avgOrderValue: 0,
+  lowStock: 0,
+  outOfStock: 0,
+  pendingReturns: 0,
+  totalReturnsValue: 0,
+  profitMargin: 0,
+  totalAssets: 0,
+  totalProfit: 0  // ADD THIS LINE
+});
 
   const [salesTrend, setSalesTrend] = useState<any[]>([]);
   const [monthlySales, setMonthlySales] = useState<any[]>([]);
@@ -158,15 +175,22 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           .filter((s: any) => new Date(s.createdAt) >= monthAgo)
           .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
 
-        const totalCost = stockOuts.reduce((sum: number, s: any) => {
-          const stockIn = stockIns.find((i: any) => i.id === s.stockInId);
-          return sum + (Number(stockIn?.unitPrice) || 0) * (Number(s.quantity) || 0);
-        }, 0);
+       const totalCost = stockOuts.reduce((sum: number, s: any) => {
+  const stockIn = s.stockin;
+  console.log('one ',stockIn,sum);
+  
+  return sum + (Number(stockIn?.unitCost) || 0) * (Number(s.quantity) || 0);
+}, 0);
 
-        const totalRevenue = stockOuts.reduce((sum: number, s: any) => 
-          sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+const totalRevenue = stockOuts.reduce((sum: number, s: any) => 
+  sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
 
-        const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+const totalProfit = totalRevenue - totalCost;  // ADD THIS LINE
+console.log('total profit :',totalProfit);
+console.log('total revenue :',totalRevenue);
+console.log('total cost: ',stockOuts);
+
+const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
         const avgOrder = stockOuts.length > 0 ? totalRevenue / stockOuts.length : 0;
 
         const lowStockItems = stockIns.filter((s: any) => 
@@ -297,24 +321,24 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           .sort((a: any, b: any) => b.count - a.count);
 
         // UPDATE ALL STATE
-        setStats({
-          totalClients: clients.length,
-          totalEmployees: employees.length,
-          totalSuppliers: suppliers.length,
-          totalStockValue: Math.round(totalStockValue),
-          totalStockItems: Math.round(totalStockItems),
-          todaySales: Math.round(todayRevenue),
-          weekSales: Math.round(weekRevenue),
-          monthSales: Math.round(monthRevenue),
-          avgOrderValue: Math.round(avgOrder),
-          lowStock: lowStockItems.length,
-          outOfStock: outOfStockItems.length,
-          pendingReturns: returns.length,
-          totalReturnsValue: Math.round(returnsValue),
-          profitMargin: Math.round(profitMargin * 10) / 10,
-          totalAssets: Math.round(totalAssetsValue)
-        });
-
+setStats({
+  totalClients: clients.length,
+  totalEmployees: employees.length,
+  totalSuppliers: suppliers.length,
+  totalStockValue: Math.round(totalStockValue),
+  totalStockItems: Math.round(totalStockItems),
+  todaySales: Math.round(todayRevenue),
+  weekSales: Math.round(weekRevenue),
+  monthSales: Math.round(monthRevenue),
+  avgOrderValue: Math.round(avgOrder),
+  lowStock: lowStockItems.length,
+  outOfStock: outOfStockItems.length,
+  pendingReturns: returns.length,
+  totalReturnsValue: Math.round(returnsValue),
+  profitMargin: Math.round(profitMargin * 10) / 10,
+  totalAssets: Math.round(totalAssetsValue),
+  totalProfit: Math.round(totalProfit)  // ADD THIS LINE
+});
         setSalesTrend(trend);
         setMonthlySales(monthlyData);
         setStockByCategory(pieData);
@@ -359,9 +383,9 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1.5 text-xs">
+            {/* <button className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1.5 text-xs">
               <Download className="w-3.5 h-3.5" /> Export
-            </button>
+            </button> */}
             <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-theme-bg-tertiary rounded-lg text-theme-text-primary">
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -371,37 +395,154 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
       <div className="p-4 space-y-4">
 
-        {/* KPI ROW 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <StatCard title="Clients" value={stats.totalClients} change={12} trend="up" icon={Users} color="bg-primary-500" />
-          <StatCard title="Employees" value={stats.totalEmployees} change={5} trend="up" icon={Users} color="bg-indigo-500" />
-          <StatCard title="Suppliers" value={stats.totalSuppliers} change={8} trend="up" icon={Truck} color="bg-orange-500" />
-        </div>
+ {/* KPI ROW 1 */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+  <StatCard 
+    title="Clients" 
+    value={stats.totalClients} 
+    change={12} 
+    trend="up" 
+    icon={Users} 
+    color="bg-primary-500" 
+    link="/admin/dashboard/client-management" 
+  />
+  <StatCard 
+    title="Employees" 
+    value={stats.totalEmployees} 
+    change={5} 
+    trend="up" 
+    icon={Users} 
+    color="bg-indigo-500" 
+    link="/admin/dashboard/employee-management" 
+  />
+  <StatCard 
+    title="Suppliers" 
+    value={stats.totalSuppliers} 
+    change={8} 
+    trend="up" 
+    icon={Truck} 
+    color="bg-orange-500" 
+    link="/admin/dashboard/supplier-management" 
+  />
+</div>
 
-        {/* KPI ROW 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Today Sales" value={`${formatCurrency(stats.todaySales.toLocaleString())}`} change={18} trend="up" icon={DollarSign} color="bg-green-500" subtitle="Daily revenue" />
-          <StatCard title="Week Sales" value={`${formatCurrency(stats.weekSales.toLocaleString())}`} change={15} trend="up" icon={TrendingUp} color="bg-emerald-500" subtitle="7-day revenue" />
-          <StatCard title="Month Sales" value={`${formatCurrency(stats.monthSales.toLocaleString())}`} change={22} trend="up" icon={Activity} color="bg-teal-500" subtitle="30-day revenue" />
-          <StatCard title="Avg Order" value={`${formatCurrency(stats.avgOrderValue.toLocaleString())}`} icon={ShoppingCart} color="bg-cyan-500" subtitle="Per transaction" />
-        </div>
+{/* KPI ROW 2 */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+  <StatCard 
+    title="Today Sales" 
+    value={`${formatCurrency(stats.todaySales)}`} 
+    change={18} 
+    trend="up" 
+    icon={DollarSign} 
+    color="bg-green-500" 
+    subtitle="Daily revenue" 
+    link="/admin/dashboard/stockout-management" 
+  />
+  <StatCard 
+    title="Week Sales" 
+    value={`${formatCurrency(stats.weekSales)}`} 
+    change={15} 
+    trend="up" 
+    icon={TrendingUp} 
+    color="bg-emerald-500" 
+    subtitle="7-day revenue" 
+    link="/admin/dashboard/stockout-management" 
+  />
+  <StatCard 
+    title="Month Sales" 
+    value={`${formatCurrency(stats.monthSales)}`} 
+    change={22} 
+    trend="up" 
+    icon={Activity} 
+    color="bg-teal-500" 
+    subtitle="30-day revenue" 
+    link="/admin/dashboard/reports/sales" 
+  />
+  <StatCard 
+    title="Avg Order" 
+    value={`${formatCurrency(stats.avgOrderValue)}`} 
+    icon={ShoppingCart} 
+    color="bg-cyan-500" 
+    subtitle="Per transaction" 
+    link="/admin/dashboard/stockout-management" 
+  />
+</div>
 
-        {/* KPI ROW 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Stock Value" value={`${formatCurrency(stats.totalStockValue.toLocaleString())}`} icon={Package} color="bg-primary-600" subtitle="Total inventory" />
-          <StatCard title="Stock Items" value={stats.totalStockItems.toLocaleString()} icon={Layers} color="bg-indigo-600" subtitle="Total units" />
-          <StatCard title="Low Stock" value={stats.lowStock} icon={AlertCircle} color="bg-yellow-500" subtitle="Need reorder" />
-          <StatCard title="Out of Stock" value={stats.outOfStock} icon={TrendingDown} color="bg-red-500" subtitle="Zero inventory" />
-        </div>
+{/* KPI ROW 3 */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+  <StatCard 
+    title="Stock Value" 
+    value={`${formatCurrency(stats.totalStockValue)}`} 
+    icon={Package} 
+    color="bg-primary-600" 
+    subtitle="Total inventory" 
+    link="/admin/dashboard/stockin-management" 
+  />
+  <StatCard 
+    title="Stock Items" 
+    value={stats.totalStockItems.toLocaleString()} 
+    icon={Layers} 
+    color="bg-indigo-600" 
+    subtitle="Total units" 
+    link="/admin/dashboard/stockin-management" 
+  />
+  <StatCard 
+    title="Low Stock" 
+    value={stats.lowStock} 
+    icon={AlertCircle} 
+    color="bg-yellow-500" 
+    subtitle="Need reorder" 
+    link="/admin/dashboard/stockin-management" 
+  />
+  <StatCard 
+    title="Out of Stock" 
+    value={stats.outOfStock} 
+    icon={TrendingDown} 
+    color="bg-red-500" 
+    subtitle="Zero inventory" 
+    link="/admin/dashboard/stockin-management" 
+  />
+</div>
 
-        {/* KPI ROW 4 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Returns" value={stats.pendingReturns} icon={RefreshCw} color="bg-amber-500" subtitle="Pending" />
-          <StatCard title="Returns Value" value={`${formatCurrency(stats.totalReturnsValue.toLocaleString())}`} icon={DollarSign} color="bg-orange-600" subtitle="Total refunds" />
-          <StatCard title="Profit Margin" value={`${stats.profitMargin}%`} change={3.2} trend="up" icon={TrendingUp} color="bg-green-600" subtitle="Overall margin" />
-          <StatCard title="Total Assets" value={`${formatCurrency(stats.totalAssets.toLocaleString())}`} icon={Building2} color="bg-purple-600" subtitle="Asset value" />
-        </div>
-
+{/* KPI ROW 4 */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+  <StatCard 
+    title="Returns" 
+    value={stats.pendingReturns} 
+    icon={RefreshCw} 
+    color="bg-amber-500" 
+    subtitle="Pending" 
+    link="/admin/dashboard/sales-return-management" 
+  />
+  <StatCard 
+    title="Returns Value" 
+    value={`${formatCurrency(stats.totalReturnsValue)}`} 
+    icon={DollarSign} 
+    color="bg-orange-600" 
+    subtitle="Total refunds" 
+    link="/admin/dashboard/sales-return-management" 
+  />
+  <StatCard 
+    title="Total Profit" 
+    value={`${formatCurrency(stats.totalProfit)}`} 
+    change={8.5} 
+    trend="up" 
+    icon={TrendingUp} 
+    color="bg-emerald-600" 
+    subtitle="Revenue - Cost" 
+    link="/admin/dashboard/reports/sales" 
+  />
+  <StatCard 
+    title="Profit Margin" 
+    value={`${stats.profitMargin}%`} 
+    change={3.2} 
+    trend="up" 
+    icon={TrendingUp} 
+    color="bg-green-600" 
+    subtitle="Overall margin" 
+    link="/admin/dashboard/reports/sales" 
+  />
+</div>
         {/* MAIN CHARTS ROW 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
@@ -476,7 +617,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v.toLocaleString())}`} />} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v)}`} />} />
                 <Bar dataKey="revenue" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -535,7 +676,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis type="number" tick={{ fontSize: 10 }} />
                 <YAxis dataKey="name" type="category" width={70} tick={{ fontSize: 9 }} />
-                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v.toLocaleString())}`} />} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v)}`} />} />
                 <Bar dataKey="revenue" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -645,18 +786,15 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                   <p className="text-xs font-medium text-theme-text-primary">Total Revenue (Month)</p>
                   <TrendingUp className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-400">${stats.monthSales.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-700 dark:text-green-400">{formatCurrency(stats.monthSales)}</p>
                 <p className="text-[10px] text-theme-text-secondary mt-1">Last 30 days performance</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                   <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Inventory Value</p>
-                  <p className="text-lg font-bold text-primary-700 dark:text-primary-400">${stats.totalStockValue.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.totalStockValue)}</p>
                 </div>
-                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Asset Value</p>
-                  <p className="text-lg font-bold text-purple-700 dark:text-purple-400">${stats.totalAssets.toLocaleString()}</p>
-                </div>
+
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
@@ -665,7 +803,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                 </div>
                 <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
                   <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Avg Order Value</p>
-                  <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(stats.avgOrderValue.toLocaleString())}</p>
+                  <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(stats.avgOrderValue)}</p>
                 </div>
               </div>
             </div>

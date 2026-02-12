@@ -93,14 +93,15 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
 
-  const [stats, setStats] = useState({
-    totalSales: 0,
-    totalRevenue: 0,
-    totalTransactions: 0,
-    averageOrderValue: 0,
-    todaySales: 0,
-    todayRevenue: 0,
-  });
+const [stats, setStats] = useState({
+  totalSales: 0,
+  totalRevenue: 0,
+  totalTransactions: 0,
+  averageOrderValue: 0,
+  todaySales: 0,
+  todayRevenue: 0,
+  totalProfit: 0,  // ADD THIS LINE
+});
 
   // ── Fetch Data ───────────────────────────────────────────────
   useEffect(() => {
@@ -109,7 +110,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
   useEffect(() => {
     applyFiltersAndSearch();
-  }, [searchTerm, stockOuts, filters]);
+  }, [searchTerm, stockOuts, filters,stockIns]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -119,6 +120,8 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
       setIsInvoiceOpen(true);
     }
   }, []);
+
+
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -130,7 +133,9 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
       setStockOuts(outs);
       setFilteredStockOuts(outs);
       setStockIns(Array.isArray(ins) ? ins : []);
-      calculateStats(outs);
+     ;
+      
+      calculateStats(outs,Array.isArray(ins) ? ins : []);
     } catch (err: any) {
       showNotification(`Failed to load data: ${err.message}`, 'error');
     } finally {
@@ -139,33 +144,50 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   };
 
   // ── Stats & Filters ──────────────────────────────────────────
-  const calculateStats = (data: StockOut[]) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+ const calculateStats = (data: StockOut[],stockIns:StockIn[]) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const totalSales = data.reduce((sum, item) => sum + item.quantity, 0);
-    const totalRevenue = data.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
-    const totalTransactions = data.length;
-    const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+  const totalSales = data.reduce((sum, item) => sum + item.quantity, 0);
+  const totalRevenue = data.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+  const totalTransactions = data.length;
+  const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-    const todayData = data.filter((item) => {
-      const itemDate = new Date(item.createdAt);
-      itemDate.setHours(0, 0, 0, 0);
-      return itemDate.getTime() === today.getTime();
-    });
+  console.log('stock out data',data,stockIns);
+  // Calculate total cost and profit
+  const totalCost = data.reduce((sum, item) => {
+    
+    const stockIn = item.stockin;
+    
+    
+    return sum + (Number(stockIn?.unitCost) || 0) * item.quantity;
+  }, 0);
 
-    const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
-    const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+  console.log('total cost',totalCost);
+  
+  
+  const totalProfit = totalRevenue - totalCost;
+  console.log('total profit',totalProfit);
 
-    setStats({
-      totalSales,
-      totalRevenue,
-      totalTransactions,
-      averageOrderValue,
-      todaySales,
-      todayRevenue,
-    });
-  };
+  const todayData = data.filter((item) => {
+    const itemDate = new Date(item.createdAt);
+    itemDate.setHours(0, 0, 0, 0);
+    return itemDate.getTime() === today.getTime();
+  });
+
+  const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
+  const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+
+  setStats({
+    totalSales,
+    totalRevenue,
+    totalTransactions,
+    averageOrderValue,
+    todaySales,
+    todayRevenue,
+    totalProfit,  // ADD THIS LINE
+  });
+};
 
   const getDateRange = () => {
     const now = new Date();
@@ -214,8 +236,8 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
   // ── Helpers ──────────────────────────────────────────────────
   const showNotification = (message: string, type: 'success' | 'error') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
+    // setNotification({ message, type });
+    // setTimeout(() => setNotification(null), 4000);
   };
 
   const updateSearchParam = (key: string, value?: string) => {
@@ -531,26 +553,27 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
       {/* Main Content */}
       <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
-            { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
-            { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
-            { title: 'Avg Order', value: formatPrice(stats.averageOrderValue), icon: TrendingUp, color: 'orange' },
-          ].map((stat, i) => (
-            <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
-              <div className="flex items-center space-x-3">
-                <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
-                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
-                </div>
-                <div>
-                  <p className="text-xs text-theme-text-secondary">{stat.title}</p>
-                  <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Stats Cards */}
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+  {[
+    { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
+    { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
+    { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
+    { title: 'Total Profit', value: formatPrice(stats.totalProfit), icon: TrendingUp, color: 'orange' },  // CHANGED THIS LINE
+  ].map((stat, i) => (
+    <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+      <div className="flex items-center space-x-3">
+        <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
+          <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
         </div>
+        <div>
+          <p className="text-xs text-theme-text-secondary">{stat.title}</p>
+          <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
         {/* Today's Summary */}
         <div className="grid grid-cols-2 gap-3">
