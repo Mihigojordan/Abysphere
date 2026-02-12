@@ -427,7 +427,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+                <div className="p-3 bg-teal-50 dark:bg-primary-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
                   <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Profit Margin</p>
                   <p className="text-lg font-bold text-teal-700 dark:text-teal-400">{stats.profitMargin}%</p>
                 </div>
