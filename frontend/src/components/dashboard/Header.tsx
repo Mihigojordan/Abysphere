@@ -168,7 +168,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-header-bg shadow-sm border-b border-theme-border transition-colors duration-200">
         <div className="px-6 py-3">
           <div className="flex md:items-center flex-wrap justify-center gap-3 md:gap-0 md:justify-between">
             <div className="flex items-center space-x-4">
@@ -179,24 +179,24 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                 >
                   <Menu className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-theme-text-primary">
                   Welcome to Dashboard Management
                 </h1>
               </div>
             </div>
 
             <div className="flex md:items-center space-x-4">
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors">
                 <Bell className="w-5 h-5" />
               </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors">
                 <Settings className="w-5 h-5" />
               </button>
 
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center space-x-3 p-2 hover:bg-theme-bg-tertiary rounded-lg transition-colors"
                   disabled={isLocking}
                 >
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
@@ -211,22 +211,22 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                     )}
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-medium text-gray-700">{getDisplayName()}</div>
+                    <div className="text-sm font-medium text-theme-text-primary">{getDisplayName()}</div>
                     <div className="text-xs text-primary-600">{role === "admin" ? "Administrator" : "Employee"}</div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                    className={`w-4 h-4 text-theme-text-secondary transition-transform duration-200 ${
                       isDropdownOpen ? "rotate-180" : ""
                     }`}
                   />
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                  <div className="absolute right-0 mt-2 w-56 bg-theme-bg-primary rounded-lg shadow-lg border border-theme-border z-10">
                     <div className="py-1">
-                      <div className="px-4 py-3 border-b border-gray-100 bg-primary-50">
-                        <div className="text-sm font-medium text-gray-900">{getDisplayName()}</div>
-                        <div className="text-xs text-gray-600">{getEmail()}</div>
+                      <div className="px-4 py-3 border-b border-theme-border bg-primary-50">
+                        <div className="text-sm font-medium text-theme-text-primary">{getDisplayName()}</div>
+                        <div className="text-xs text-theme-text-secondary">{getEmail()}</div>
                         <div className="text-xs font-medium text-primary-600">
                           {role === "admin" ? "Administrator" : "Employee"}
                         </div>
@@ -238,7 +238,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                             navigate(role === "admin" ? "/admin/dashboard/profile" : "/employee/dashboard/profile");
                             setIsDropdownOpen(false);
                           }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 transition-colors"
+                          className="flex items-center w-full px-4 py-2 text-sm text-theme-text-primary hover:bg-primary-50 transition-colors"
                         >
                           <User className="w-4 h-4 mr-2" />
                           My Profile
@@ -250,13 +250,13 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                             setIsDropdownOpen(false);
                           }}
                           disabled={isLocking}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center w-full px-4 py-2 text-sm text-theme-text-primary hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Lock className="w-4 h-4 mr-2" />
                           {isLocking ? "Locking..." : "Lock Screen"}
                         </button>
 
-                        <div className="border-t border-gray-100 my-1"></div>
+                        <div className="border-t border-theme-border my-1"></div>
 
                         <button
                           onClick={() => {

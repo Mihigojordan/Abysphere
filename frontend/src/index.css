@@ -4,7 +4,79 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Default CSS Variables for theming (fallback values)
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Primary colors - default blue */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Secondary colors - default gold */
+  --color-secondary-50: #fff9eb;
+  --color-secondary-100: #fff2cf;
+  --color-secondary-200: #ffe19c;
+  --color-secondary-300: #f9d67b;
+  --color-secondary-400: #eec25b;
+  --color-secondary-500: #daa13c;
+  --color-secondary-600: #b7812d;
+  --color-secondary-700: #946221;
+  --color-secondary-800: #704717;
+  --color-secondary-900: #4a2f0e;
+  --color-secondary-950: #261706;
+
+  /* Background colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+
+  /* Text colors */
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+
+  /* Border color */
+  --color-border: #e2e8f0;
+
+  /* Sidebar */
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-text: #1e293b;
+
+  /* Header */
+  --color-header-bg: #ffffff;
+
+  /* Transition speed for theme changes */
+  --theme-transition: 0.2s ease-in-out;
+}
+
 body {
-  @apply font-inter; /* makes Inter the default */
-  /* text-transform:capitalize; */
+  @apply font-inter;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color var(--theme-transition), color var(--theme-transition);
+}
+
+/* Smooth transitions for theme-aware elements */
+.theme-transition {
+  transition: background-color var(--theme-transition),
+              color var(--theme-transition),
+              border-color var(--theme-transition),
+              box-shadow var(--theme-transition);
+}
+
+/* Dark mode specific styles */
+body.dark-mode {
+  color-scheme: dark;
+}
+
+body.light-mode {
+  color-scheme: light;
 }

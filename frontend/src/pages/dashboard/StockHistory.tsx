@@ -310,8 +310,8 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500 text-xs">
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center transition-colors duration-200">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary text-xs">
           <div className="inline-flex items-center space-x-2">
             <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
             <span>Loading stock history...</span>
@@ -322,7 +322,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Operation Status */}
       {operationStatus && (
         <div className="fixed top-4 right-4 z-50">
@@ -358,17 +358,17 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       )}
 
       {/* Header */}
-      <div className="bg-white shadow-md">
+      <div className="bg-theme-bg-primary shadow-md border-b border-theme-border">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Stock History</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Track all stock movement transactions</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">Stock History</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">Track all stock movement transactions</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => navigate(`/${role}/dashboard/stock-management`)}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary"
                 title="Back to Stock Management"
               >
                 <ArrowLeft className="w-3 h-3" />
@@ -377,7 +377,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 title="Refresh"
               >
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
@@ -386,7 +386,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
               <button
                 onClick={handleExportPDF}
                 disabled={operationLoading || filteredHistory.length === 0}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 title="Export PDF"
               >
                 <Download className="w-3 h-3" />
@@ -401,70 +401,70 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="bg-white rounded shadow p-4">
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
                 <ArrowUpCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Stock In</p>
-                <p className="text-lg font-semibold text-gray-900">{stats.totalIn.toFixed(1)}</p>
-                <p className="text-xs text-gray-400">{stats.inCount} movements</p>
+                <p className="text-xs text-theme-text-secondary">Stock In</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{stats.totalIn.toFixed(1)}</p>
+                <p className="text-xs text-theme-text-secondary">{stats.inCount} movements</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded shadow p-4">
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
                 <ArrowDownCircle className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Stock Out</p>
-                <p className="text-lg font-semibold text-gray-900">{stats.totalOut.toFixed(1)}</p>
-                <p className="text-xs text-gray-400">{stats.outCount} movements</p>
+                <p className="text-xs text-theme-text-secondary">Stock Out</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{stats.totalOut.toFixed(1)}</p>
+                <p className="text-xs text-theme-text-secondary">{stats.outCount} movements</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded shadow p-4">
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-blue-100 rounded-full flex items-center justify-center">
                 <Settings className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-gray-600">Net Change</p>
+                <p className="text-xs text-theme-text-secondary">Net Change</p>
                 <p className={`text-lg font-semibold ${stats.netChange >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                   {stats.netChange >= 0 ? '+' : ''}{stats.netChange.toFixed(1)}
                 </p>
-                <p className="text-xs text-gray-400">{stats.adjustmentCount} adjustments</p>
+                <p className="text-xs text-theme-text-secondary">{stats.adjustmentCount} adjustments</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Search + Movement Filter + Date Filter */}
-        <div className="bg-white rounded border border-gray-200 p-3">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
             {/* Search */}
             <div className="relative">
-              <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+              <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search product, notes, user..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-56 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="w-56 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
             </div>
 
             {/* Movement Type Tabs */}
-            <div className="flex gap-1 bg-gray-100 p-1 rounded">
+            <div className="flex gap-1 bg-theme-bg-tertiary p-1 rounded">
               {(['ALL', 'IN', 'OUT', 'ADJUSTMENT'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => { setMovementFilter(type); setCurrentPage(1); }}
                   className={`px-3 py-1 text-xs font-medium rounded transition-colors ${movementFilter === type
-                    ? 'bg-white text-primary-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-theme-bg-primary text-primary-600 shadow-sm'
+                    : 'text-theme-text-secondary hover:text-theme-text-primary'
                     }`}
                 >
                   {type === 'ALL' ? 'All' : type}
@@ -478,25 +478,25 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="px-2 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
-              <span className="text-gray-400 text-xs">to</span>
+              <span className="text-theme-text-secondary text-xs">to</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="px-2 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
               <button
                 onClick={handleFilter}
-                className="px-3 py-1.5 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 text-xs"
+                className="px-3 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary text-xs"
               >
                 Apply
               </button>
               {(startDate || endDate) && (
                 <button
                   onClick={handleClearFilter}
-                  className="px-3 py-1.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded hover:bg-gray-50 text-xs"
+                  className="px-3 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary text-xs"
                 >
                   Clear
                 </button>
@@ -506,51 +506,51 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         </div>
 
         {/* Stock History Table */}
-        <div className="bg-white rounded border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-base font-semibold text-gray-900 flex items-center">
+        <div className="bg-theme-bg-primary rounded border border-theme-border">
+          <div className="px-4 py-3 border-b border-theme-border">
+            <h2 className="text-base font-semibold text-theme-text-primary flex items-center">
               <Package className="w-5 h-5 mr-2 text-primary-600" />
               Stock Movement History ({filteredHistory.length})
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-theme-bg-tertiary border-b border-theme-border">
                 <tr>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">#</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Product Name</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Movement</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Source</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty Before</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty Change</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty After</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Product Name</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Movement</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Source</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty Before</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty Change</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty After</th>
                   {role === 'admin' && (
-                    <th className="text-right py-2 px-2 text-gray-600 font-medium">Unit Price</th>
+                    <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Unit Price</th>
                   )}
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Notes</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">By</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Date</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Notes</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">By</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-theme-border">
                 {paginatedHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={role === 'admin' ? 11 : 10} className="px-2 py-8 text-center text-xs text-gray-500">
+                    <td colSpan={role === 'admin' ? 11 : 10} className="px-2 py-8 text-center text-xs text-theme-text-secondary">
                       No stock history records found
                     </td>
                   </tr>
                 ) : (
                   paginatedHistory.map((record, index) => (
-                    <tr key={record.id} className="hover:bg-gray-25">
-                      <td className="py-2 px-2 text-gray-700">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                      <td className="py-2 px-2 text-gray-900 font-medium">{record.stock?.itemName || 'N/A'}</td>
+                    <tr key={record.id} className="hover:bg-theme-bg-tertiary">
+                      <td className="py-2 px-2 text-theme-text-secondary">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                      <td className="py-2 px-2 text-theme-text-primary font-medium">{record.stock?.itemName || 'N/A'}</td>
                       <td className="py-2 px-2">
                         <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${getMovementBadge(record.movementType)}`}>
                           {record.movementType}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-gray-700">{record.sourceType}</td>
-                      <td className="py-2 px-2 text-gray-700 text-right">
+                      <td className="py-2 px-2 text-theme-text-secondary">{record.sourceType}</td>
+                      <td className="py-2 px-2 text-theme-text-secondary text-right">
                         {(Number(record.qtyBefore) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
                       </td>
                       <td className="py-2 px-2 text-right">
@@ -558,19 +558,19 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                           {record.movementType === 'OUT' ? '-' : '+'}{(Number(record.qtyChange) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-gray-700 text-right font-medium">
+                      <td className="py-2 px-2 text-theme-text-secondary text-right font-medium">
                         {(Number(record.qtyAfter) || 0).toFixed(1)} {record.stock?.unitOfMeasure || ''}
                       </td>
                       {role === 'admin' && (
-                        <td className="py-2 px-2 text-gray-700 text-right">
+                        <td className="py-2 px-2 text-theme-text-secondary text-right">
                           {record.unitPrice !== undefined && record.unitPrice !== null ? formatCurrency(Number(record.unitPrice)) : 'N/A'}
                         </td>
                       )}
-                      <td className="py-2 px-2 text-gray-700 max-w-[120px] truncate" title={record.notes || ''}>
+                      <td className="py-2 px-2 text-theme-text-secondary max-w-[120px] truncate" title={record.notes || ''}>
                         {record.notes || '—'}
                       </td>
-                      <td className="py-2 px-2 text-gray-700">{getCreatedBy(record)}</td>
-                      <td className="py-2 px-2 text-gray-700">{formatDate(record.createdAt)}</td>
+                      <td className="py-2 px-2 text-theme-text-secondary">{getCreatedBy(record)}</td>
+                      <td className="py-2 px-2 text-theme-text-secondary">{formatDate(record.createdAt)}</td>
                     </tr>
                   ))
                 )}
@@ -580,15 +580,15 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
 
           {/* Pagination */}
           {filteredHistory.length > itemsPerPage && (
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-gray-600 text-xs">
+            <div className="px-4 py-3 border-t border-theme-border flex items-center justify-between">
+              <div className="text-theme-text-secondary text-xs">
                 Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredHistory.length)} of {filteredHistory.length} entries
               </div>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="flex items-center space-x-1 px-3 py-1 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                  className="flex items-center space-x-1 px-3 py-1 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 >
                   <ChevronLeft className="w-3 h-3" />
                   <span>Previous</span>
@@ -611,7 +611,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                         onClick={() => handlePageChange(page)}
                         className={`px-2 py-1 text-xs rounded ${currentPage === page
                           ? 'bg-primary-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-50 border border-gray-200'
+                          : 'text-theme-text-primary hover:bg-theme-bg-tertiary border border-theme-border'
                           }`}
                       >
                         {page}
@@ -622,7 +622,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="flex items-center space-x-1 px-3 py-1 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                  className="flex items-center space-x-1 px-3 py-1 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3 h-3" />

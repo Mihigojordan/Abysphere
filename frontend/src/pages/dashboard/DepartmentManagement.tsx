@@ -466,14 +466,14 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header */}
-      <div className="bg-white shadow-md">
+      <div className="bg-theme-bg-primary shadow-md border-b border-theme-border transition-colors duration-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Department Management</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Manage your organization's departments</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">Department Management</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">Manage your organization's departments</p>
             </div>
             <div className="flex items-center space-x-2">
               <button

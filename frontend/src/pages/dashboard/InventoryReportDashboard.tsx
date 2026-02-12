@@ -158,29 +158,29 @@ const InventoryReportPage = () => {
   // --------------------------------------------------------------------
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center transition-colors duration-200">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading inventory data...</p>
+          <p className="mt-4 text-theme-text-secondary">Loading inventory data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header Section */}
-      <div className="bg-white shadow-md">
+      <div className="bg-theme-bg-primary shadow-md border-b border-theme-border transition-colors duration-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Inventory Report</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Full overview of received stock and current levels</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">Inventory Report</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">Full overview of received stock and current levels</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={exportToCSV}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary"
                 title="Export CSV"
               >
                 <Download className="w-3 h-3" />
@@ -201,14 +201,14 @@ const InventoryReportPage = () => {
             { title: 'Low / Out of Stock', value: stats.lowStock, icon: AlertTriangle, color: 'orange' },
             { title: 'Avg Unit Cost', value: formatCurrency(stats.avgUnitCost), icon: Warehouse, color: 'purple' },
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded shadow p-4">
+            <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
                   <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">{stat.title}</p>
-                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                  <p className="text-xs text-theme-text-secondary">{stat.title}</p>
+                  <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
                 </div>
               </div>
             </div>
@@ -216,23 +216,23 @@ const InventoryReportPage = () => {
         </div>
 
         {/* Search + Filters */}
-        <div className="bg-white rounded border border-gray-200 p-3">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
             <div className="flex items-center space-x-2 flex-1">
               {/* Search */}
               <div className="relative">
-                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search SKU, name, supplier, location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
               {/* Date Buttons */}
-              <div className="flex gap-1 bg-gray-100 p-1 rounded">
+              <div className="flex gap-1 bg-theme-bg-tertiary p-1 rounded">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
                   <button
                     key={opt}
@@ -241,8 +241,8 @@ const InventoryReportPage = () => {
                       if (opt !== 'custom') setDateRange({ start: '', end: '' });
                     }}
                     className={`px-2 py-1 text-xs font-medium rounded capitalize transition-colors ${dateRangeMode === opt
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-theme-bg-primary text-primary-600 shadow-sm'
+                      : 'text-theme-text-secondary hover:text-theme-text-primary'
                       }`}
                   >
                     {opt === 'all' ? 'All Time' : opt}
@@ -257,14 +257,14 @@ const InventoryReportPage = () => {
                     type="date"
                     value={dateRange.start}
                     onChange={(e) => setDateRange((p) => ({ ...p, start: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
-                  <span className="text-gray-500 text-xs">to</span>
+                  <span className="text-theme-text-secondary text-xs">to</span>
                   <input
                     type="date"
                     value={dateRange.end}
                     onChange={(e) => setDateRange((p) => ({ ...p, end: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
                 </div>
               )}
@@ -273,25 +273,25 @@ const InventoryReportPage = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded border border-gray-200">
+        <div className="bg-theme-bg-primary rounded border border-theme-border">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-theme-bg-tertiary border-b border-theme-border">
                 <tr>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">SKU</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Item</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Location</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Unit Cost</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Total Value</th>
-                  <th className="text-center py-2 px-2 text-gray-600 font-medium">Status</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Received</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">SKU</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Item</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Location</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Unit Cost</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Total Value</th>
+                  <th className="text-center py-2 px-2 text-theme-text-secondary font-medium">Status</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Received</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-theme-border">
                 {filteredData.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-2 py-8 text-center text-xs text-gray-500">
+                    <td colSpan={8} className="px-2 py-8 text-center text-xs text-theme-text-secondary">
                       No inventory items match the current filters
                     </td>
                   </tr>
@@ -299,20 +299,20 @@ const InventoryReportPage = () => {
                   filteredData.map((s) => {
                     const status = getStockStatus(s.receivedQuantity, s.reorderLevel);
                     return (
-                      <tr key={s.id} className="hover:bg-gray-25">
-                        <td className="py-2 px-2 text-gray-700 font-mono">{s.sku}</td>
+                      <tr key={s.id} className="hover:bg-theme-bg-tertiary">
+                        <td className="py-2 px-2 text-theme-text-secondary font-mono">{s.sku}</td>
                         <td className="py-2 px-2">
-                          <div className="text-gray-900">{s.itemName}</div>
-                          {s.supplier && <div className="text-xs text-gray-500">{s.supplier}</div>}
+                          <div className="text-theme-text-primary">{s.itemName}</div>
+                          {s.supplier && <div className="text-xs text-theme-text-secondary">{s.supplier}</div>}
                         </td>
-                        <td className="py-2 px-2 text-gray-700">{s.warehouseLocation}</td>
-                        <td className="py-2 px-2 text-gray-700 text-right">
+                        <td className="py-2 px-2 text-theme-text-secondary">{s.warehouseLocation}</td>
+                        <td className="py-2 px-2 text-theme-text-secondary text-right">
                           {s.receivedQuantity} {s.unitOfMeasure}
                         </td>
-                        <td className="py-2 px-2 text-gray-700 text-right">
+                        <td className="py-2 px-2 text-theme-text-secondary text-right">
                           {formatCurrency(Number(s.unitCost))}
                         </td>
-                        <td className="py-2 px-2 text-gray-700 text-right font-medium">
+                        <td className="py-2 px-2 text-theme-text-secondary text-right font-medium">
                           {formatCurrency(Number(s.totalValue))}
                         </td>
                         <td className="py-2 px-2">
@@ -320,7 +320,7 @@ const InventoryReportPage = () => {
                             {status.label}
                           </span>
                         </td>
-                        <td className="py-2 px-2 text-gray-700">
+                        <td className="py-2 px-2 text-theme-text-secondary">
                           {new Date(s.receivedDate).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',

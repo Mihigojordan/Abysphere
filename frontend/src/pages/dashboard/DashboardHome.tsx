@@ -10,7 +10,6 @@ import {
 } from 'recharts';
 
 import clientService from '../../services/clientService';
-import departmentService from '../../services/departmentService';
 import assetService from '../../services/assetService';
 import supplierService from '../../services/supplierService';
 import employeeService from '../../services/employeeService';
@@ -19,6 +18,14 @@ import stockOutService from '../../services/stockoutService';
 import salesReturnService from '../../services/salesReturnService';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
+function formatCurrency(amount, currency = "RWF", locale = "en-RW") {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0, // RWF typically has no cents
+    maximumFractionDigits: 0
+  }).format(amount);
+}
 
 const SafeTooltip = ({ active, payload, label, formatter }: any) => {
   if (!active || !payload || !payload[0]) return null;
@@ -48,12 +55,12 @@ const MultiTooltip = ({ active, payload, label }: any) => {
 };
 
 const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle }: any) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-all">
+  <div className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border p-3 hover:shadow-md transition-all">
     <div className="flex items-start justify-between">
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">{title}</p>
-        <p className="text-xl font-bold text-gray-900 mt-0.5 truncate">{value}</p>
-        {subtitle && <p className="text-[9px] text-gray-500 mt-0.5">{subtitle}</p>}
+        <p className="text-[10px] font-medium text-theme-text-secondary uppercase tracking-wide">{title}</p>
+        <p className="text-xl font-bold text-theme-text-primary mt-0.5 truncate">{value}</p>
+        {subtitle && <p className="text-[9px] text-theme-text-secondary mt-0.5">{subtitle}</p>}
         {change !== undefined && (
           <p className={`text-[10px] mt-1 font-semibold flex items-center gap-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
             {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -73,7 +80,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
   const [stats, setStats] = useState({
     totalClients: 0,
     totalEmployees: 0,
-    totalDepartments: 0,
     totalSuppliers: 0,
     totalStockValue: 0,
     totalStockItems: 0,
@@ -94,7 +100,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
   const [stockByCategory, setStockByCategory] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [supplierPerformance, setSupplierPerformance] = useState<any[]>([]);
-  const [deptEmployees, setDeptEmployees] = useState<any[]>([]);
   const [stockInOutTrend, setStockInOutTrend] = useState<any[]>([]);
   const [revenueVsCost, setRevenueVsCost] = useState<any[]>([]);
   const [clientActivity, setClientActivity] = useState<any[]>([]);
@@ -115,12 +120,11 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         setLoading(true);
 
         const [
-          rawClients, rawEmployees, rawDepartments, rawAssets,
+          rawClients, rawEmployees, rawAssets,
           rawStockIns, rawStockOuts, rawReturns, rawSuppliers
         ] = await Promise.all([
           clientService.getAllClients(),
           employeeService.getAllEmployees(),
-          departmentService.getAllDepartments(),
           assetService.getAllAssets(),
           stockService.getAllStockIns(),
           stockOutService.getAllStockOuts(),
@@ -130,7 +134,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
         const clients = safeArray(rawClients);
         const employees = safeArray(rawEmployees);
-        const departments = safeArray(rawDepartments);
         const assets = safeArray(rawAssets);
         const stockIns = safeArray(rawStockIns);
         const stockOuts = safeArray(rawStockOuts);
@@ -232,14 +235,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           };
         });
 
-        const deptData = departments
-          .map((d: any) => ({
-            name: d.name || 'Unnamed',
-            employees: employees.filter((e: any) => e.departmentId === d.id).length,
-          }))
-          .sort((a, b) => b.employees - a.employees)
-          .slice(0, 8);
-
         const stockTrend = Array.from({ length: 10 }, (_, i) => {
           const d = new Date(); d.setDate(d.getDate() - (9 - i));
           const dateStr = d.toISOString().slice(0, 10);
@@ -305,7 +300,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         setStats({
           totalClients: clients.length,
           totalEmployees: employees.length,
-          totalDepartments: departments.length,
           totalSuppliers: suppliers.length,
           totalStockValue: Math.round(totalStockValue),
           totalStockItems: Math.round(totalStockItems),
@@ -326,7 +320,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         setStockByCategory(pieData);
         setTopProducts(top8);
         setSupplierPerformance(supData);
-        setDeptEmployees(deptData);
         setStockInOutTrend(stockTrend);
         setRevenueVsCost(revCostData);
         setClientActivity(clientData);
@@ -347,21 +340,21 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-theme-bg-secondary">
         <RefreshCw className="w-8 h-8 text-primary-600 animate-spin mr-3" />
-        <span className="text-lg">Loading Dashboard...</span>
+        <span className="text-lg text-theme-text-primary">Loading Dashboard...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-theme-bg-secondary text-theme-text-primary transition-colors duration-200">
       {/* HEADER */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+      <div className="bg-theme-bg-primary shadow-sm border-b border-theme-border sticky top-0 z-10 transition-colors duration-200">
         <div className="px-4 py-3 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-[10px] text-gray-500">
+            <h1 className="text-xl font-bold text-theme-text-primary">Analytics Dashboard</h1>
+            <p className="text-[10px] text-theme-text-secondary">
               {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
@@ -369,7 +362,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             <button className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1.5 text-xs">
               <Download className="w-3.5 h-3.5" /> Export
             </button>
-            <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-gray-100 rounded-lg">
+            <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-theme-bg-tertiary rounded-lg text-theme-text-primary">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
@@ -379,24 +372,23 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
       <div className="p-4 space-y-4">
 
         {/* KPI ROW 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <StatCard title="Clients" value={stats.totalClients} change={12} trend="up" icon={Users} color="bg-primary-500" />
           <StatCard title="Employees" value={stats.totalEmployees} change={5} trend="up" icon={Users} color="bg-indigo-500" />
-          <StatCard title="Departments" value={stats.totalDepartments} icon={Building2} color="bg-purple-500" />
           <StatCard title="Suppliers" value={stats.totalSuppliers} change={8} trend="up" icon={Truck} color="bg-orange-500" />
         </div>
 
         {/* KPI ROW 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Today Sales" value={`$${stats.todaySales.toLocaleString()}`} change={18} trend="up" icon={DollarSign} color="bg-green-500" subtitle="Daily revenue" />
-          <StatCard title="Week Sales" value={`$${stats.weekSales.toLocaleString()}`} change={15} trend="up" icon={TrendingUp} color="bg-emerald-500" subtitle="7-day revenue" />
-          <StatCard title="Month Sales" value={`$${stats.monthSales.toLocaleString()}`} change={22} trend="up" icon={Activity} color="bg-teal-500" subtitle="30-day revenue" />
-          <StatCard title="Avg Order" value={`$${stats.avgOrderValue.toLocaleString()}`} icon={ShoppingCart} color="bg-cyan-500" subtitle="Per transaction" />
+          <StatCard title="Today Sales" value={`${formatCurrency(stats.todaySales.toLocaleString())}`} change={18} trend="up" icon={DollarSign} color="bg-green-500" subtitle="Daily revenue" />
+          <StatCard title="Week Sales" value={`${formatCurrency(stats.weekSales.toLocaleString())}`} change={15} trend="up" icon={TrendingUp} color="bg-emerald-500" subtitle="7-day revenue" />
+          <StatCard title="Month Sales" value={`${formatCurrency(stats.monthSales.toLocaleString())}`} change={22} trend="up" icon={Activity} color="bg-teal-500" subtitle="30-day revenue" />
+          <StatCard title="Avg Order" value={`${formatCurrency(stats.avgOrderValue.toLocaleString())}`} icon={ShoppingCart} color="bg-cyan-500" subtitle="Per transaction" />
         </div>
 
         {/* KPI ROW 3 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard title="Stock Value" value={`$${stats.totalStockValue.toLocaleString()}`} icon={Package} color="bg-primary-600" subtitle="Total inventory" />
+          <StatCard title="Stock Value" value={`${formatCurrency(stats.totalStockValue.toLocaleString())}`} icon={Package} color="bg-primary-600" subtitle="Total inventory" />
           <StatCard title="Stock Items" value={stats.totalStockItems.toLocaleString()} icon={Layers} color="bg-indigo-600" subtitle="Total units" />
           <StatCard title="Low Stock" value={stats.lowStock} icon={AlertCircle} color="bg-yellow-500" subtitle="Need reorder" />
           <StatCard title="Out of Stock" value={stats.outOfStock} icon={TrendingDown} color="bg-red-500" subtitle="Zero inventory" />
@@ -405,15 +397,15 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* KPI ROW 4 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard title="Returns" value={stats.pendingReturns} icon={RefreshCw} color="bg-amber-500" subtitle="Pending" />
-          <StatCard title="Returns Value" value={`$${stats.totalReturnsValue.toLocaleString()}`} icon={DollarSign} color="bg-orange-600" subtitle="Total refunds" />
+          <StatCard title="Returns Value" value={`${formatCurrency(stats.totalReturnsValue.toLocaleString())}`} icon={DollarSign} color="bg-orange-600" subtitle="Total refunds" />
           <StatCard title="Profit Margin" value={`${stats.profitMargin}%`} change={3.2} trend="up" icon={TrendingUp} color="bg-green-600" subtitle="Overall margin" />
-          <StatCard title="Total Assets" value={`$${stats.totalAssets.toLocaleString()}`} icon={Building2} color="bg-purple-600" subtitle="Asset value" />
+          <StatCard title="Total Assets" value={`${formatCurrency(stats.totalAssets.toLocaleString())}`} icon={Building2} color="bg-purple-600" subtitle="Asset value" />
         </div>
 
         {/* MAIN CHARTS ROW 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="lg:col-span-2 bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <TrendingUp className="w-4 h-4 text-primary-600" /> 14-Day Sales & Orders Trend
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -430,8 +422,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <PieChartIcon className="w-4 h-4 text-purple-600" /> Stock Distribution
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -457,8 +449,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
         {/* MAIN CHARTS ROW 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="lg:col-span-2 bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <DollarSign className="w-4 h-4 text-green- Unusual" /> Revenue, Cost & Profit (7 Days)
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -475,8 +467,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <BarChart3 className="w-4 h-4 text-primary-600" /> 6-Month Revenue
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -484,7 +476,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip content={<SafeTooltip formatter={(v: any) => `$${v.toLocaleString()}`} />} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v.toLocaleString())}`} />} />
                 <Bar dataKey="revenue" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -494,19 +486,19 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* SMALL CHARTS ROW */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Top Products */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <Package className="w-4 h-4 text-green-600" /> Top Products (Qty)
             </h3>
             {topProducts.length === 0 ? (
-              <p className="text-center text-gray-500 py-8 text-xs">No sales yet</p>
+              <p className="text-center text-theme-text-secondary py-8 text-xs">No sales yet</p>
             ) : (
               <div className="space-y-2">
                 {topProducts.map((p, i) => (
-                  <div key={i} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100">
+                  <div key={i} className="flex justify-between items-center p-2 bg-theme-bg-tertiary rounded-lg hover:bg-theme-bg-secondary">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="font-bold text-sm text-gray-400">#{i + 1}</span>
-                      <p className="font-medium text-xs truncate">{p.name}</p>
+                      <span className="font-bold text-sm text-theme-text-secondary">#{i + 1}</span>
+                      <p className="font-medium text-xs truncate text-theme-text-primary">{p.name}</p>
                     </div>
                     <span className="text-xs font-bold text-primary-600">{p.qty}</span>
                   </div>
@@ -516,8 +508,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           </div>
 
           {/* Stock Flow */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <Activity className="w-4 h-4 text-orange-600" /> Stock Flow (10 Days)
             </h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -534,8 +526,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           </div>
 
           {/* Product Revenue */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <DollarSign className="w-4 h-4 text-purple-600" /> Product Revenue
             </h3>
             <ResponsiveContainer width="100%" height={200}>
@@ -543,19 +535,19 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis type="number" tick={{ fontSize: 10 }} />
                 <YAxis dataKey="name" type="category" width={70} tick={{ fontSize: 9 }} />
-                <Tooltip content={<SafeTooltip formatter={(v: any) => `$${v.toLocaleString()}`} />} />
+                <Tooltip content={<SafeTooltip formatter={(v: any) => `${formatCurrency(v.toLocaleString())}`} />} />
                 <Bar dataKey="revenue" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Returns */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <RefreshCw className="w-4 h-4 text-red-600" /> Returns by Reason
             </h3>
             {returnsAnalysis.length === 0 ? (
-              <p className="text-center text-gray-500 py-8 text-xs">No returns</p>
+              <p className="text-center text-theme-text-secondary py-8 text-xs">No returns</p>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -580,9 +572,9 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         </div>
 
         {/* BOTTOM ROW */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <Truck className="w-4 h-4 text-orange-600" /> Top Suppliers by Volume
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -596,23 +588,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-purple-600" /> Department Headcount
-            </h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={deptEmployees}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={70} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip content={<SafeTooltip formatter={(v: any) => `${v} staff`} />} />
-                <Bar dataKey="employees" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <Users className="w-4 h-4 text-primary-600" /> Top Clients by Orders
             </h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -629,66 +606,66 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
         {/* INSIGHTS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <Package className="w-4 h-4 text-teal-600" /> Stock Health Overview
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-gray-700">Healthy Stock</p><p className="text-[10px] text-gray-500">Above reorder level</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Healthy Stock</p><p className="text-[10px] text-theme-text-secondary">Above reorder level</p></div>
                 </div>
-                <p className="text-lg font-bold text-green-700">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
+                <p className="text-lg font-bold text-green-700 dark:text-green-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-yellow-500 rounded-lg"><AlertCircle className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-gray-700">Low Stock Items</p><p className="text-[10px] text-gray-500">Need reordering soon</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Low Stock Items</p><p className="text-[10px] text-theme-text-secondary">Need reordering soon</p></div>
                 </div>
-                <p className="text-lg font-bold text-yellow-700">{stats.lowStock}</p>
+                <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">{stats.lowStock}</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-500 rounded-lg"><TrendingDown className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-gray-700">Out of Stock</p><p className="text-[10px] text-gray-500">Immediate action needed</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Out of Stock</p><p className="text-[10px] text-theme-text-secondary">Immediate action needed</p></div>
                 </div>
-                <p className="text-lg font-bold text-red-700">{stats.outOfStock}</p>
+                <p className="text-lg font-bold text-red-700 dark:text-red-400">{stats.outOfStock}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
               <DollarSign className="w-4 h-4 text-green-600" /> Financial Summary
             </h3>
             <div className="space-y-3">
-              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-xs font-medium text-gray-700">Total Revenue (Month)</p>
+                  <p className="text-xs font-medium text-theme-text-primary">Total Revenue (Month)</p>
                   <TrendingUp className="w-4 h-4 text-green-600" />
                 </div>
-                <p className="text-2xl font-bold text-green-700">${stats.monthSales.toLocaleString()}</p>
-                <p className="text-[10px] text-gray-500 mt-1">Last 30 days performance</p>
+                <p className="text-2xl font-bold text-green-700 dark:text-green-400">${stats.monthSales.toLocaleString()}</p>
+                <p className="text-[10px] text-theme-text-secondary mt-1">Last 30 days performance</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-primary-50 rounded-lg border border-primary-200">
-                  <p className="text-[10px] font-medium text-gray-600 mb-1">Inventory Value</p>
-                  <p className="text-lg font-bold text-primary-700">${stats.totalStockValue.toLocaleString()}</p>
+                <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Inventory Value</p>
+                  <p className="text-lg font-bold text-primary-700 dark:text-primary-400">${stats.totalStockValue.toLocaleString()}</p>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-[10px] font-medium text-gray-600 mb-1">Asset Value</p>
-                  <p className="text-lg font-bold text-purple-700">${stats.totalAssets.toLocaleString()}</p>
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Asset Value</p>
+                  <p className="text-lg font-bold text-purple-700 dark:text-purple-400">${stats.totalAssets.toLocaleString()}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
-                  <p className="text-[10px] font-medium text-gray-600 mb-1">Profit Margin</p>
-                  <p className="text-lg font-bold text-teal-700">{stats.profitMargin}%</p>
+                <div className="p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Profit Margin</p>
+                  <p className="text-lg font-bold text-teal-700 dark:text-teal-400">{stats.profitMargin}%</p>
                 </div>
-                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                  <p className="text-[10px] font-medium text-gray-600 mb-1">Avg Order Value</p>
-                  <p className="text-lg font-bold text-orange-700">${stats.avgOrderValue.toLocaleString()}</p>
+                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Avg Order Value</p>
+                  <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(stats.avgOrderValue.toLocaleString())}</p>
                 </div>
               </div>
             </div>
@@ -696,8 +673,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between text-[10px] text-gray-500">
+        <div className="bg-theme-bg-primary p-3 rounded-lg shadow-sm border border-theme-border">
+          <div className="flex items-center justify-between text-[10px] text-theme-text-secondary">
             <p>Last updated: {new Date().toLocaleTimeString()}</p>
             <p className="flex items-center gap-1">
               <Activity className="w-3 h-3" />

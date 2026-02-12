@@ -588,7 +588,7 @@ const StockCategoryManagement = ({role}:{role:string}) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-xs">
+        <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
         
             
             <DeleteCategoryModal

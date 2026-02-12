@@ -333,7 +333,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     const handleDelete = async (stock: Stock) => {
         try {
             setOperationLoading(true);
-            await fetch(`${API_URL}/stock/stockin/${stock.id}`, { method: 'DELETE' });
+          const stockresult = await stockService.deleteStock(stock.id)
             setAllStocks((prev) => prev.filter((s) => s.id !== stock.id));
             showOperationStatus('success', `Stock item "${stock.itemName}" deleted`);
         } catch (err: any) {
@@ -649,7 +649,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-xs">
+        <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
             <DeleteStockModal
                 isOpen={isDeleteModalOpen}
                 stock={selectedStock}

@@ -287,41 +287,41 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
   const currentEmployees = employees.slice(startIndex, endIndex);
 
 const renderTableView = () => (
-  <div className="bg-white rounded border border-gray-200">
+  <div className="bg-theme-bg-primary rounded border border-theme-border">
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-theme-bg-tertiary border-b border-theme-border">
           <tr>
-            <th className="text-left py-2 px-2 text-gray-600 font-medium">#</th>
-            <th 
-              className="text-left py-2 px-2 text-gray-600 font-medium cursor-pointer hover:bg-gray-100" 
+            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
+            <th
+              className="text-left py-2 px-2 text-theme-text-secondary font-medium cursor-pointer hover:bg-theme-bg-secondary"
               onClick={() => setSortBy("first_name")}
             >
               <div className="flex items-center space-x-1">
                 <span>Name</span>
-                <ChevronDown className={`w-3 h-3 ${sortBy === "first_name" ? "text-primary-600" : "text-gray-400"}`} />
+                <ChevronDown className={`w-3 h-3 ${sortBy === "first_name" ? "text-primary-600" : "text-theme-text-secondary"}`} />
               </div>
             </th>
-            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden sm:table-cell">Email</th>
-            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden lg:table-cell">Department</th>
-            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden sm:table-cell">Created Date</th>
-            <th className="text-left py-2 px-2 text-gray-600 font-medium">Status</th>
-            <th className="text-right py-2 px-2 text-gray-600 font-medium">Actions</th>
+            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">Email</th>
+            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden lg:table-cell">Department</th>
+            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">Created Date</th>
+            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Status</th>
+            <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-theme-border">
           {currentEmployees.map((employee, index) => (
-            <tr key={employee.id || index} className="hover:bg-gray-25">
+            <tr key={employee.id || index} className="hover:bg-theme-bg-tertiary">
               {/* Row Number */}
-              <td className="py-2 px-2 text-gray-700">{startIndex + index + 1}</td>
-              
+              <td className="py-2 px-2 text-theme-text-secondary">{startIndex + index + 1}</td>
+
               {/* Name with profile image */}
               <td className="py-2 px-2">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
                     {employee.profile_image ? (
-                      <img 
-                        src={getUrlImage(employee.profile_image)} 
+                      <img
+                        src={getUrlImage(employee.profile_image)}
                         alt={`${employee.first_name} ${employee.last_name}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -341,20 +341,20 @@ const renderTableView = () => (
                       </span>
                     )}
                   </div>
-                  <div className="font-medium text-gray-900 text-xs">
+                  <div className="font-medium text-theme-text-primary text-xs">
                     {employee.first_name} {employee.last_name}
                   </div>
                 </div>
               </td>
 
               {/* Email */}
-              <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{employee.email}</td>
+              <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{employee.email}</td>
 
               {/* Department */}
-              <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">{getDepartmentName(employee.department)}</td>
+              <td className="py-2 px-2 text-theme-text-secondary hidden lg:table-cell">{getDepartmentName(employee.department)}</td>
 
               {/* Created Date */}
-              <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{formatDate(employee.created_at)}</td>
+              <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{formatDate(employee.created_at)}</td>
 
               {/* Status */}
               <td className="py-2 px-2">
@@ -366,23 +366,23 @@ const renderTableView = () => (
               {/* Actions */}
               <td className="py-2 px-2">
                 <div className="flex items-center justify-end space-x-1">
-                  <button 
-                    onClick={() => handleViewEmployee(employee)} 
-                    className="text-gray-400 hover:text-primary-600 p-1" 
+                  <button
+                    onClick={() => handleViewEmployee(employee)}
+                    className="text-theme-text-secondary hover:text-primary-600 p-1"
                     title="View"
                   >
                     <Eye className="w-3 h-3" />
                   </button>
-                  <button 
-                    onClick={() => handleEditEmployee(employee)} 
-                    className="text-gray-400 hover:text-primary-600 p-1" 
+                  <button
+                    onClick={() => handleEditEmployee(employee)}
+                    className="text-theme-text-secondary hover:text-primary-600 p-1"
                     title="Edit"
                   >
                     <Edit className="w-3 h-3" />
                   </button>
-                  <button 
-                    onClick={() => setDeleteConfirm(employee)} 
-                    className="text-gray-400 hover:text-red-600 p-1" 
+                  <button
+                    onClick={() => setDeleteConfirm(employee)}
+                    className="text-theme-text-secondary hover:text-red-600 p-1"
                     title="Delete"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -402,12 +402,12 @@ const renderTableView = () => (
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {currentEmployees.map((employee) => (
-        <div key={employee.id} className="bg-white rounded border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+        <div key={employee.id} className="bg-theme-bg-primary rounded border border-theme-border p-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center space-x-2 mb-2">
             <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
               {employee.profile_image ? (
-                <img 
-                  src={getUrlImage(employee.profile_image)} 
+                <img
+                  src={getUrlImage(employee.profile_image)}
                   alt={`${employee.first_name} ${employee.last_name}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -428,30 +428,30 @@ const renderTableView = () => (
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 text-xs truncate">
+              <div className="font-medium text-theme-text-primary text-xs truncate">
                 {employee.first_name} {employee.last_name}
               </div>
-              <div className="text-gray-500 text-xs truncate">{employee.position}</div>
+              <div className="text-theme-text-secondary text-xs truncate">{employee.position}</div>
             </div>
             <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
-              employee.id && employeeContractStatus[employee.id] 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-gray-100 text-gray-800'
+              employee.id && employeeContractStatus[employee.id]
+                ? 'bg-green-100 text-green-800'
+                : 'bg-theme-bg-tertiary text-theme-text-secondary'
             }`}>
               {employee.id && employeeContractStatus[employee.id] ? 'Active' : 'Inactive'}
             </span>
           </div>
-          
+
           <div className="space-y-1 mb-3">
-            <div className="flex items-center space-x-1 text-xs text-gray-600">
+            <div className="flex items-center space-x-1 text-xs text-theme-text-secondary">
               <Mail className="w-3 h-3" />
               <span className="truncate">{employee.email}</span>
             </div>
-            <div className="flex items-center space-x-1 text-xs text-gray-600">
+            <div className="flex items-center space-x-1 text-xs text-theme-text-secondary">
               <MapPin className="w-3 h-3" />
               <span>{getDepartmentName(employee.department)}</span>
             </div>
-            <div className="flex items-center space-x-1 text-xs text-gray-600">
+            <div className="flex items-center space-x-1 text-xs text-theme-text-secondary">
               <Calendar className="w-3 h-3" />
               <span>{formatDate(employee.date_hired)}</span>
             </div>
@@ -459,22 +459,22 @@ const renderTableView = () => (
 
           <div className="flex items-center justify-between">
             <div className="flex space-x-1">
-              <button onClick={() => handleViewEmployee(employee)} className="text-gray-400 hover:text-primary-600 p-1" title="View">
+              <button onClick={() => handleViewEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title="View">
                 <Eye className="w-3 h-3" />
               </button>
-              <button onClick={() => handleEditEmployee(employee)} className="text-gray-400 hover:text-primary-600 p-1" title="Edit">
+              <button onClick={() => handleEditEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title="Edit">
                 <Edit className="w-3 h-3" />
               </button>
-              <button 
-                onClick={() => handleCreateContract(employee)} 
+              <button
+                onClick={() => handleCreateContract(employee)}
                 disabled={!!(employee.id && employeeContractStatus[employee.id])}
-                className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50" 
+                className="text-theme-text-secondary hover:text-primary-600 p-1 disabled:opacity-50"
                 title="Contract"
               >
                 <FileText className="w-3 h-3" />
               </button>
             </div>
-            <button onClick={() => setDeleteConfirm(employee)} className="text-gray-400 hover:text-red-600 p-1" title="Delete">
+            <button onClick={() => setDeleteConfirm(employee)} className="text-theme-text-secondary hover:text-red-600 p-1" title="Delete">
               <Trash2 className="w-3 h-3" />
             </button>
           </div>
@@ -485,18 +485,18 @@ const renderTableView = () => (
 
 // Improved List View (Full Name, Email, Department, Status, Created Date)
 const renderListView = () => (
-  <div className="bg-white rounded border border-gray-200 divide-y divide-gray-100">
+  <div className="bg-theme-bg-primary rounded border border-theme-border divide-y divide-theme-border">
     {currentEmployees.map((employee) => (
-      <div key={employee.id} className="px-4 py-3 hover:bg-gray-25">
+      <div key={employee.id} className="px-4 py-3 hover:bg-theme-bg-tertiary">
         <div className="flex items-center justify-between">
-          
+
           {/* Profile + Name */}
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             {/* Profile Image */}
             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
               {employee.profile_image ? (
-                <img 
-                  src={getUrlImage(employee.profile_image)} 
+                <img
+                  src={getUrlImage(employee.profile_image)}
                   alt={`${employee.first_name} ${employee.last_name}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -519,14 +519,14 @@ const renderListView = () => (
 
             {/* Full Name */}
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-gray-900 text-sm truncate">
+              <div className="font-medium text-theme-text-primary text-sm truncate">
                 {employee.first_name} {employee.last_name}
               </div>
             </div>
           </div>
 
           {/* Info Columns */}
-          <div className="hidden md:grid grid-cols-4 gap-4 text-xs text-gray-600 flex-1 max-w-3xl px-4">
+          <div className="hidden md:grid grid-cols-4 gap-4 text-xs text-theme-text-secondary flex-1 max-w-3xl px-4">
             <span className="truncate">{employee.email}</span>
             <span className="truncate">{getDepartmentName(employee.department)}</span>
             <span className="text-green-700 font-medium">Active</span>
@@ -535,23 +535,23 @@ const renderListView = () => (
 
           {/* Actions */}
           <div className="flex items-center space-x-1 flex-shrink-0">
-            <button 
-              onClick={() => handleViewEmployee(employee)} 
-              className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors" 
+            <button
+              onClick={() => handleViewEmployee(employee)}
+              className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
               title="View Employee"
             >
               <Eye className="w-4 h-4" />
             </button>
-            <button 
-              onClick={() => handleEditEmployee(employee)} 
-              className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors" 
+            <button
+              onClick={() => handleEditEmployee(employee)}
+              className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
               title="Edit Employee"
             >
               <Edit className="w-4 h-4" />
             </button>
-            <button 
-              onClick={() => setDeleteConfirm(employee)} 
-              className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors" 
+            <button
+              onClick={() => setDeleteConfirm(employee)}
+              className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors"
               title="Delete Employee"
             >
               <Trash2 className="w-4 h-4" />
@@ -578,15 +578,15 @@ const renderListView = () => (
     }
 
     return (
-      <div className="flex items-center justify-between bg-white px-3 py-2 border-t border-gray-200">
-        <div className="text-xs text-gray-600">
+      <div className="flex items-center justify-between bg-theme-bg-primary px-3 py-2 border-t border-theme-border">
+        <div className="text-xs text-theme-text-secondary">
           Showing {startIndex + 1}-{Math.min(endIndex, employees.length)} of {employees.length}
         </div>
         <div className="flex items-center space-x-1">
           <button
             onClick={() => setCurrentPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center px-2 py-1 text-xs text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-3 h-3" />
           </button>
@@ -597,7 +597,7 @@ const renderListView = () => (
               className={`px-2 py-1 text-xs rounded ${
                 currentPage === page
                   ? "bg-primary-500 text-white"
-                  : "text-gray-700 bg-white border border-gray-200 hover:bg-gray-50"
+                  : "text-theme-text-primary bg-theme-bg-primary border border-theme-border hover:bg-theme-bg-tertiary"
               }`}
             >
               {page}
@@ -606,7 +606,7 @@ const renderListView = () => (
           <button
             onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center px-2 py-1 text-xs text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronRight className="w-3 h-3" />
           </button>
@@ -616,29 +616,29 @@ const renderListView = () => (
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header */}
- <div className="bg-white shadow-md">
+ <div className="bg-theme-bg-primary shadow-md border-b border-theme-border transition-colors duration-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="text-gray-400 hover:text-gray-600 p-1"
+                className="text-theme-text-secondary hover:text-theme-text-primary p-1"
                 title="Toggle Sidebar"
               >
                 <Minimize2 className="w-4 h-4" />
               </button>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Employee Management</h1>
-                <p className="text-xs text-gray-500 mt-0.5">Manage your organization's workforce</p>
+                <h1 className="text-lg font-semibold text-theme-text-primary">Employee Management</h1>
+                <p className="text-xs text-theme-text-secondary mt-0.5">Manage your organization's workforce</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={loadData}
                 disabled={loading}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 title="Refresh"
               >
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
@@ -661,53 +661,53 @@ const renderListView = () => (
   {/* Summary Cards */}
   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
     {/* Total Employees */}
-    <div className="bg-white rounded shadow p-4">
+    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
       <div className="flex items-center space-x-3">
         <div className="p-3 bg-primary-100 rounded-full flex items-center justify-center">
           <Users className="w-5 h-5 text-primary-600" />
         </div>
         <div>
-          <p className="text-xs text-gray-600">Total Employees</p>
-          <p className="text-lg font-semibold text-gray-900">{totalEmployees}</p>
+          <p className="text-xs text-theme-text-secondary">Total Employees</p>
+          <p className="text-lg font-semibold text-theme-text-primary">{totalEmployees}</p>
         </div>
       </div>
     </div>
 
     {/* Active */}
-    <div className="bg-white rounded shadow p-4">
+    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
       <div className="flex items-center space-x-3">
         <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
           <UserCheck className="w-5 h-5 text-green-600" />
         </div>
         <div>
-          <p className="text-xs text-gray-600">Active</p>
-          <p className="text-lg font-semibold text-gray-900">{activeEmployees}</p>
+          <p className="text-xs text-theme-text-secondary">Active</p>
+          <p className="text-lg font-semibold text-theme-text-primary">{activeEmployees}</p>
         </div>
       </div>
     </div>
 
     {/* Inactive */}
-    <div className="bg-white rounded shadow p-4">
+    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
       <div className="flex items-center space-x-3">
         <div className="p-3 bg-orange-100 rounded-full flex items-center justify-center">
           <UserX className="w-5 h-5 text-orange-600" />
         </div>
         <div>
-          <p className="text-xs text-gray-600">Inactive</p>
-          <p className="text-lg font-semibold text-gray-900">{inactiveEmployees}</p>
+          <p className="text-xs text-theme-text-secondary">Inactive</p>
+          <p className="text-lg font-semibold text-theme-text-primary">{inactiveEmployees}</p>
         </div>
       </div>
     </div>
 
     {/* New Joiners */}
-    <div className="bg-white rounded shadow p-4">
+    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
       <div className="flex items-center space-x-3">
         <div className="p-3 bg-purple-100 rounded-full flex items-center justify-center">
           <UserPlus className="w-5 h-5 text-purple-600" />
         </div>
         <div>
-          <p className="text-xs text-gray-600">New Joiners (30d)</p>
-          <p className="text-lg font-semibold text-gray-900">{newJoiners}</p>
+          <p className="text-xs text-theme-text-secondary">New Joiners (30d)</p>
+          <p className="text-lg font-semibold text-theme-text-primary">{newJoiners}</p>
         </div>
       </div>
     </div>
@@ -718,31 +718,31 @@ const renderListView = () => (
 
 
         {/* Controls */}
-        <div className="bg-white rounded border border-gray-200 p-3">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-3 transition-colors duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 gap-3">
             <div className="flex items-center space-x-2">
               <div className="relative">
-                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
-              
+
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${
-                  showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-theme-border text-theme-text-secondary hover:bg-theme-bg-tertiary'
                 }`}
               >
                 <Filter className="w-3 h-3" />
                 <span>Filter</span>
               </button>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <select
                 value={`${sortBy}-${sortOrder}`}
@@ -751,7 +751,7 @@ const renderListView = () => (
                   setSortBy(field);
                   setSortOrder(order);
                 }}
-                className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="text-xs border border-theme-border rounded px-2 py-1.5 bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
                 <option value="first_name-asc">Name (A-Z)</option>
                 <option value="first_name-desc">Name (Z-A)</option>
@@ -759,12 +759,12 @@ const renderListView = () => (
                 <option value="date_hired-desc">Newest</option>
                 <option value="date_hired-asc">Oldest</option>
               </select>
-              
-              <div className="flex items-center border border-gray-200 rounded">
+
+              <div className="flex items-center border border-theme-border rounded">
                 <button
                   onClick={() => setViewMode('table')}
                   className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                    viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
                   }`}
                   title="Table View"
                 >
@@ -773,7 +773,7 @@ const renderListView = () => (
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                    viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
                   }`}
                   title="Grid View"
                 >
@@ -782,7 +782,7 @@ const renderListView = () => (
                 <button
                   onClick={() => setViewMode('list')}
                   className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                    viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
                   }`}
                   title="List View"
                 >
@@ -791,23 +791,23 @@ const renderListView = () => (
               </div>
             </div>
           </div>
-          
+
           {/* Filters */}
           {showFilters && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="mt-3 pt-3 border-t border-theme-border">
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="text"
                   placeholder="Filter by department..."
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="text-xs border border-theme-border rounded px-2 py-1 bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
 
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="text-xs border border-theme-border rounded px-2 py-1 bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 >
                   <option value="">All Status</option>
                   <option value="active">Active</option>
@@ -820,7 +820,7 @@ const renderListView = () => (
                       setSelectedDepartment("");
                       setSelectedStatus("");
                     }}
-                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-200 rounded"
+                    className="text-xs text-theme-text-secondary hover:text-theme-text-primary px-2 py-1 border border-theme-border rounded"
                   >
                     Clear Filters
                   </button>
@@ -838,14 +838,14 @@ const renderListView = () => (
 
         {/* Content */}
         {loading ? (
-          <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary">
             <div className="inline-flex items-center space-x-2">
               <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
               <span className="text-xs">Loading employees...</span>
             </div>
           </div>
         ) : currentEmployees.length === 0 ? (
-          <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary">
             <div className="text-xs">
               {searchTerm || selectedDepartment || selectedStatus ? 'No employees found matching your criteria' : 'No employees found'}
             </div>

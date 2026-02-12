@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     const base = `/${role}/dashboard`;
 
     return [
-      { id: "dashboard", label: "Dashboard", icon: TrendingUp, path: base },
+      { id: "dashboard", label: "Dashboard Summary", icon: TrendingUp, path: base },
 
       {
         id: "departments",
@@ -322,7 +322,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           `w-full flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} px-2 py-2 rounded-lg transition-all duration-200 group ${isCollapsed ? '' : 'border-l-4'} ${
             isActive
               ? `bg-primary-500/10 text-primary-700 ${isCollapsed ? '' : 'border-primary-500'}`
-              : `text-gray-700 hover:bg-gray-50 ${isCollapsed ? '' : 'border-transparent'}`
+              : `text-theme-text-primary hover:bg-theme-bg-tertiary ${isCollapsed ? '' : 'border-transparent'}`
           }`
         }
         onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -331,7 +331,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           <>
             <div
               className={`p-1.5 rounded-md ${
-                isActive ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                isActive ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
               }`}
             >
               <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
@@ -361,12 +361,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             className={`w-full flex items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 ${
               active
                 ? "bg-primary-500/10 text-primary-700"
-                : "text-gray-700 hover:bg-gray-50"
+                : "text-theme-text-primary hover:bg-theme-bg-tertiary"
             }`}
           >
             <div
               className={`p-1.5 rounded-md ${
-                active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+                active ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -382,12 +382,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           onClick={() => toggleDropdown(dropdown.id)}
           className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${active
               ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
-              : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent"
+              : "text-theme-text-primary hover:bg-theme-bg-tertiary border-l-4 border-transparent"
             }`}
         >
           <div className="flex items-center space-x-2">
             <div
-              className={`p-1 rounded-md ${active ? "bg-primary-500 text-white" : "bg-gray-100 text-gray-600"
+              className={`p-1 rounded-md ${active ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
                 }`}
             >
               <Icon className="w-4 h-4" />
@@ -397,7 +397,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           <ChevronDown
             className={`w-4 h-4 transition-transform duration-300 ${
               isOpenDropdown ? "rotate-180" : ""
-            } ${active ? "text-primary-600" : "text-gray-400"}`}
+            } ${active ? "text-primary-600" : "text-theme-text-secondary"}`}
           />
         </button>
 
@@ -417,7 +417,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
                   className={({ isActive }) =>
                     `w-full flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group relative ${isActive
                       ? "bg-primary-500 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      : "text-theme-text-secondary hover:bg-theme-bg-tertiary hover:text-theme-text-primary"
                     }`
                   }
                   onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -455,12 +455,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 min-h-screen bg-white flex flex-col border-r border-primary-200 shadow-lg transform transition-all duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 ${
+        className={`fixed left-0 top-0 min-h-screen bg-sidebar-bg text-sidebar-text flex flex-col border-r border-theme-border shadow-lg transform transition-all duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } ${isCollapsed ? "w-[68px]" : "w-72"}`}
       >
         {/* Header */}
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3 border-b border-primary-200`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3 border-b border-theme-border`}>
           {isCollapsed ? (
             <img
               src={`${API_URL}${displayImage}`}
@@ -479,17 +479,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           )}
           <button
             onClick={onToggle}
-            className="lg:hidden p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="lg:hidden p-1 rounded-lg hover:bg-theme-bg-tertiary transition-colors"
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-theme-text-secondary" />
           </button>
         </div>
 
         {/* Collapse Toggle Button (Desktop only) */}
-        <div className={`hidden lg:flex ${isCollapsed ? 'justify-center' : 'justify-end'} px-2 py-2 border-b border-primary-100`}>
+        <div className={`hidden lg:flex ${isCollapsed ? 'justify-center' : 'justify-end'} px-2 py-2 border-b border-theme-border`}>
           <button
             onClick={toggleCollapse}
-            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-primary-600"
+            className="p-1.5 rounded-lg hover:bg-theme-bg-tertiary transition-colors text-theme-text-secondary hover:text-primary-600"
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? (
@@ -507,7 +507,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
               navlinks.map((it) => ("items" in it ? renderDropdown(it) : renderMenuItem(it)))
             ) : (
               <div className="text-center py-4">
-                <p className="text-gray-500 text-xs">No menu items available</p>
+                <p className="text-theme-text-secondary text-xs">No menu items available</p>
               </div>
             )}
           </nav>

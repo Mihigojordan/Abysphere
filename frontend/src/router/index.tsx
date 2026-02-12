@@ -7,7 +7,7 @@ import DashboardLayout from "../layout/DashboardLayout";
 import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdminRoute";
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
-import logo from "../assets/fine_fish_logo.png";
+import logo from "../assets/tran.png";
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));

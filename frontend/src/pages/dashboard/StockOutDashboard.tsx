@@ -313,7 +313,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
   // Sub-Components
   const ViewModeSwitcher = () => (
-    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+    <div className="flex items-center border border-theme-border rounded-lg overflow-hidden">
       {[
         { mode: 'table' as ViewMode, icon: TableIcon, title: 'Table' },
         { mode: 'grid' as ViewMode, icon: Grid3X3, title: 'Grid' },
@@ -322,7 +322,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
         <button
           key={mode}
           onClick={() => setViewMode(mode)}
-          className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-100 text-primary-600' : 'text-theme-text-secondary hover:bg-theme-bg-tertiary'}`}
           title={title}
         >
           <Icon size={18} />
@@ -346,35 +346,35 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   );
 
   const TableView = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+          <thead className="bg-theme-bg-tertiary border-b border-theme-border">
             <tr>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Date</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Transaction ID</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Product</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Client</th>
-              <th className="px-5 py-3 text-right font-medium text-gray-600">Qty</th>
-              <th className="px-5 py-3 text-right font-medium text-gray-600">Price</th>
-              <th className="px-5 py-3 text-right font-medium text-gray-600">Total</th>
-              <th className="px-5 py-3 text-center font-medium text-gray-600">Actions</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Date</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Transaction ID</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Product</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Client</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Qty</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Price</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Total</th>
+              <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-theme-border">
             {currentItems.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-5 py-4 text-gray-600">{formatDate(item.createdAt)}</td>
+              <tr key={item.id} className="hover:bg-theme-bg-tertiary">
+                <td className="px-5 py-4 text-theme-text-secondary">{formatDate(item.createdAt)}</td>
                 <td className="px-5 py-4">
                   <span className="font-mono text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{item.transactionId || '—'}</span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="font-medium">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
-                  <div className="text-xs text-gray-500">{item.stockin?.sku}</div>
+                  <div className="font-medium text-theme-text-primary">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
+                  <div className="text-xs text-theme-text-secondary">{item.stockin?.sku}</div>
                 </td>
-                <td className="px-5 py-4 text-gray-700">{item.clientName || 'Walk-in'}</td>
-                <td className="px-5 py-4 text-right font-medium">{item.quantity}</td>
-                <td className="px-5 py-4 text-right">{formatPrice(item.soldPrice)}</td>
+                <td className="px-5 py-4 text-theme-text-secondary">{item.clientName || 'Walk-in'}</td>
+                <td className="px-5 py-4 text-right font-medium text-theme-text-primary">{item.quantity}</td>
+                <td className="px-5 py-4 text-right text-theme-text-secondary">{formatPrice(item.soldPrice)}</td>
                 <td className="px-5 py-4 text-right font-bold text-green-600">{formatPrice(item.soldPrice * item.quantity)}</td>
                 <td className="px-5 py-4 text-center">
                   <ActionButtons item={item} />
@@ -395,7 +395,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
           key={item.id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow"
+          className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5 hover:shadow-md transition-shadow"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
@@ -403,27 +403,27 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                 <ShoppingCart size={18} className="text-primary-600" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
-                <p className="text-xs text-gray-500">{item.transactionId || '—'}</p>
+                <p className="font-semibold text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+                <p className="text-xs text-theme-text-secondary">{item.transactionId || '—'}</p>
               </div>
             </div>
             <ActionButtons item={item} />
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Qty:</span>
-              <span className="font-medium">{item.quantity}</span>
+              <span className="text-theme-text-secondary">Qty:</span>
+              <span className="font-medium text-theme-text-primary">{item.quantity}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Price:</span>
-              <span>{formatPrice(item.soldPrice)}</span>
+              <span className="text-theme-text-secondary">Price:</span>
+              <span className="text-theme-text-primary">{formatPrice(item.soldPrice)}</span>
             </div>
             <div className="flex justify-between font-bold text-green-600">
               <span>Total:</span>
               <span>{formatPrice(item.soldPrice * item.quantity)}</span>
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
+          <div className="mt-4 pt-3 border-t border-theme-border text-xs text-theme-text-secondary flex justify-between">
             <span>{item.clientName || 'Walk-in'}</span>
             <span>{formatDate(item.createdAt)}</span>
           </div>
@@ -434,21 +434,21 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   );
 
   const ListView = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border divide-y divide-theme-border">
       {currentItems.map((item) => (
         <motion.div
           key={item.id}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
+          className="px-6 py-4 flex items-center justify-between hover:bg-theme-bg-tertiary"
         >
           <div className="flex items-center gap-4 flex-1">
             <div className="w-10 h-10 bg-primary-50 rounded-full flex-center flex-shrink-0">
               <ShoppingCart size={18} className="text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="font-medium text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+              <p className="text-sm text-theme-text-secondary truncate">
                 <span className="font-mono text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded mr-2">{item.transactionId || '—'}</span>
                 {item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}
               </p>
@@ -456,7 +456,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
           </div>
           <div className="text-right">
             <p className="font-bold text-green-600">{formatPrice(item.soldPrice * item.quantity)}</p>
-            <p className="text-xs text-gray-500">{item.quantity} × {formatPrice(item.soldPrice)}</p>
+            <p className="text-xs text-theme-text-secondary">{item.quantity} × {formatPrice(item.soldPrice)}</p>
           </div>
           <ActionButtons item={item} />
         </motion.div>
@@ -466,13 +466,13 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   );
 
   const Pagination = () => (
-    <div className="flex items-center justify-between py-4 border-t border-gray-200 bg-gray-50 px-6">
-      <p className="text-sm text-gray-600">
+    <div className="flex items-center justify-between py-4 border-t border-theme-border bg-theme-bg-tertiary px-6">
+      <p className="text-sm text-theme-text-secondary">
         Showing {startIdx + 1}–{Math.min(startIdx + itemsPerPage, filteredStockOuts.length)} of {filteredStockOuts.length}
       </p>
       <div className="flex gap-2">
         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
+          className="px-3 py-1.5 border border-theme-border rounded disabled:opacity-50 hover:bg-theme-bg-secondary text-theme-text-primary">
           <ChevronLeft size={16} />
         </button>
         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -482,14 +482,14 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-3 py-1.5 rounded ${currentPage === page ? 'bg-primary-600 text-white' : 'border hover:bg-gray-100'}`}
+              className={`px-3 py-1.5 rounded ${currentPage === page ? 'bg-primary-600 text-white' : 'border border-theme-border hover:bg-theme-bg-secondary text-theme-text-primary'}`}
             >
               {page}
             </button>
           );
         })}
         <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
+          className="px-3 py-1.5 border border-theme-border rounded disabled:opacity-50 hover:bg-theme-bg-secondary text-theme-text-primary">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -497,7 +497,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Toast Notification */}
       <AnimatePresence>
         {notification && (
@@ -516,12 +516,12 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
       <InvoiceComponent isOpen={isInvoiceOpen} onClose={handleCloseInvoice} transactionId={transactionId} />
 
       {/* Header Section */}
-      <div className="bg-white shadow-md">
+      <div className="bg-theme-bg-primary shadow-md border-b border-theme-border">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Stock Out Management</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Record sales & track inventory movement</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">Stock Out Management</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">Record sales & track inventory movement</p>
             </div>
             <ViewModeSwitcher />
           </div>
@@ -538,14 +538,14 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
             { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
             { title: 'Avg Order', value: formatPrice(stats.averageOrderValue), icon: TrendingUp, color: 'orange' },
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded shadow p-4">
+            <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
                   <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">{stat.title}</p>
-                  <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+                  <p className="text-xs text-theme-text-secondary">{stat.title}</p>
+                  <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
                 </div>
               </div>
             </div>
@@ -565,23 +565,23 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
         </div>
 
         {/* Search + Filters */}
-        <div className="bg-white rounded border border-gray-200 p-3">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
             <div className="flex items-center space-x-2 flex-1">
               {/* Search */}
               <div className="relative">
-                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search product, client, phone, transaction..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
               {/* Date Filter Buttons */}
-              <div className="flex gap-1 bg-gray-100 p-1 rounded">
+              <div className="flex gap-1 bg-theme-bg-tertiary p-1 rounded">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map(opt => (
                   <button
                     key={opt}
@@ -594,8 +594,8 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                       }));
                     }}
                     className={`px-2 py-1 text-xs font-medium rounded capitalize transition-colors ${filters.dateRange === opt
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-theme-bg-primary text-primary-600 shadow-sm'
+                      : 'text-theme-text-secondary hover:text-theme-text-primary'
                       }`}
                   >
                     {opt === 'all' ? 'All Time' : opt}
@@ -610,14 +610,14 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                     type="date"
                     value={filters.startDate}
                     onChange={e => setFilters(p => ({ ...p, startDate: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
-                  <span className="text-gray-500 text-xs">to</span>
+                  <span className="text-theme-text-secondary text-xs">to</span>
                   <input
                     type="date"
                     value={filters.endDate}
                     onChange={e => setFilters(p => ({ ...p, endDate: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
                 </div>
               )}
@@ -627,7 +627,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
               <button
                 onClick={fetchData}
                 disabled={isLoading}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
                 title="Refresh"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
@@ -646,15 +646,15 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
         {/* Loading / Empty / Views */}
         {isLoading ? (
-          <div className="bg-white rounded border border-gray-200 p-12 text-center">
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-4"></div>
-            <p className="text-gray-600">Loading sales...</p>
+            <p className="text-theme-text-secondary">Loading sales...</p>
           </div>
         ) : filteredStockOuts.length === 0 ? (
-          <div className="bg-white rounded border border-gray-200 p-12 text-center">
-            <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-base font-semibold mb-2">No sales found</h3>
-            <p className="text-xs text-gray-600 mb-6">
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center">
+            <ShoppingCart className="w-12 h-12 text-theme-text-secondary mx-auto mb-4" />
+            <h3 className="text-base font-semibold mb-2 text-theme-text-primary">No sales found</h3>
+            <p className="text-xs text-theme-text-secondary mb-6">
               {searchTerm || filters.dateRange !== 'all' ? 'Try adjusting filters' : 'Start recording your first sale'}
             </p>
             <button

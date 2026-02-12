@@ -15,7 +15,7 @@ const DashboardLayout = ({role}:{role:string}) => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-theme-bg-secondary transition-colors duration-200">
       <Sidebar onToggle={onToggle} role={role} isOpen={isOpen} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onToggle={onToggle} role={role} />
