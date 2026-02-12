@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ConflictException, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, ConflictException, UploadedFiles, UseInterceptors, UseGuards, Req } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { ClientGateway } from './client.gateway';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ClientFileFields, ClientUploadConfig } from 'src/common/utils/file-upload.utils';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 
 @Controller('clients')
 export class ClientController {
@@ -14,11 +16,13 @@ export class ClientController {
     ) { }
 
     @Post()
+    @UseGuards(AdminJwtAuthGuard)
     @UseInterceptors(
         FileFieldsInterceptor(ClientFileFields, ClientUploadConfig)
     )
     async create(
         @UploadedFiles() files: { profileImg?: Express.Multer.File[] },
+        @Req() req: RequestWithAdmin,
         @Body()
         body: {
             firstname: string;
@@ -29,6 +33,7 @@ export class ClientController {
             profileImage?: string;
         },
     ) {
+        const adminId = req.admin!.id;
 
         const existingClient = await this.prisma.client.findFirst({
             where: {
@@ -48,19 +53,23 @@ export class ClientController {
         if (files?.profileImg?.[0]?.filename) {
             body.profileImage = `/uploads/profile_images/${files.profileImg[0].filename}`;
         }
-        const createdClient = await this.clientService.create(body);
+        const createdClient = await this.clientService.create(body,adminId);
         this.clientGateway.emitClientCreated(createdClient);
         return createdClient;
     }
 
     @Get()
-    async findAll() {
-        return await this.clientService.findAll();
+    @UseGuards(AdminJwtAuthGuard)
+    async findAll(@Req() req: RequestWithAdmin,) {
+        const adminId = req.admin!.id;
+        return await this.clientService.findAll(adminId);
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return await this.clientService.findOne(id);
+    @UseGuards(AdminJwtAuthGuard)
+    async findOne(@Req() req: RequestWithAdmin,@Param('id') id: string) {
+        const adminId = req.admin!.id;
+        return await this.clientService.findOne(id,adminId);
     }
 
     @Put(':id')

@@ -5,29 +5,29 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ClientService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: any) {
+  async create(data: any,adminId:string) {
     try {
       const { id, ...clientData } = data;
-      return await this.prisma.client.create({ data: {...clientData,status:'ACTIVE'} });
+      return await this.prisma.client.create({ data: {...clientData,status:'ACTIVE',adminId} });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to create client');
     }
   }
 
-  async findAll() {
+  async findAll(adminId:string) {
     try {
-      return await this.prisma.client.findMany();
+      return await this.prisma.client.findMany({where:{adminId}});
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to fetch clients');
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string,adminId:string) {
     try {
       const client = await this.prisma.client.findUnique({
-        where: { id },
+        where: { id,adminId },
       });
       if (!client) throw new NotFoundException('Client not found');
       return client;
@@ -45,7 +45,7 @@ export class ClientService {
          console.log(data);
          
       return await this.prisma.client.update({
-        where: { id },
+        where: { id  },
             data,
       });
     } catch (error) {

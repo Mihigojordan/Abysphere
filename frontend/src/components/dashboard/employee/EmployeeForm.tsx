@@ -264,7 +264,7 @@ const EmployeeForm: React.FC<{
           {/* Profile Picture */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture
+              Identity Card or Image
             </label>
             {!profileImgPreview ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
@@ -277,7 +277,7 @@ const EmployeeForm: React.FC<{
                 />
                 <label htmlFor="profileImg" className="cursor-pointer">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">Click to upload profile picture</p>
+                  <p className="mt-2 text-sm text-gray-600">Click to upload Identity Car/d or Image</p>
                   <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
                 </label>
               </div>

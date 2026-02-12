@@ -110,6 +110,7 @@ export class SalesReturnService {
           data: {
             salesReturnId: salesReturn.id,
             stockoutId,
+             
             quantity,
           },
         });

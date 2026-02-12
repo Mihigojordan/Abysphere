@@ -99,6 +99,7 @@ model Admin {
   stockHistoriesCreated StockHistory[]
   Activity      Activity[]
   category      Category[]
+  client        Client[]
   suppliers      Supplier[]
   store  Store[]
   employee Employee[]
@@ -354,6 +355,9 @@ model Client {
   address      String?
   status       ClientStatus    @default(ACTIVE)
   profileImage String? // store URL or file path
+
+    adminId  String?
+  admin       Admin?      @relation(fields: [adminId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -648,6 +652,8 @@ model SalesReturnItem {
   salesReturnId String
   stockoutId    String
   quantity      Int
+
+  
   stockout      StockOut?     @relation(fields: [stockoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   salesReturn   SalesReturn @relation(fields: [salesReturnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
@@ -1097,6 +1103,8 @@ model Supplier {
 
   adminId  String
   admin       Admin      @relation(fields: [adminId], references: [id])
+
+
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt

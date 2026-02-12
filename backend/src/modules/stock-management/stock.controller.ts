@@ -59,13 +59,15 @@ export class StockController {
 
   @Get('history/all')
   @UseGuards(AdminJwtAuthGuard)
-  async getStockHistory() {
-    return await this.stockService.getStockHistory();
+  async getStockHistory(@Req() req: RequestWithAdmin) {
+    const adminId = req.admin!.id;
+    return await this.stockService.getStockHistory(adminId);
   }
 
   @Get('history/:stockId')
   @UseGuards(AdminJwtAuthGuard)
-  async getStockHistoryByStockId(@Param('stockId') stockId: string) {
-    return await this.stockService.getStockHistoryByStockId(Number(stockId));
+  async getStockHistoryByStockId(@Req() req: RequestWithAdmin,@Param('stockId') stockId: string) {
+    const adminId = req.admin!.id;
+    return await this.stockService.getStockHistoryByStockId(Number(stockId),adminId);
   }
 }

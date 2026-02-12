@@ -113,6 +113,7 @@ export class StockService {
 
   async findOne(id: number) {
     const stock = await this.prisma.stock.findUnique({ where: { id } });
+    
     if (!stock) throw new NotFoundException('Stock item not found');
     return stock;
   }
@@ -198,9 +199,9 @@ const updated = await this.prisma.stock.update({
 
   // ── Stock History Queries ──────────────────────────────────────────
 
-  async getStockHistory() {
+  async getStockHistory(adminId:string) {
     return this.prisma.stockHistory.findMany({
-      where: { stockId: { not: null } },
+      where: { stockId: { not: null }, createdByAdminId: adminId },
       include: {
         stock: true,
         createdByAdmin: true,
@@ -210,9 +211,9 @@ const updated = await this.prisma.stock.update({
     });
   }
 
-  async getStockHistoryByStockId(stockId: number) {
+  async getStockHistoryByStockId(stockId: number,adminId:string) {
     return this.prisma.stockHistory.findMany({
-      where: { stockId },
+      where: { stockId ,createdByAdminId:adminId},
       include: {
         stock: true,
         createdByAdmin: true,

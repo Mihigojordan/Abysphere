@@ -8,6 +8,7 @@ import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdm
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/tran.png";
+import StockAnalyticsPage from "../pages/dashboard/StockAnalyticsPage";
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
@@ -459,6 +460,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StockInViewPage role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-analytics',
+                element: (
+                  <SuspenseWrapper>
+                    <StockAnalyticsPage role='admin' />
                   </SuspenseWrapper>
                 ),
               },
