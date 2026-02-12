@@ -18,9 +18,11 @@ app.enableCors({
   origin: [
     process.env.CORS_ORIGIN,
     'http://localhost:5173',
-    'http://localhost:4173',
     'https://system.izubagen.rw',
-    'https://www.system.izubagen.rw'
+    'https://www.system.izubagen.rw',
+    'https://www.izubagen.rw',
+    'https://izubagen.rw'
+
   ].filter(Boolean),
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
