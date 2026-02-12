@@ -17,32 +17,30 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // ✅ CORS: allow ONLY your frontend (and localhost for dev)
-  app.enableCors({
-    origin: [
-      'https://system.izubagen.rw',
-      'https://www.system.izubagen.rw',
-      'http://localhost:5173',
-    ],
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Origin',
-      'X-Requested-With',
-      'Content-Type',
-      'Accept',
-      'Authorization',
-      'Cache-Control',
-      'X-HTTP-Method-Override',
-      'Range', // ✅ important for PDFs/media
-    ],
-    exposedHeaders: [
-      'Content-Disposition',
-      'Content-Length',
-      'Content-Range',
-    ],
-    optionsSuccessStatus: 204,
-  });
-
+app.enableCors({
+  origin: [
+    process.env.CORS_ORIGIN,
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'https://ebe.mysystem.rw',
+    'https://www.ebe.mysystem.rw',
+    'https://my-market-ze0m.onrender.com',
+    'https://www.MY SYSTEM.com'  // Add this
+  ].filter(Boolean),
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'Cache-Control',
+    'X-HTTP-Method-Override'
+  ],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+});
   // ✅ Static serving
   // IMPORTANT: do NOT set Access-Control-Allow-* here (let enableCors handle it)
   app.use(
