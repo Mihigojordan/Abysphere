@@ -304,12 +304,11 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
   // ── Sub-Components ─────────────────────────────────────────────
   const StatisticsCards = () => (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       {[
         { title: 'Total Returns', value: statistics?.totalReturns ?? 0, icon: RotateCcw, color: 'blue' },
         { title: 'Total Items', value: statistics?.totalItems ?? 0, icon: Package, color: 'green' },
         { title: 'Total Qty', value: statistics?.totalQuantity ?? 0, icon: ShoppingCart, color: 'purple' },
-        { title: 'Avg/Return', value: statistics?.averageItemsPerReturn ?? 0, icon: TrendingUp, color: 'orange' },
       ].map((s, i) => (
         <div key={i} className="bg-white rounded shadow p-4">
           <div className="flex items-center space-x-3">
@@ -490,7 +489,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
   // ── Render ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50 text-xs">
       {/* Toast Notification */}
       <AnimatePresence>
         {operationStatus && (

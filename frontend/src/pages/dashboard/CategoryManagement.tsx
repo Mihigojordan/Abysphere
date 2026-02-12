@@ -601,49 +601,10 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">Category Management</h1>
-                <p className="text-[10px] text-gray-500">Manage your product categories • Works offline</p>
+                <p className="text-[10px] text-gray-500">Manage your product categories</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div
-                className={`flex items-center justify-center h-8 px-2 rounded-lg text-[10px] font-medium ${isOnline ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                  }`}
-              >
-                {isOnline ? (
-                  <div className="flex items-center gap-1">
-                    <Wifi className="w-3 h-3" />
-                    <span>Online</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <WifiOff className="w-3 h-3" />
-                    <span>Offline</span>
-                  </div>
-                )}
-              </div>
-
-              {isOnline && (
-                <button
-                  onClick={handleManualSync}
-                  disabled={isLoading}
-                  className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors border border-blue-100 disabled:opacity-50"
-                  title="Manual Sync"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                </button>
-              )}
-
-              {isOnline && (
-                <button
-                  onClick={() => loadCategories(true)}
-                  disabled={isRefreshing}
-                  className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors border border-gray-200 disabled:opacity-50"
-                  title="Refresh Data"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </button>
-              )}
-
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
@@ -658,12 +619,10 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
       <div className="mx-auto px-4 py-4 space-y-4">
         {/* Compact Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { title: 'Active', value: stats.active, icon: CheckCircle, color: 'green' },
-            { title: 'Pending Sync', value: stats.pending, icon: AlertCircle, color: 'yellow' },
             { title: 'Total Categories', value: stats.total, icon: FolderIcon, color: 'primary' },
-            { title: 'Status', value: isOnline ? 'Online' : 'Offline', icon: isOnline ? Wifi : WifiOff, color: isOnline ? 'green' : 'red' },
           ].map((stat, i) => (
             <motion.div
               key={i}

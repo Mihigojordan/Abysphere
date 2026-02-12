@@ -491,7 +491,7 @@ const routes = createBrowserRouter([
                 path: 'stockout-management',
                 element: (
                   <SuspenseWrapper>
-                    <StockOutDashboard />
+                    <StockOutDashboard role={"admin"} />
                   </SuspenseWrapper>
                 ),
               },

@@ -394,7 +394,6 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               <th className="px-4 py-2.5">Supplier Info</th>
               <th className="px-4 py-2.5">Contact Detail</th>
               <th className="px-4 py-2.5">Location</th>
-              <th className="px-4 py-2.5">Status</th>
               <th className="px-4 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
@@ -434,15 +433,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                     <span className="line-clamp-1">{sup.address || 'N/A'}</span>
                   </div>
                 </td>
-                <td className="px-4 py-2.5">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${sup.synced
-                    ? 'bg-green-50 text-green-700 border-green-100'
-                    : 'bg-amber-50 text-amber-700 border-amber-100'
-                    }`}>
-                    <div className={`w-1 h-1 rounded-full mr-1.5 ${sup.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
-                    {sup.synced ? 'Synced' : 'Pending'}
-                  </span>
-                </td>
+
                 <td className="px-4 py-2.5 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <button
@@ -477,7 +468,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             ))}
             {currentItems.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-10 text-center text-gray-400 italic">No suppliers found</td>
+                <td colSpan={4} className="py-10 text-center text-gray-400 italic">No suppliers found</td>
               </tr>
             )}
           </tbody>
@@ -505,7 +496,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <div className="text-[10px] text-gray-400 truncate">ID: {sup.id?.substring(0, 8) || 'LOCAL'}</div>
               </div>
             </div>
-            <span className={`w-2 h-2 rounded-full ${sup.synced ? 'bg-green-500' : 'bg-amber-500'}`} title={sup.synced ? 'Synced' : 'Pending'} />
+
           </div>
 
           <div className="space-y-1.5 mb-3">
@@ -587,7 +578,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               <MapPin className="w-3 h-3 shrink-0" />
               {sup.address || 'No address specified'}
             </div>
-            <div className={`w-1.5 h-1.5 rounded-full ${sup.synced ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-amber-500'}`} />
+
             <div className="flex items-center gap-1">
               <button
                 onClick={() => {
@@ -668,49 +659,10 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">Supplier Management</h1>
-                <p className="text-[10px] text-gray-500">Manage your product suppliers • Works offline</p>
+                <p className="text-[10px] text-gray-500">Manage your product suppliers</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div
-                className={`flex items-center justify-center h-8 px-2 rounded-lg text-[10px] font-medium ${isOnline ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                  }`}
-              >
-                {isOnline ? (
-                  <div className="flex items-center gap-1">
-                    <Wifi className="w-3 h-3" />
-                    <span>Online</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <WifiOff className="w-3 h-3" />
-                    <span>Offline</span>
-                  </div>
-                )}
-              </div>
-
-              {isOnline && (
-                <button
-                  onClick={handleManualSync}
-                  disabled={isLoading}
-                  className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors border border-blue-100 disabled:opacity-50"
-                  title="Manual Sync"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                </button>
-              )}
-
-              {isOnline && (
-                <button
-                  onClick={() => loadSuppliers(true)}
-                  disabled={isRefreshing}
-                  className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors border border-gray-200 disabled:opacity-50"
-                  title="Refresh Data"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </button>
-              )}
-
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
@@ -725,12 +677,10 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
       <div className="mx-auto px-4 py-4 space-y-4">
         {/* Compact Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { title: 'Active', value: stats.active, icon: CheckCircle, color: 'green' },
-            { title: 'Pending Sync', value: stats.pending, icon: AlertCircle, color: 'yellow' },
             { title: 'Total Suppliers', value: stats.total, icon: SupplierIcon, color: 'primary' },
-            { title: 'Status', value: isOnline ? 'Online' : 'Offline', icon: isOnline ? Wifi : WifiOff, color: isOnline ? 'green' : 'red' },
           ].map((stat, i) => (
             <motion.div
               key={i}
