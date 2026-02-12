@@ -15,15 +15,20 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Enable CORS
+const allowed = new Set([
+  process.env.CORS_ORIGIN,
+  'https://system.izubagen.rw',
+  'https://www.system.izubagen.rw',
+  'http://localhost:5173',
+].filter(Boolean));
+
 app.enableCors({
-  origin: [
-    process.env.CORS_ORIGIN,
-    'https://system.izubagen.rw',
-    'https://www.system.izubagen.rw',  // ✅ added
-    'http://localhost:5173'
-  ],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // Postman/curl/server-to-server
+    return allowed.has(origin) ? cb(null, true) : cb(new Error('Not allowed by CORS'), false);
+  },
   credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 });
 
 
