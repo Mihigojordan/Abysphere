@@ -135,21 +135,42 @@ export class StockService {
     const newQuantity = data.receivedQuantity !== undefined ? Number(data.receivedQuantity) : oldQty;
     const newUnitCost = data.unitCost !== undefined ? Number(data.unitCost) : Number(existing.unitCost);
     const totalValue = newQuantity * newUnitCost;
+   // remove FK from spread so Prisma doesn't see it
+const { categoryId , ...rest } = data;
 
-    const updated = await this.prisma.stock.update({
-      where: { id },
-      data: {
-        ...data,
-        receivedQuantity: newQuantity,
-        unitCost: new Prisma.Decimal(newUnitCost),
-        totalValue: new Prisma.Decimal(totalValue),
-        supplier: supplierName,
-        receivedDate: data.receivedDate ? new Date(data.receivedDate) : existing.receivedDate,
-        reorderLevel: data.reorderLevel !== undefined ? Number(data.reorderLevel) : existing.reorderLevel,
-        expiryDate: data.expiryDate ? new Date(data.expiryDate) : existing.expiryDate,
-      },
-    });
 
+const updateData = {
+  ...rest,
+
+  receivedQuantity: newQuantity,
+  unitCost: new Prisma.Decimal(newUnitCost),
+  totalValue: new Prisma.Decimal(totalValue),
+  supplier: supplierName,
+  receivedDate: data.receivedDate
+    ? new Date(data.receivedDate)
+    : existing.receivedDate,
+  reorderLevel:
+    data.reorderLevel !== undefined
+      ? Number(data.reorderLevel)
+      : existing.reorderLevel,
+  expiryDate: data.expiryDate
+    ? new Date(data.expiryDate)
+    : existing.expiryDate,
+};
+
+// ✅ only update relation if provided
+if (categoryId) {
+  updateData.category = {
+    connect: { id: categoryId }
+  };
+}
+
+const updated = await this.prisma.stock.update({
+  where: { id },
+  data: updateData,
+});
+
+  
     // Record stock history — ADJUSTMENT (update)
     if (oldQty !== newQuantity) {
       await this.prisma.stockHistory.create({

@@ -143,11 +143,6 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     if (isOnline) handleManualSync();
   }, [isOnline, loadSuppliers]);
 
-  useEffect(() => {
-    if (syncError) {
-      showNotification(`Sync error: ${syncError}`, 'error');
-    }
-  }, [syncError]);
 
   /* --------------------------------------------------------------------- */
   /* Filter */
@@ -188,8 +183,8 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Notifications */
   /* --------------------------------------------------------------------- */
   const showNotification = (message: string, type: string = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
+    // setNotification({ message, type });
+    // setTimeout(() => setNotification(null), 4000);
   };
 
   /* --------------------------------------------------------------------- */

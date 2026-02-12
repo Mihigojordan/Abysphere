@@ -22,7 +22,7 @@ import salesReturnService from '../../services/salesReturnService';
 import { useNavigate } from 'react-router-dom';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
-function formatCurrency(amount, currency = "RWF", locale = "en-USD") {
+function formatCurrency(amount, currency = "RWF", locale = "en-US") {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,

@@ -450,7 +450,7 @@ const routes = createBrowserRouter([
                 path: 'stockin-management/update/:id',
                 element: (
                   <SuspenseWrapper>
-                    <StockInForm role='admin' />
+                    <StockInFormExample role='admin' />
                   </SuspenseWrapper>
                 ),
               },

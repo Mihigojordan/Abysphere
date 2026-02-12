@@ -112,15 +112,15 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       setFilteredCategories(combinedCategories);
 
       if (showRefreshLoader) {
-        showNotification('Categories refreshed successfully!');
+        // showNotification('Categories refreshed successfully!');
       }
 
       if (!isOnline && combinedCategories.length === 0) {
-        showNotification('No offline data available', 'error');
+        // showNotification('No offline data available', 'error');
       }
     } catch (error) {
       console.error('Error loading categories:', error);
-      showNotification('Failed to load categories', 'error');
+      // showNotification('Failed to load categories', 'error');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -132,11 +132,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     if (isOnline) handleManualSync();
   }, [isOnline, loadCategories]);
 
-  useEffect(() => {
-    if (syncError) {
-      showNotification(`Sync status error: ${syncError}`, 'error');
-    }
-  }, [syncError]);
+
 
   /* --------------------------------------------------------------------- */
   /* Filter */
@@ -175,8 +171,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Notifications */
   /* --------------------------------------------------------------------- */
   const showNotification = (message: string, type: string = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
+    // setNotification({ message, type });
+    // setTimeout(() => setNotification(null), 4000);
   };
 
   /* --------------------------------------------------------------------- */

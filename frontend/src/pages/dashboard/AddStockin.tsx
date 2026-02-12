@@ -386,13 +386,15 @@ const StockInForm: React.FC<{
         receivedDate: formData.receivedDate ? new Date(formData.receivedDate) : undefined as any,
         reorderLevel: parseInt(formData.reorderLevel) || 0,
         expiryDate: formData.expiryDate ? new Date(formData.expiryDate) : undefined,
-        description: formData.description || undefined,
+        // description: formData.description || undefined,
         adminId: formData.adminId || 'current-admin-id', // Replace with auth
       };
 
       let result: Stock;
       if (stockId) {
-        result = await stockService.updateStock(stockId, payload);
+        const data =payload;
+        delete data.categoryId;
+        result = await stockService.updateStock(stockId, data);
       } else {
         result = await stockService.createStock(payload);
       }
