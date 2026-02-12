@@ -85,6 +85,8 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     startDate: '',
     endDate: '',
   });
+  const [sortBy, setSortBy] = useState<'date' | 'quantity' | 'revenue'>('date');
+const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,9 +110,10 @@ const [stats, setStats] = useState({
     fetchData();
   }, []);
 
-  useEffect(() => {
-    applyFiltersAndSearch();
-  }, [searchTerm, stockOuts, filters,stockIns]);
+ useEffect(() => {
+  applyFiltersAndSearch();
+}, [searchTerm, stockOuts, filters, stockIns, sortBy, sortOrder]);
+
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -208,32 +211,66 @@ const [stats, setStats] = useState({
       default: return { start: null, end: null };
     }
   };
+const applyFiltersAndSearch = useCallback(() => {
+  // Move getDateRange logic inline
+  const getDateRange = () => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const applyFiltersAndSearch = useCallback(() => {
-    const { start, end } = getDateRange();
+    switch (filters.dateRange) {
+      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+      case 'custom':
+        return {
+          start: filters.startDate ? new Date(filters.startDate) : null,
+          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
+        };
+      default: return { start: null, end: null };
+    }
+  };
 
-    const filtered = stockOuts.filter(item => {
-      const searchMatch =
-        !searchTerm ||
-        item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.clientPhone?.includes(searchTerm) ||
-        item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
+  const { start, end } = getDateRange();
 
-      let dateMatch = true;
-      if (filters.dateRange !== 'all' && start && end) {
-        const itemDate = new Date(item.createdAt).getTime();
-        dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
-      }
+  let filtered = stockOuts.filter(item => {
+    const searchMatch =
+      !searchTerm ||
+      item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.clientPhone?.includes(searchTerm) ||
+      item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      return searchMatch && dateMatch;
-    });
+    let dateMatch = true;
+    if (filters.dateRange !== 'all' && start && end) {
+      const itemDate = new Date(item.createdAt).getTime();
+      dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
+    }
 
-    setFilteredStockOuts(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, stockOuts, filters]);
+    return searchMatch && dateMatch;
+  });
 
+  // Apply sorting
+  filtered.sort((a, b) => {
+    let compareValue = 0;
+    
+    if (sortBy === 'quantity') {
+      compareValue = a.quantity - b.quantity;
+    } else if (sortBy === 'revenue') {
+      compareValue = (a.soldPrice * a.quantity) - (b.soldPrice * b.quantity);
+    } else {
+      compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    
+    return sortOrder === 'asc' ? compareValue : -compareValue;
+  });
+
+  setFilteredStockOuts(filtered);
+  setCurrentPage(1);
+}, [searchTerm, stockOuts, filters, sortBy, sortOrder]);
   // ── Helpers ──────────────────────────────────────────────────
   const showNotification = (message: string, type: 'success' | 'error') => {
     // setNotification({ message, type });
@@ -286,6 +323,7 @@ const [stats, setStats] = useState({
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
     try {
+      console.warn('Submitting:', data);
       const userInfo: any = {};
       if (role === 'admin') userInfo.adminId = adminData?.id;
       if (role === 'employee') userInfo.employeeId = employeeData?.id;
@@ -603,6 +641,8 @@ const [stats, setStats] = useState({
                 />
               </div>
 
+
+
               {/* Date Filter Buttons */}
               <div className="flex gap-1 bg-theme-bg-tertiary p-1 rounded">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map(opt => (
@@ -645,6 +685,24 @@ const [stats, setStats] = useState({
                 </div>
               )}
             </div>
+
+            {/* Add this right before the Refresh button */}
+<select
+  value={`${sortBy}-${sortOrder}`}
+  onChange={(e) => {
+    const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  }}
+  className="px-3 py-2 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
+>
+  <option value="date-desc">Latest First</option>
+  <option value="date-asc">Oldest First</option>
+  <option value="quantity-desc">Highest Quantity</option>
+  <option value="quantity-asc">Lowest Quantity</option>
+  <option value="revenue-desc">Highest Revenue</option>
+  <option value="revenue-asc">Lowest Revenue</option>
+</select>
 
             <div className="flex gap-2">
               <button

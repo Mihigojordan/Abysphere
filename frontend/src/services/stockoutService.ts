@@ -114,6 +114,7 @@ class StockOutService {
       sales: salesArray.map((sale) => ({
         stockinId: sale.stockinId,
         quantity: Number(sale.quantity),
+        soldPrice: sale.soldPrice ? Number(sale.soldPrice) : undefined,
       })),
       clientName: clientInfo.clientName?.trim() || undefined,
       clientEmail: clientInfo.clientEmail?.trim() || undefined,

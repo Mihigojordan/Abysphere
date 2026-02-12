@@ -217,19 +217,30 @@ const StockInManagement = ({ role }: { role: string }) => {
         }
 
         // Sort
-        filtered.sort((a, b) => {
-            let aValue = a[sortBy] ?? '';
-            let bValue = b[sortBy] ?? '';
-            if (sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'receivedDate') {
-                const dateA = new Date(aValue as string).getTime();
-                const dateB = new Date(bValue as string).getTime();
-                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-            } else {
-                const strA = aValue.toString().toLowerCase();
-                const strB = bValue.toString().toLowerCase();
-                return sortOrder === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
-            }
-        });
+     // Sort
+filtered.sort((a, b) => {
+    let aValue = a[sortBy] ?? '';
+    let bValue = b[sortBy] ?? '';
+    
+    // Date fields
+    if (sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'receivedDate') {
+        const dateA = new Date(aValue as string).getTime();
+        const dateB = new Date(bValue as string).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    } 
+    // Numeric fields
+    else if (sortBy === 'receivedQuantity' || sortBy === 'totalValue' || sortBy === 'unitCost' || sortBy === 'reorderLevel') {
+        const numA = toNumber(aValue);
+        const numB = toNumber(bValue);
+        return sortOrder === 'asc' ? numA - numB : numB - numA;
+    } 
+    // String fields
+    else {
+        const strA = aValue.toString().toLowerCase();
+        const strB = bValue.toString().toLowerCase();
+        return sortOrder === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+    }
+});
 
         setStocks(filtered);
         setCurrentPage(1);
@@ -840,21 +851,24 @@ const StockInManagement = ({ role }: { role: string }) => {
 
                         {/* Sort & View Mode */}
                         <div className="flex items-center space-x-2">
-                            <select
-                                value={`${sortBy}-${sortOrder}`}
-                                onChange={(e) => {
-                                    const [field, order] = e.target.value.split('-') as [keyof Stock, 'asc' | 'desc'];
-                                    setSortBy(field);
-                                    setSortOrder(order);
-                                }}
-                                className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                            >
-                                <option value="itemName-asc">Name (A-Z)</option>
-                                <option value="itemName-desc">Name (Z-A)</option>
-                                <option value="receivedDate-desc">Newest First</option>
-                                <option value="receivedDate-asc">Oldest First</option>
-                                <option value="totalValue-desc">Highest Value</option>
-                            </select>
+                     <select
+    value={`${sortBy}-${sortOrder}`}
+    onChange={(e) => {
+        const [field, order] = e.target.value.split('-') as [keyof Stock, 'asc' | 'desc'];
+        setSortBy(field);
+        setSortOrder(order);
+    }}
+    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+>
+    <option value="itemName-asc">Name (A-Z)</option>
+    <option value="itemName-desc">Name (Z-A)</option>
+    <option value="receivedDate-desc">Newest First</option>
+    <option value="receivedDate-asc">Oldest First</option>
+    <option value="receivedQuantity-desc">Highest Quantity</option>
+    <option value="receivedQuantity-asc">Lowest Quantity</option>
+    <option value="totalValue-desc">Highest Value</option>
+    <option value="totalValue-asc">Lowest Value</option>
+</select>
                             <div className="flex items-center border border-gray-200 rounded">
                                 <button onClick={() => setViewMode('table')} className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`} title="Table View">
                                     <List className="w-3 h-3" />

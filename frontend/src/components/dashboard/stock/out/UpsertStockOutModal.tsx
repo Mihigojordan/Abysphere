@@ -352,15 +352,18 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
       if (Object.values(errors).some(e => e !== "")) return;
 
-      onSubmit({
-        stockinId: Number(formData.stockinId),
-        quantity: Number(formData.quantity),
-        soldPrice: formData.soldPrice ? Number(formData.soldPrice) : undefined,
-        clientName: formData.clientName.trim() || undefined,
-        clientEmail: formData.clientEmail.trim() || undefined,
-        clientPhone: formData.clientPhone.trim() || undefined,
-        paymentMethod: formData.paymentMethod || undefined,
-      });
+// For UPDATE mode (around line 340):
+const submitData = {
+  stockinId: Number(formData.stockinId),
+  quantity: Number(formData.quantity),
+  soldPrice: formData.soldPrice ? Number(formData.soldPrice) : undefined,
+  clientName: formData.clientName.trim() || undefined,
+  clientEmail: formData.clientEmail.trim() || undefined,
+  clientPhone: formData.clientPhone.trim() || undefined,
+  paymentMethod: formData.paymentMethod || undefined,
+};
+console.log('UPDATE MODE - Submitting:', submitData);
+onSubmit(submitData);
     } else {
       // Create mode - validate all entries
       const clientErrors = {
@@ -404,19 +407,22 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
         return;
       }
 
-      onSubmit({
-        salesArray: formData.salesEntries.map(e => ({
-          stockinId: Number(e.stockinId),
-          quantity: Number(e.quantity),
-          soldPrice: e.soldPrice ? Number(e.soldPrice) : undefined,
-        })),
-        clientInfo: {
-          clientName: formData.clientName.trim() || undefined,
-          clientEmail: formData.clientEmail.trim() || undefined,
-          clientPhone: formData.clientPhone.trim() || undefined,
-          paymentMethod: formData.paymentMethod || undefined,
-        },
-      });
+// For CREATE mode (around line 370):
+const submitData = {
+  salesArray: formData.salesEntries.map(e => ({
+    stockinId: Number(e.stockinId),
+    quantity: Number(e.quantity),
+    soldPrice: e.soldPrice ? Number(e.soldPrice) : undefined,
+  })),
+  clientInfo: {
+    clientName: formData.clientName.trim() || undefined,
+    clientEmail: formData.clientEmail.trim() || undefined,
+    clientPhone: formData.clientPhone.trim() || undefined,
+    paymentMethod: formData.paymentMethod || undefined,
+  },
+};
+console.log('CREATE MODE - Submitting:', submitData);
+onSubmit(submitData);
     }
 
     onClose();
