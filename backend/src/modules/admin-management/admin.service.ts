@@ -140,7 +140,7 @@ export class AdminService {
             firstname: admin.adminName,
             otp: otp, // e.g., 6-digit code
             validityMinutes: 5, // optional, e.g., 10 minutes
-            companyName: 'Aby HR',
+            companyName: 'izuba system',
             year: new Date().getFullYear().toString(),
           }
         );
