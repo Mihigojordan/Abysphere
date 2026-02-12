@@ -180,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                   <Menu className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-theme-text-primary">
-                  Welcome to Dashboard Management
+                  MY SYSTEM 
                 </h1>
               </div>
             </div>

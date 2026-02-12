@@ -393,6 +393,12 @@ class SupplierSyncService {
       const serverSuppliers: ServerSupplier[] = await supplierService.getAllSuppliers();
       console.log('=> + FETCHING AND UPDATING SUPPLIER DATA ', serverSuppliers.length);
 
+      // Only replace local data if we actually got valid data from the server
+      if (!serverSuppliers || !Array.isArray(serverSuppliers) || serverSuppliers.length === 0) {
+        console.log('Server returned no suppliers, keeping local data intact');
+        return;
+      }
+
       await db.transaction('rw', db.suppliers_all, db.synced_supplier_ids, async () => {
         await db.suppliers_all.clear();
         console.log('Cleared local suppliers, replacing with server data');
@@ -417,7 +423,7 @@ class SupplierSyncService {
           .delete();
       });
     } catch (error: any) {
-      console.error('Error fetching server supplier data:', error);
+      console.error('Error fetching server supplier data, keeping local data intact:', error);
     }
   }
 

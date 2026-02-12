@@ -13,7 +13,7 @@ import stockService from '../../services/stockInService';
 import stockOutService from '../../services/stockoutService';
 import salesReturnService from '../../services/salesReturnService';
 import { useNavigate } from 'react-router-dom';
-function formatCurrency(amount, currency = "RWF", locale = "en-US") {
+function formatCurrency(amount: number | bigint, currency = "RWF", locale = "en-US") {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
