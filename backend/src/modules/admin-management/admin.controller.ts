@@ -65,6 +65,7 @@ export class AdminController {
   secure: true, // HTTPS required
   sameSite: 'none', // allows cross-site cookies
   maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
       });
 
       return res.status(200).json(loginResult);
@@ -92,7 +93,7 @@ export class AdminController {
   secure: true, // HTTPS required
   sameSite: 'none', // allows cross-site cookies
   maxAge: 7 * 24 * 60 * 60 * 1000,
-  
+  path: '/',
       });
 
       return res.status(200).json(verifyResult);
@@ -127,7 +128,7 @@ export class AdminController {
   secure: true, // HTTPS required
   sameSite: 'none', // allows cross-site cookies
   maxAge: 7 * 24 * 60 * 60 * 1000,
-
+  path: '/',
       });
 
       let parsedState: OAuthState = {};
@@ -179,7 +180,7 @@ export class AdminController {
   secure: true, // HTTPS required
   sameSite: 'none', // allows cross-site cookies
   maxAge: 7 * 24 * 60 * 60 * 1000,
-
+  path: '/',
       });
 
 
