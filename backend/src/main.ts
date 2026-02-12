@@ -15,11 +15,17 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
   // Enable CORS
-  app.enableCors({
-    origin:[ process.env.CORS_ORIGIN ,'https://system.izubagen.rw', 'http://localhost:5173'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+app.enableCors({
+  origin: [
+    process.env.CORS_ORIGIN,
+    'https://system.izubagen.rw',
+    'https://www.system.izubagen.rw',  // ✅ added
+    'http://localhost:5173'
+  ],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+});
+
 
   // Static files from /uploads with proper headers
   app.use(
