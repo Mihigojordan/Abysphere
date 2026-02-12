@@ -1,31 +1,60 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Deploy izuba backend  App
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  build:
-
+  deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - name: ⏬ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      # === BACKEND BUILD (on GitHub runner) ===
+      - name: 📦 Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: 🧬 Prisma generate
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: 🛠 Build backend (more heap)
+        working-directory: ./backend
+        env:
+          NODE_OPTIONS: --max-old-space-size=2048
+        run: npm run build
+
+      # Prepare a clean deploy folder
+      - name: 📦 Prepare backend artifact
+        run: |
+          rm -rf backend_deploy
+          mkdir -p backend_deploy
+          cp -R backend/dist backend_deploy/dist
+          cp backend/package.json backend_deploy/package.json
+          if [ -f backend/package-lock.json ]; then cp backend/package-lock.json backend_deploy/package-lock.json; fi
+          if [ -d backend/prisma ]; then cp -R backend/prisma backend_deploy/prisma; fi
+          if [ -f backend/.env ]; then cp backend/.env backend_deploy/.env; fi
+
+      # === BACKEND DEPLOYMENT ===
+      - name: 📂 Upload backend to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 162.0.224.102
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          source: "backend_deploy/**"
+          target: "/var/www/izuba"
+          strip_components: 1
+          overwrite: true
