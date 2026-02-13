@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Plus,
     Search,
@@ -34,6 +34,7 @@ import EditClientModal from '../../components/dashboard/client/EditClientModal';
 import DeleteClientModal from '../../components/dashboard/client/DeleteClientModal';
 import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Client {
     id: string;
@@ -55,7 +56,8 @@ interface OperationStatus {
 
 type ViewMode = 'table' | 'grid' | 'list';
 
-const ClientManagement = ({role}:{role:string}) => {
+const ClientManagement = () => {
+    const { t } = useLanguage();
     const [clients, setClients] = useState<Client[]>([]);
     const [allClients, setAllClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -86,7 +88,7 @@ const ClientManagement = ({role}:{role:string}) => {
                 setAllClients(data || []);
                 setError(null);
             } catch (err: any) {
-                const errorMessage = err.message || 'Failed to load clients';
+                const errorMessage = err.message || t('client.messages.loadError');
                 console.error('Error fetching clients:', err);
                 setError(errorMessage);
                 showOperationStatus('error', errorMessage);
@@ -104,7 +106,7 @@ const ClientManagement = ({role}:{role:string}) => {
     useSocketEvent('clientCreated', (clientData: Client) => {
         console.log('Client created via WebSocket:', clientData);
         setAllClients((prevClients) => [...prevClients, clientData]);
-        showOperationStatus('success', `Client ${clientData.firstname} ${clientData.lastname} created`);
+        showOperationStatus('success', t('client.messages.createSuccess'));
     });
 
     useSocketEvent('clientUpdated', (clientData: Client) => {
@@ -112,13 +114,13 @@ const ClientManagement = ({role}:{role:string}) => {
         setAllClients((prevClients) =>
             prevClients.map((c) => (c.id === clientData.id ? clientData : c))
         );
-        showOperationStatus('success', `Client ${clientData.firstname} ${clientData.lastname} updated`);
+        showOperationStatus('success', t('client.messages.updateSuccess'));
     });
 
     useSocketEvent('clientDeleted', ({ id }: { id: string }) => {
         console.log('Client deleted via WebSocket:', id);
         setAllClients((prevClients) => prevClients.filter((c) => c.id !== id));
-        showOperationStatus('success', 'Client deleted');
+        showOperationStatus('success', t('client.messages.deleteSuccess'));
     });
 
     const getAvatarColor = (name: string) => {
@@ -246,10 +248,10 @@ const ClientManagement = ({role}:{role:string}) => {
             };
 
             await html2pdf().from(htmlContent).set(opt).save();
-            showOperationStatus('success', 'PDF exported successfully');
+            showOperationStatus('success', t('client.messages.pdfExportSuccess'));
         } catch (err: any) {
             console.error('Error generating PDF:', err);
-            showOperationStatus('error', 'Failed to export PDF');
+            showOperationStatus('error', t('client.messages.pdfExportError'));
         } finally {
             setOperationLoading(false);
         }
@@ -268,11 +270,11 @@ const ClientManagement = ({role}:{role:string}) => {
                 setSelectedClient(client);
                 setIsEditModalOpen(true);
             } else {
-                showOperationStatus('error', 'Client not found');
+                showOperationStatus('error', t('client.messages.notFound'));
             }
         } catch (err: any) {
             console.error('Error fetching client for edit:', err);
-            showOperationStatus('error', err.message || 'Failed to fetch client');
+            showOperationStatus('error', err.message || t('client.messages.loadError'));
         } finally {
             setOperationLoading(false);
         }
@@ -296,14 +298,14 @@ const ClientManagement = ({role}:{role:string}) => {
                 if (!newClient) {
                     throw new Error('No client data returned from createClient');
                 }
-                showOperationStatus('success', 'Client created successfully');
+                showOperationStatus('success', t('client.messages.createSuccess'));
                 setIsAddModalOpen(false);
             } else {
                 if (!selectedClient) {
                     throw new Error('No client selected for update');
                 }
                 await clientService.updateClient(selectedClient.id, data as UpdateClientInput);
-                showOperationStatus('success', 'Client updated successfully');
+                showOperationStatus('success', t('client.messages.updateSuccess'));
                 setIsEditModalOpen(false);
             }
         } catch (err: any) {
@@ -318,7 +320,7 @@ const ClientManagement = ({role}:{role:string}) => {
         try {
             setOperationLoading(true);
             await clientService.deleteClient(client.id);
-            showOperationStatus('success', `Client "${client.firstname} ${client.lastname}" deleted successfully`);
+            showOperationStatus('success', t('client.messages.deleteSuccess'));
         } catch (err: any) {
             console.error('Error deleting client:', err);
             showOperationStatus('error', err.message || 'Failed to delete client');
@@ -372,7 +374,7 @@ const ClientManagement = ({role}:{role:string}) => {
         }, []);
 
         return (
-            <div className="bg-white rounded border border-gray-200 p-3 hover:shadow-sm transition-shadow">
+            <div className="bg-theme-bg-primary rounded border border-theme-border p-3 hover:shadow-sm transition-shadow">
                 <div className="flex items-center justify-between mb-2">
                     <div className="relative" ref={dropdownRef}>
                         <button
@@ -382,36 +384,36 @@ const ClientManagement = ({role}:{role:string}) => {
                             <MoreHorizontal className="w-3 h-3 text-gray-400" />
                         </button>
                         {isDropdownOpen && (
-                            <div className="absolute right-0 top-6 bg-white shadow-lg rounded border py-1 z-10">
+                            <div className="absolute right-0 top-6 bg-theme-bg-primary shadow-lg rounded border border-theme-border py-1 z-10 min-w-[120px]">
                                 <button
                                     onClick={() => {
                                         handleViewClient(client);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
                                 >
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    View
+                                    <Eye className="w-3 h-3 mr-1.5 text-primary-500" />
+                                    {t('client.actions.view')}
                                 </button>
                                 <button
                                     onClick={() => {
                                         handleEditClient(client.id);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
                                 >
-                                    <Edit className="w-3 h-3 mr-1" />
-                                    Edit
+                                    <Edit className="w-3 h-3 mr-1.5 text-amber-500" />
+                                    {t('client.actions.edit')}
                                 </button>
                                 <button
                                     onClick={() => {
                                         handleDeleteClient(client);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
                                 >
-                                    <Trash2 className="w-3 h-3 mr-1" />
-                                    Delete
+                                    <Trash2 className="w-3 h-3 mr-1.5 text-red-500" />
+                                    {t('client.actions.delete')}
                                 </button>
                             </div>
                         )}
@@ -436,36 +438,35 @@ const ClientManagement = ({role}:{role:string}) => {
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-xs truncate">
+                        <div className="font-medium text-theme-text-primary text-xs truncate">
                             {client.firstname} {client.lastname}
                         </div>
-                        <div className="text-gray-500 text-xs truncate">{client.email}</div>
+                        <div className="text-theme-text-secondary text-[10px] truncate">{client.email}</div>
                     </div>
                 </div>
                 <div className="space-y-1 mb-2">
-                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                    <div className="flex items-center space-x-1 text-[10px] text-theme-text-secondary">
                         <Phone className="w-3 h-3" />
                         <span>{client.phone || 'N/A'}</span>
                     </div>
-                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                    <div className="flex items-center space-x-1 text-[10px] text-theme-text-secondary">
                         <Calendar className="w-3 h-3" />
                         <span>{formatDate(client.createdAt)}</span>
                     </div>
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                        client.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${client.status === 'ACTIVE' ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
+                        }`}>
                         • {client.status}
                     </span>
                     <div className="flex items-center space-x-1">
-                        <button className="p-1 text-gray-400 hover:text-gray-600" title="Message">
+                        <button className="p-1 text-theme-text-secondary hover:text-primary-500 transition-colors" title={t('client.actions.message')}>
                             <MessageSquare className="w-3 h-3" />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-gray-600" title="Call">
+                        <button className="p-1 text-theme-text-secondary hover:text-primary-500 transition-colors" title={t('client.actions.call')}>
                             <Phone className="w-3 h-3" />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-gray-600" title="Email">
+                        <button className="p-1 text-theme-text-secondary hover:text-primary-500 transition-colors" title={t('client.actions.email')}>
                             <Mail className="w-3 h-3" />
                         </button>
                     </div>
@@ -475,47 +476,47 @@ const ClientManagement = ({role}:{role:string}) => {
     };
 
     const renderTableView = () => (
-        <div className="bg-white rounded border border-gray-200">
+        <div className="bg-theme-bg-primary rounded border border-theme-border overflow-hidden">
             <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-theme-bg-tertiary border-b border-theme-border">
                         <tr>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium">#</th>
+                            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
                             <th
-                                className="text-left py-2 px-2 text-gray-600 font-medium cursor-pointer hover:bg-gray-100"
+                                className="text-left py-2 px-2 text-theme-text-secondary font-medium cursor-pointer hover:bg-theme-bg-tertiary/50"
                                 onClick={() => {
                                     setSortBy('firstname');
                                     setSortOrder(sortBy === 'firstname' && sortOrder === 'asc' ? 'desc' : 'asc');
                                 }}
                             >
                                 <div className="flex items-center space-x-1">
-                                    <span>Name</span>
-                                    <ChevronDown className={`w-3 h-3 ${sortBy === 'firstname' ? 'text-primary-600' : 'text-gray-400'}`} />
+                                    <span>{t('client.table.name')}</span>
+                                    <ChevronDown className={`w-3 h-3 ${sortBy === 'firstname' ? 'text-primary-600' : 'text-theme-text-secondary'}`} />
                                 </div>
                             </th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden sm:table-cell">Email</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden sm:table-cell">Phone</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden md:table-cell">Address</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium">Status</th>
+                            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">{t('client.table.email')}</th>
+                            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">{t('client.table.phone')}</th>
+                            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden md:table-cell">{t('client.table.address')}</th>
+                            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('client.table.status')}</th>
                             <th
-                                className="text-left py-2 px-2 text-gray-600 font-medium cursor-pointer hover:bg-gray-100 hidden lg:table-cell"
+                                className="text-left py-2 px-2 text-theme-text-secondary font-medium cursor-pointer hover:bg-theme-bg-tertiary/50 hidden lg:table-cell"
                                 onClick={() => {
                                     setSortBy('createdAt');
                                     setSortOrder(sortBy === 'createdAt' && sortOrder === 'asc' ? 'desc' : 'asc');
                                 }}
                             >
                                 <div className="flex items-center space-x-1">
-                                    <span>Created</span>
-                                    <ChevronDown className={`w-3 h-3 ${sortBy === 'createdAt' ? 'text-primary-600' : 'text-gray-400'}`} />
+                                    <span>{t('client.table.created')}</span>
+                                    <ChevronDown className={`w-3 h-3 ${sortBy === 'createdAt' ? 'text-primary-600' : 'text-theme-text-secondary'}`} />
                                 </div>
                             </th>
-                            <th className="text-right py-2 px-2 text-gray-600 font-medium">Actions</th>
+                            <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('client.table.actions')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-theme-border">
                         {currentClients.map((client, index) => (
-                            <tr key={client.id} className="hover:bg-gray-25">
-                                <td className="py-2 px-2 text-gray-700">{startIndex + index + 1}</td>
+                            <tr key={client.id} className="hover:bg-theme-bg-tertiary/30 transition-colors">
+                                <td className="py-2 px-2 text-theme-text-secondary">{startIndex + index + 1}</td>
                                 <td className="py-2 px-2">
                                     <div className="flex items-center space-x-2">
                                         <div className="w-8 h-8 rounded-full flex items-center justify-center relative overflow-hidden">
@@ -534,49 +535,48 @@ const ClientManagement = ({role}:{role:string}) => {
                                                 {getInitials(client.firstname, client.lastname)}
                                             </div>
                                             {client.status === 'ACTIVE' && (
-                                                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-400 rounded-full border border-white"></div>
+                                                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-green-400 rounded-full border border-theme-border"></div>
                                             )}
                                         </div>
-                                        <span className="font-medium text-gray-900 text-xs">
+                                        <span className="font-medium text-theme-text-primary text-xs">
                                             {client.firstname} {client.lastname}
                                         </span>
                                     </div>
                                 </td>
-                                <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{client.email}</td>
-                                <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">{client.phone || 'N/A'}</td>
-                                <td className="py-2 px-2 text-gray-700 hidden md:table-cell">{client.address || 'N/A'}</td>
+                                <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{client.email}</td>
+                                <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{client.phone || 'N/A'}</td>
+                                <td className="py-2 px-2 text-theme-text-secondary hidden md:table-cell">{client.address || 'N/A'}</td>
                                 <td className="py-2 px-2">
-                                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                        client.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                    }`}>
+                                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${client.status === 'ACTIVE' ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
+                                        }`}>
                                         • {client.status}
                                     </span>
                                 </td>
-                                <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">{formatDate(client.createdAt)}</td>
+                                <td className="py-2 px-2 text-theme-text-secondary hidden lg:table-cell">{formatDate(client.createdAt)}</td>
                                 <td className="py-2 px-2">
                                     <div className="flex items-center justify-end space-x-1">
                                         <button
                                             onClick={() => handleViewClient(client)}
-                                            className="text-gray-400 hover:text-primary-600 p-1"
-                                            title="View"
+                                            className="text-theme-text-secondary hover:text-primary-600 p-1"
+                                            title={t('client.actions.view')}
                                         >
                                             <Eye className="w-3 h-3" />
                                         </button>
                                         <button
                                             onClick={() => handleEditClient(client.id)}
                                             disabled={operationLoading}
-                                            className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
-                                            title="Edit"
+                                            className="text-theme-text-secondary hover:text-amber-600 p-1 disabled:opacity-50"
+                                            title={t('client.actions.edit')}
                                         >
-                                            <Edit className="w-3 h-3" />
+                                            <Edit className="w-3.5 h-3.5 text-amber-500" />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteClient(client)}
                                             disabled={operationLoading}
-                                            className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
-                                            title="Delete"
+                                            className="text-theme-text-secondary hover:text-red-600 p-1 disabled:opacity-50"
+                                            title={t('client.actions.delete')}
                                         >
-                                            <Trash2 className="w-3 h-3" />
+                                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
                                         </button>
                                     </div>
                                 </td>
@@ -597,9 +597,9 @@ const ClientManagement = ({role}:{role:string}) => {
     );
 
     const renderListView = () => (
-        <div className="bg-white rounded border border-gray-200 divide-y divide-gray-100">
+        <div className="bg-theme-bg-primary rounded border border-theme-border divide-y divide-theme-border overflow-hidden">
             {currentClients.map((client) => (
-                <div key={client.id} className="px-4 py-3 hover:bg-gray-25">
+                <div key={client.id} className="px-4 py-3 hover:bg-theme-bg-tertiary/30 transition-colors">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                             <div className="w-10 h-10 rounded-full flex items-center justify-center relative overflow-hidden">
@@ -618,24 +618,24 @@ const ClientManagement = ({role}:{role:string}) => {
                                     {getInitials(client.firstname, client.lastname)}
                                 </div>
                                 {client.status === 'ACTIVE' && (
-                                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-theme-border"></div>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 text-sm truncate">
+                                <div className="font-medium text-theme-text-primary text-sm truncate">
                                     {client.firstname} {client.lastname}
                                 </div>
-                                <div className="text-gray-500 text-xs truncate">{client.email}</div>
+                                <div className="text-theme-text-secondary text-[10px] truncate">{client.email}</div>
                             </div>
                         </div>
-                        <div className="hidden md:grid grid-cols-2 gap-4 text-xs text-gray-600 flex-1 max-w-xl px-4">
+                        <div className="hidden md:grid grid-cols-2 gap-4 text-[10px] text-theme-text-secondary flex-1 max-w-xl px-4">
                             <span className="truncate">{client.phone || 'N/A'}</span>
                             <span>{formatDate(client.createdAt)}</span>
                         </div>
                         <div className="flex items-center space-x-1 flex-shrink-0">
                             <button
                                 onClick={() => handleViewClient(client)}
-                                className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
+                                className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-500/10 transition-colors"
                                 title="View Client"
                             >
                                 <Eye className="w-4 h-4" />
@@ -643,18 +643,18 @@ const ClientManagement = ({role}:{role:string}) => {
                             <button
                                 onClick={() => handleEditClient(client.id)}
                                 disabled={operationLoading}
-                                className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50"
+                                className="text-theme-text-secondary hover:text-amber-600 p-1.5 rounded-full hover:bg-amber-500/10 transition-colors disabled:opacity-50"
                                 title="Edit Client"
                             >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4 text-amber-500" />
                             </button>
                             <button
                                 onClick={() => handleDeleteClient(client)}
                                 disabled={operationLoading}
-                                className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50"
+                                className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-500/10 transition-colors disabled:opacity-50"
                                 title="Delete Client"
                             >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4 text-red-500" />
                             </button>
                         </div>
                     </div>
@@ -678,15 +678,15 @@ const ClientManagement = ({role}:{role:string}) => {
         }
 
         return (
-            <div className="flex items-center justify-between bg-white px-3 py-2 border-t border-gray-200">
-                <div className="text-xs text-gray-600">
-                    Showing {startIndex + 1}-{Math.min(endIndex, filteredClients.length)} of {filteredClients.length}
+            <div className="flex items-center justify-between bg-theme-bg-primary px-3 py-2 border-t border-theme-border">
+                <div className="text-[10px] text-theme-text-secondary">
+                    {t('client.showing')} {startIndex + 1}-{Math.min(endIndex, filteredClients.length)} {t('client.of')} {filteredClients.length}
                 </div>
                 <div className="flex items-center space-x-1">
                     <button
                         onClick={() => setCurrentPage(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center px-2 py-1 text-[10px] text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <ChevronLeft className="w-3 h-3" />
                     </button>
@@ -694,11 +694,10 @@ const ClientManagement = ({role}:{role:string}) => {
                         <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`px-2 py-1 text-xs rounded ${
-                                currentPage === page
-                                    ? 'bg-primary-500 text-white'
-                                    : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'
-                            }`}
+                            className={`px-2 py-1 text-[10px] rounded transition-colors ${currentPage === page
+                                ? 'bg-primary-600 text-white'
+                                : 'text-theme-text-primary bg-theme-bg-primary border border-theme-border hover:bg-theme-bg-tertiary shadow-sm'
+                                }`}
                         >
                             {page}
                         </button>
@@ -706,7 +705,7 @@ const ClientManagement = ({role}:{role:string}) => {
                     <button
                         onClick={() => setCurrentPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center px-2 py-1 text-[10px] text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <ChevronRight className="w-3 h-3" />
                     </button>
@@ -737,17 +736,16 @@ const ClientManagement = ({role}:{role:string}) => {
             {operationStatus && (
                 <div className="fixed top-4 right-4 z-50">
                     <div
-                        className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${
-                            operationStatus.type === 'success'
-                                ? 'bg-green-50 border border-green-200 text-green-800'
-                                : operationStatus.type === 'error'
-                                ? 'bg-red-50 border border-red-200 text-red-800'
-                                : 'bg-primary-50 border border-primary-200 text-primary-800'
-                        }`}
+                        className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-[10px] ${operationStatus.type === 'success'
+                            ? 'bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400'
+                            : operationStatus.type === 'error'
+                                ? 'bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400'
+                                : 'bg-primary-500/10 border border-primary-500/20 text-primary-700 dark:text-primary-400'
+                            }`}
                     >
-                        {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
-                        {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
-                        {operationStatus.type === 'info' && <AlertCircle className="w-4 h-4 text-primary-600" />}
+                        {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
+                        {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-500" />}
+                        {operationStatus.type === 'info' && <AlertCircle className="w-4 h-4 text-primary-500" />}
                         <span className="font-medium">{operationStatus.message}</span>
                         <button onClick={() => setOperationStatus(null)} className="hover:opacity-70">
                             <X className="w-3 h-3" />
@@ -756,49 +754,49 @@ const ClientManagement = ({role}:{role:string}) => {
                 </div>
             )}
             {operationLoading && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
-                    <div className="bg-white rounded p-4 shadow-xl">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40">
+                    <div className="bg-theme-bg-primary border border-theme-border rounded p-4 shadow-xl">
                         <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-gray-700 text-xs font-medium">Processing...</span>
+                            <span className="text-theme-text-primary text-[10px] font-medium">Processing...</span>
                         </div>
                     </div>
                 </div>
             )}
-            <div className="bg-white shadow-md">
+            <div className="bg-theme-bg-primary shadow-sm border-b border-theme-border">
                 <div className="px-4 py-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-lg font-semibold text-gray-900">Client Management</h1>
-                            <p className="text-xs text-gray-500 mt-0.5">Manage your organization's clients</p>
+                            <h1 className="text-lg font-semibold text-theme-text-primary">{t('client.title')}</h1>
+                            <p className="text-[10px] text-theme-text-secondary mt-0.5">{t('client.subtitle')}</p>
                         </div>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => clientService.getAllClients().then(data => setAllClients(data || []))}
                                 disabled={loading}
-                                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-                                title="Refresh"
+                                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                                title={t('client.refresh')}
                             >
                                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-                                <span>Refresh</span>
+                                <span>{t('client.refresh')}</span>
                             </button>
                             <button
                                 onClick={handleExportPDF}
                                 disabled={operationLoading || filteredClients.length === 0}
-                                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-                                title="Export PDF"
+                                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                                title={t('client.export')}
                             >
                                 <Download className="w-3 h-3" />
-                                <span>Export</span>
+                                <span>{t('client.export')}</span>
                             </button>
                             <button
                                 onClick={handleAddClient}
                                 disabled={operationLoading}
-                                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
+                                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-50 text-[10px]"
                                 aria-label="Add new client"
                             >
                                 <Plus className="w-3 h-3" />
-                                <span>Add Client</span>
+                                <span>{t('client.addClient')}</span>
                             </button>
                         </div>
                     </div>
@@ -806,73 +804,72 @@ const ClientManagement = ({role}:{role:string}) => {
             </div>
             <div className="px-4 py-4 space-y-4">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="bg-white rounded shadow p-4">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-4 shadow-sm">
                         <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-primary-100 rounded-full flex items-center justify-center">
+                            <div className="p-3 bg-primary-500/10 rounded-full flex items-center justify-center">
                                 <Users className="w-5 h-5 text-primary-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Total Clients</p>
-                                <p className="text-lg font-semibold text-gray-900">{totalClients}</p>
+                                <p className="text-[10px] text-theme-text-secondary">{t('client.totalClients') || 'Total Clients'}</p>
+                                <p className="text-lg font-semibold text-theme-text-primary">{totalClients}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-4 shadow-sm">
                         <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
+                            <div className="p-3 bg-green-500/10 rounded-full flex items-center justify-center">
                                 <UserCheck className="w-5 h-5 text-green-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Active Clients</p>
-                                <p className="text-lg font-semibold text-gray-900">{activeClients}</p>
+                                <p className="text-[10px] text-theme-text-secondary">{t('client.status.active')}</p>
+                                <p className="text-lg font-semibold text-theme-text-primary">{activeClients}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-4 shadow-sm">
                         <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
+                            <div className="p-3 bg-red-500/10 rounded-full flex items-center justify-center">
                                 <UserX className="w-5 h-5 text-red-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Inactive Clients</p>
-                                <p className="text-lg font-semibold text-gray-900">{inactiveClients}</p>
+                                <p className="text-[10px] text-theme-text-secondary">{t('client.status.inactive')}</p>
+                                <p className="text-lg font-semibold text-theme-text-primary">{inactiveClients}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-4 shadow-sm">
                         <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-purple-100 rounded-full flex items-center justify-center">
+                            <div className="p-3 bg-purple-500/10 rounded-full flex items-center justify-center">
                                 <UserPlus className="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">New Clients (30d)</p>
-                                <p className="text-lg font-semibold text-gray-900">{newClients}</p>
+                                <p className="text-[10px] text-theme-text-secondary">{t('client.newClients') || 'New Clients (30d)'}</p>
+                                <p className="text-lg font-semibold text-theme-text-primary">{newClients}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded border border-gray-200 p-3">
+                <div className="bg-theme-bg-primary rounded border border-theme-border p-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 gap-3">
                         <div className="flex items-center space-x-2">
                             <div className="relative">
-                                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                                <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                                 <input
                                     type="text"
-                                    placeholder="Search clients..."
+                                    placeholder={t('client.searchPlaceholder')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent"
-                                    aria-label="Search clients"
+                                    className="w-48 pl-7 pr-3 py-1.5 text-[10px] border border-theme-border bg-theme-bg-secondary text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+                                    aria-label={t('client.searchPlaceholder')}
                                 />
                             </div>
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${
-                                    showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                                }`}
+                                className={`flex items-center space-x-1 px-2 py-1.5 text-[10px] border rounded transition-colors ${showFilters ? 'bg-primary-500/10 border-primary-500/20 text-primary-600' : 'border-theme-border text-theme-text-secondary hover:bg-theme-bg-tertiary'
+                                    }`}
                             >
                                 <Filter className="w-3 h-3" />
-                                <span>Filter</span>
+                                <span>{t('client.filter')}</span>
                             </button>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -883,38 +880,35 @@ const ClientManagement = ({role}:{role:string}) => {
                                     setSortBy(field);
                                     setSortOrder(order);
                                 }}
-                                className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                className="text-[10px] border border-theme-border bg-theme-bg-secondary text-theme-text-primary rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 aria-label="Sort clients"
                             >
-                                <option value="firstname-asc">Name (A-Z)</option>
-                                <option value="firstname-desc">Name (Z-A)</option>
-                                <option value="createdAt-desc">Newest First</option>
-                                <option value="createdAt-asc">Oldest First</option>
+                                <option value="firstname-asc">{t('client.sort.nameAZ') || 'Name (A-Z)'}</option>
+                                <option value="firstname-desc">{t('client.sort.nameZA') || 'Name (Z-A)'}</option>
+                                <option value="createdAt-desc">{t('client.sort.newest') || 'Newest First'}</option>
+                                <option value="createdAt-asc">{t('client.sort.oldest') || 'Oldest First'}</option>
                             </select>
-                            <div className="flex items-center border border-gray-200 rounded">
+                            <div className="flex items-center border border-theme-border rounded overflow-hidden">
                                 <button
                                     onClick={() => setViewMode('table')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                                        }`}
                                     title="Table View"
                                 >
                                     <List className="w-3 h-3" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'grid' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                                        }`}
                                     title="Grid View"
                                 >
                                     <Grid3X3 className="w-3 h-3" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-1.5 text-xs transition-colors ${
-                                        viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    className={`p-1.5 text-xs transition-colors ${viewMode === 'list' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                                        }`}
                                     title="List View"
                                 >
                                     <Users className="w-3 h-3" />
@@ -923,46 +917,46 @@ const ClientManagement = ({role}:{role:string}) => {
                         </div>
                     </div>
                     {showFilters && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="mt-3 pt-3 border-t border-theme-border">
                             <div className="flex items-center gap-2">
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                    className="text-[10px] border border-theme-border bg-theme-bg-secondary text-theme-text-primary rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                     aria-label="Filter by status"
                                 >
-                                    <option value="all">All Status</option>
-                                    <option value="ACTIVE">Active</option>
-                                    <option value="INACTIVE">Inactive</option>
+                                    <option value="all">{t('client.filterAllStatus') || 'All Status'}</option>
+                                    <option value="ACTIVE">{t('client.status.active')}</option>
+                                    <option value="INACTIVE">{t('client.status.inactive')}</option>
                                 </select>
                                 <button
                                     onClick={() => {
                                         setSearchTerm('');
                                         setStatusFilter('all');
                                     }}
-                                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-200 rounded"
+                                    className="text-[10px] text-theme-text-secondary hover:text-theme-text-primary px-2 py-1 border border-theme-border bg-theme-bg-secondary rounded transition-colors"
                                 >
-                                    Clear Filters
+                                    {t('client.clearFilters') || 'Clear Filters'}
                                 </button>
                             </div>
                         </div>
                     )}
                 </div>
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-xs">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded p-3 text-red-700 dark:text-red-400 text-[10px]">
                         {error}
                     </div>
                 )}
                 {loading ? (
-                    <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary">
                         <div className="inline-flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs">Loading clients...</span>
+                            <span className="text-[10px]">{t('common.loading')}</span>
                         </div>
                     </div>
                 ) : currentClients.length === 0 ? (
-                    <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
-                        <div className="text-xs">
+                    <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary">
+                        <div className="text-[10px]">
                             {searchTerm || statusFilter !== 'all' ? 'No clients found matching your filters' : 'No clients found'}
                         </div>
                     </div>
@@ -975,54 +969,60 @@ const ClientManagement = ({role}:{role:string}) => {
                     </div>
                 )}
             </div>
-            {isViewModalOpen && selectedClient && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-sm font-semibold">Client Details</h3>
-                            <button
-                                onClick={() => setIsViewModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600"
-                                aria-label="Close view modal"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">
-                                    {selectedClient.firstname} {selectedClient.lastname}
-                                </p>
+            {
+                isViewModalOpen && selectedClient && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="bg-theme-bg-primary rounded-lg border border-theme-border p-5 w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-semibold text-theme-text-primary">{t('client.detailsTitle')}</h3>
+                                <button
+                                    onClick={() => setIsViewModalOpen(false)}
+                                    className="text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+                                    aria-label="Close view modal"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
                             </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{selectedClient.email}</p>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Phone</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{selectedClient.phone || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Address</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{selectedClient.address || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{selectedClient.status}</p>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Created Date</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{formatDate(selectedClient.createdAt)}</p>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Last Updated</label>
-                                <p className="text-gray-900 p-2 bg-gray-50 rounded text-xs">{formatDate(selectedClient.updatedAt)}</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.name')}</label>
+                                    <p className="text-theme-text-primary p-2 bg-theme-bg-secondary border border-theme-border rounded text-xs font-medium">
+                                        {selectedClient.firstname} {selectedClient.lastname}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.email')}</label>
+                                    <p className="text-theme-text-primary p-2 bg-theme-bg-secondary border border-theme-border rounded text-xs">{selectedClient.email}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.phone')}</label>
+                                    <p className="text-theme-text-primary p-2 bg-theme-bg-secondary border border-theme-border rounded text-xs">{selectedClient.phone || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.address')}</label>
+                                    <p className="text-theme-text-primary p-2 bg-theme-bg-secondary border border-theme-border rounded text-xs">{selectedClient.address || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.status')}</label>
+                                    <p className="inline-flex px-2 py-1 bg-theme-bg-secondary border border-theme-border rounded text-xs font-semibold text-primary-600">
+                                        {selectedClient.status === 'ACTIVE' ? t('client.status.active') : t('client.status.inactive')}
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-theme-border">
+                                    <div>
+                                        <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.table.created')}</label>
+                                        <p className="text-theme-text-primary text-[10px]">{formatDate(selectedClient.createdAt)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-medium text-theme-text-secondary mb-1">{t('client.lastUpdated')}</label>
+                                        <p className="text-theme-text-primary text-[10px]">{formatDate(selectedClient.updatedAt)}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     );
 };

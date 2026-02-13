@@ -17,6 +17,7 @@ import {
   Grid3X3,
   Table as TableIcon,
   Trash2,
+  FileUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,9 +25,11 @@ import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
 import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
 import ViewStockOutModal from '../../components/dashboard/stock/out/ViewStockOutModal';
+import ImportStockOutModal from '../../components/dashboard/stock/out/ImportStockOutModal';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import InvoiceComponent from '../../components/dashboard/stock/out/InvoiceComponent';
+import { useLanguage } from '../../context/LanguageContext';
 
 // ── Types ─────────────────────────────────────────────────────
 interface StockIn {
@@ -42,7 +45,7 @@ interface StockIn {
 
 interface StockOut {
   id: string;
-  stockinId: number;
+  stockinId: number | null; // Changed to allow null for external sales
   quantity: number;
   soldPrice: number;
   clientName?: string;
@@ -55,7 +58,9 @@ interface StockOut {
     itemName: string;
     sku: string;
     product?: { productName: string; brand?: string };
-  };
+  } | null;
+  externalItemName?: string; // Add external fields
+  externalSku?: string;
 }
 
 interface Filters {
@@ -72,6 +77,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedStockOut, setSelectedStockOut] = useState<StockOut | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -85,8 +91,9 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     startDate: '',
     endDate: '',
   });
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'quantity' | 'revenue'>('date');
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,25 +101,28 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
+  const { t } = useLanguage();
 
-const [stats, setStats] = useState({
-  totalSales: 0,
-  totalRevenue: 0,
-  totalTransactions: 0,
-  averageOrderValue: 0,
-  todaySales: 0,
-  todayRevenue: 0,
-  totalProfit: 0,  // ADD THIS LINE
-});
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalRevenue: 0,
+    totalTransactions: 0,
+    averageOrderValue: 0,
+    todaySales: 0,
+    todayRevenue: 0,
+    totalProfit: 0,
+    filteredSales: 0,
+    filteredRevenue: 0,
+  });
 
   // ── Fetch Data ───────────────────────────────────────────────
   useEffect(() => {
     fetchData();
   }, []);
 
- useEffect(() => {
-  applyFiltersAndSearch();
-}, [searchTerm, stockOuts, filters, stockIns, sortBy, sortOrder]);
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [searchTerm, stockOuts, filters, stockIns, sortBy, sortOrder]);
 
 
   useEffect(() => {
@@ -136,145 +146,138 @@ const [stats, setStats] = useState({
       setStockOuts(outs);
       setFilteredStockOuts(outs);
       setStockIns(Array.isArray(ins) ? ins : []);
-     ;
-      
-      calculateStats(outs,Array.isArray(ins) ? ins : []);
+      ;
+
+      setStockIns(Array.isArray(ins) ? ins : []);
+
+      calculateStats(outs, outs, Array.isArray(ins) ? ins : []);
     } catch (err: any) {
-      showNotification(`Failed to load data: ${err.message}`, 'error');
+      showNotification(`${t('stockOut.failedToLoad')}: ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   // ── Stats & Filters ──────────────────────────────────────────
- const calculateStats = (data: StockOut[],stockIns:StockIn[]) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const calculateStats = (allData: StockOut[], filteredData: StockOut[], stockIns: StockIn[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const totalSales = data.reduce((sum, item) => sum + item.quantity, 0);
-  const totalRevenue = data.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
-  const totalTransactions = data.length;
-  const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+    // Total Stats (All Data)
+    const totalSales = allData.reduce((sum, item) => sum + item.quantity, 0);
+    const totalRevenue = allData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+    const totalTransactions = allData.length;
+    const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-  console.log('stock out data',data,stockIns);
-  // Calculate total cost and profit
-  const totalCost = data.reduce((sum, item) => {
-    
-    const stockIn = item.stockin;
-    
-    
-    return sum + (Number(stockIn?.unitCost) || 0) * item.quantity;
-  }, 0);
+    // Calculate total cost and profit (All Data)
+    const totalCost = allData.reduce((sum, item) => {
+      // Find unit cost from stockIns if stockin relation not populated or incomplete
+      const stockIn = stockIns.find(s => s.id === item.stockinId) || item.stockin;
+      // Use unitCost from stockIn, default to 0 if not found
+      // Note: item.stockin might be partial, so we check stockIns array too
+      const cost = (stockIn as any)?.unitCost || 0;
+      return sum + Number(cost) * item.quantity;
+    }, 0);
 
-  console.log('total cost',totalCost);
-  
-  
-  const totalProfit = totalRevenue - totalCost;
-  console.log('total profit',totalProfit);
+    const totalProfit = totalRevenue - totalCost;
 
-  const todayData = data.filter((item) => {
-    const itemDate = new Date(item.createdAt);
-    itemDate.setHours(0, 0, 0, 0);
-    return itemDate.getTime() === today.getTime();
-  });
 
-  const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
-  const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+    // Filtered Stats (Dynamic)
+    const filteredSales = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+    const filteredRevenue = filteredData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
 
-  setStats({
-    totalSales,
-    totalRevenue,
-    totalTransactions,
-    averageOrderValue,
-    todaySales,
-    todayRevenue,
-    totalProfit,  // ADD THIS LINE
-  });
-};
+    // Today's Stats (Static - kept for reference if needed, but UI will use filtered)
+    const todayData = allData.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      itemDate.setHours(0, 0, 0, 0);
+      return itemDate.getTime() === today.getTime();
+    });
+    const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
+    const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
 
-  const getDateRange = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    switch (filters.dateRange) {
-      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
-      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
-      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
-      case 'custom':
-        return {
-          start: filters.startDate ? new Date(filters.startDate) : null,
-          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
-        };
-      default: return { start: null, end: null };
-    }
-  };
-const applyFiltersAndSearch = useCallback(() => {
-  // Move getDateRange logic inline
-  const getDateRange = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    switch (filters.dateRange) {
-      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
-      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
-      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
-      case 'custom':
-        return {
-          start: filters.startDate ? new Date(filters.startDate) : null,
-          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
-        };
-      default: return { start: null, end: null };
-    }
+    setStats({
+      totalSales,
+      totalRevenue,
+      totalTransactions,
+      averageOrderValue,
+      todaySales,
+      todayRevenue,
+      totalProfit,
+      filteredSales,
+      filteredRevenue,
+    });
   };
 
-  const { start, end } = getDateRange();
 
-  let filtered = stockOuts.filter(item => {
-    const searchMatch =
-      !searchTerm ||
-      item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.clientPhone?.includes(searchTerm) ||
-      item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
+  const applyFiltersAndSearch = useCallback(() => {
+    // Move getDateRange logic inline
+    const getDateRange = () => {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    let dateMatch = true;
-    if (filters.dateRange !== 'all' && start && end) {
-      const itemDate = new Date(item.createdAt).getTime();
-      dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
-    }
+      switch (filters.dateRange) {
+        case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+        case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+        case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+        case 'custom':
+          return {
+            start: filters.startDate ? new Date(filters.startDate) : null,
+            end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
+          };
+        default: return { start: null, end: null };
+      }
+    };
 
-    return searchMatch && dateMatch;
-  });
+    const { start, end } = getDateRange();
 
-  // Apply sorting
-  filtered.sort((a, b) => {
-    let compareValue = 0;
-    
-    if (sortBy === 'quantity') {
-      compareValue = a.quantity - b.quantity;
-    } else if (sortBy === 'revenue') {
-      compareValue = (a.soldPrice * a.quantity) - (b.soldPrice * b.quantity);
-    } else {
-      compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    }
-    
-    return sortOrder === 'asc' ? compareValue : -compareValue;
-  });
+    let filtered = stockOuts.filter(item => {
+      const searchMatch =
+        !searchTerm ||
+        item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientPhone?.includes(searchTerm) ||
+        item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  setFilteredStockOuts(filtered);
-  setCurrentPage(1);
-}, [searchTerm, stockOuts, filters, sortBy, sortOrder]);
+      let dateMatch = true;
+      if (filters.dateRange !== 'all' && start && end) {
+        const itemDate = new Date(item.createdAt).getTime();
+        dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
+      }
+
+      let paymentMatch = true;
+      if (paymentMethodFilter) {
+        paymentMatch = item.paymentMethod === paymentMethodFilter;
+      }
+
+      return searchMatch && dateMatch && paymentMatch;
+    });
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let compareValue = 0;
+
+      if (sortBy === 'quantity') {
+        compareValue = a.quantity - b.quantity;
+      } else if (sortBy === 'revenue') {
+        compareValue = (a.soldPrice * a.quantity) - (b.soldPrice * b.quantity);
+      } else {
+        compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      return sortOrder === 'asc' ? compareValue : -compareValue;
+    });
+
+    setFilteredStockOuts(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, stockOuts, filters, sortBy, sortOrder, paymentMethodFilter]);
   // ── Helpers ──────────────────────────────────────────────────
   const showNotification = (message: string, type: 'success' | 'error') => {
-    // setNotification({ message, type });
-    // setTimeout(() => setNotification(null), 4000);
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
   };
 
   const updateSearchParam = (key: string, value?: string) => {
@@ -301,7 +304,7 @@ const applyFiltersAndSearch = useCallback(() => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this sale? This action cannot be undone.')) return;
+    if (!window.confirm(t('stockOut.deleteConfirm'))) return;
 
     setIsLoading(true);
     try {
@@ -310,7 +313,7 @@ const applyFiltersAndSearch = useCallback(() => {
       if (role === 'employee') userInfo.employeeId = employeeData?.id;
 
       await stockOutService.deleteStockOut(id, userInfo);
-      showNotification('Sale deleted successfully!', 'success');
+      showNotification(t('stockOut.deleteSuccess'), 'success');
       await fetchData();
     } catch (err: any) {
       showNotification(`Error: ${err.message}`, 'error');
@@ -337,11 +340,11 @@ const applyFiltersAndSearch = useCallback(() => {
       } else if (data.salesArray?.length > 0) {
         // MULTIPLE ITEMS
         response = await stockOutService.createMultipleStockOut(data.salesArray, data.clientInfo || {}, userInfo);
-        showNotification(`Sale of ${data.salesArray.length} items recorded!`, 'success');
+        showNotification(`${data.salesArray.length} ${t('stockOut.recorded')}`, 'success');
       } else {
         // SINGLE ITEM
         response = await stockOutService.createStockOut({ ...data, ...userInfo });
-        showNotification('Sale recorded successfully!', 'success');
+        showNotification(t('stockOut.recordSuccess'), 'success');
       }
 
       if (response?.transactionId && !selectedStockOut) {
@@ -354,7 +357,7 @@ const applyFiltersAndSearch = useCallback(() => {
       setIsAddModalOpen(false);
       setSelectedStockOut(null);
     } catch (err: any) {
-      showNotification(`Error: ${err.message}`, 'error');
+      showNotification(`${t('stockOut.error')}: ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -375,14 +378,14 @@ const applyFiltersAndSearch = useCallback(() => {
   const ViewModeSwitcher = () => (
     <div className="flex items-center border border-theme-border rounded-lg overflow-hidden">
       {[
-        { mode: 'table' as ViewMode, icon: TableIcon, title: 'Table' },
-        { mode: 'grid' as ViewMode, icon: Grid3X3, title: 'Grid' },
-        { mode: 'list' as ViewMode, icon: List, title: 'List' },
+        { mode: 'table' as ViewMode, icon: TableIcon, title: t('stockOut.tableView') },
+        { mode: 'grid' as ViewMode, icon: Grid3X3, title: t('stockOut.gridView') },
+        { mode: 'list' as ViewMode, icon: List, title: t('stockOut.listView') },
       ].map(({ mode, icon: Icon, title }) => (
         <button
           key={mode}
           onClick={() => setViewMode(mode)}
-          className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-100 text-primary-600' : 'text-theme-text-secondary hover:bg-theme-bg-tertiary'}`}
+          className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:bg-theme-bg-tertiary'}`}
           title={title}
         >
           <Icon size={18} />
@@ -393,13 +396,13 @@ const applyFiltersAndSearch = useCallback(() => {
 
   const ActionButtons = ({ item }: { item: StockOut }) => (
     <div className="flex items-center gap-3">
-      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title="Edit">
+      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
         <Edit3 size={16} />
       </button>
-      <button onClick={() => openViewModal(item)} className="text-gray-500 hover:text-primary-600" title="View Details">
+      <button onClick={() => openViewModal(item)} className="text-gray-500 hover:text-primary-600" title={t('stockOut.viewDetails')}>
         <Eye size={16} />
       </button>
-      <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title="Delete">
+      <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title={t('stockOut.delete')}>
         <Trash2 size={16} />
       </button>
     </div>
@@ -411,14 +414,14 @@ const applyFiltersAndSearch = useCallback(() => {
         <table className="w-full text-sm">
           <thead className="bg-theme-bg-tertiary border-b border-theme-border">
             <tr>
-              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Date</th>
-              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Transaction ID</th>
-              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Product</th>
-              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">Client</th>
-              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Qty</th>
-              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Price</th>
-              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">Total</th>
-              <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">Actions</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.date')}</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.transactionId')}</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.product')}</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.client')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.qty')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.price')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.total')}</th>
+              <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">{t('stockOut.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-theme-border">
@@ -426,13 +429,17 @@ const applyFiltersAndSearch = useCallback(() => {
               <tr key={item.id} className="hover:bg-theme-bg-tertiary">
                 <td className="px-5 py-4 text-theme-text-secondary">{formatDate(item.createdAt)}</td>
                 <td className="px-5 py-4">
-                  <span className="font-mono text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{item.transactionId || '—'}</span>
+                  <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{item.transactionId || '—'}</span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="font-medium text-theme-text-primary">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
-                  <div className="text-xs text-theme-text-secondary">{item.stockin?.sku}</div>
+                  <div className="font-medium text-theme-text-primary">
+                    {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+                  </div>
+                  <div className="text-xs text-theme-text-secondary">
+                    {item.stockin?.sku || item.externalSku}
+                  </div>
                 </td>
-                <td className="px-5 py-4 text-theme-text-secondary">{item.clientName || 'Walk-in'}</td>
+                <td className="px-5 py-4 text-theme-text-secondary">{item.clientName || t('stockOut.walkIn')}</td>
                 <td className="px-5 py-4 text-right font-medium text-theme-text-primary">{item.quantity}</td>
                 <td className="px-5 py-4 text-right text-theme-text-secondary">{formatPrice(item.soldPrice)}</td>
                 <td className="px-5 py-4 text-right font-bold text-green-600">{formatPrice(item.soldPrice * item.quantity)}</td>
@@ -459,11 +466,13 @@ const applyFiltersAndSearch = useCallback(() => {
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-50 rounded-full flex-center">
+              <div className="w-10 h-10 bg-primary-500/10 rounded-full flex items-center justify-center">
                 <ShoppingCart size={18} className="text-primary-600" />
               </div>
               <div>
-                <p className="font-semibold text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+                <p className="font-semibold text-theme-text-primary truncate">
+                  {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+                </p>
                 <p className="text-xs text-theme-text-secondary">{item.transactionId || '—'}</p>
               </div>
             </div>
@@ -471,20 +480,20 @@ const applyFiltersAndSearch = useCallback(() => {
           </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-theme-text-secondary">Qty:</span>
+              <span className="text-theme-text-secondary">{t('stockOut.qty')}:</span>
               <span className="font-medium text-theme-text-primary">{item.quantity}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-theme-text-secondary">Price:</span>
+              <span className="text-theme-text-secondary">{t('stockOut.price')}:</span>
               <span className="text-theme-text-primary">{formatPrice(item.soldPrice)}</span>
             </div>
             <div className="flex justify-between font-bold text-green-600">
-              <span>Total:</span>
+              <span>{t('stockOut.total')}:</span>
               <span>{formatPrice(item.soldPrice * item.quantity)}</span>
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-theme-border text-xs text-theme-text-secondary flex justify-between">
-            <span>{item.clientName || 'Walk-in'}</span>
+            <span>{item.clientName || t('stockOut.walkIn')}</span>
             <span>{formatDate(item.createdAt)}</span>
           </div>
         </motion.div>
@@ -503,14 +512,16 @@ const applyFiltersAndSearch = useCallback(() => {
           className="px-6 py-4 flex items-center justify-between hover:bg-theme-bg-tertiary"
         >
           <div className="flex items-center gap-4 flex-1">
-            <div className="w-10 h-10 bg-primary-50 rounded-full flex-center flex-shrink-0">
+            <div className="w-10 h-10 bg-primary-500/10 rounded-full flex items-center justify-center flex-shrink-0">
               <ShoppingCart size={18} className="text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+              <p className="font-medium text-theme-text-primary truncate">
+                {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+              </p>
               <p className="text-sm text-theme-text-secondary truncate">
-                <span className="font-mono text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded mr-2">{item.transactionId || '—'}</span>
-                {item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}
+                <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-1.5 py-0.5 rounded border border-primary-500/20 mr-2">{item.transactionId || '—'}</span>
+                {item.clientName || t('stockOut.walkIn')} • {formatDate(item.createdAt)}
               </p>
             </div>
           </div>
@@ -565,7 +576,7 @@ const applyFiltersAndSearch = useCallback(() => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-green-50 border border-green-200 text-green-800 text-sm"
+            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-green-500/10 border border-green-500/20 text-green-500 text-sm"
           >
             <Check size={16} />
             <span className="font-medium">{notification.message}</span>
@@ -580,10 +591,34 @@ const applyFiltersAndSearch = useCallback(() => {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-theme-text-primary">Stock Out Management</h1>
-              <p className="text-xs text-theme-text-secondary mt-0.5">Record sales & track inventory movement</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">{t('stockOut.title')}</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">{t('stockOut.subtitle')}</p>
             </div>
-            <ViewModeSwitcher />
+            <div className="flex gap-2">
+              <button
+                onClick={fetchData}
+                disabled={isLoading}
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
+                title={t('stockOut.refresh')}
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{t('stockOut.refresh')}</span>
+              </button>
+              <button
+                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
+              >
+                <Plus className="w-3 h-3" />
+                <span>{t('stockOut.recordSale')}</span>
+              </button>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
+              >
+                <FileUp className="w-3 h-3" />
+                <span>{t('stockOut.importSales')}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -592,36 +627,36 @@ const applyFiltersAndSearch = useCallback(() => {
       <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
         {/* Stats Cards */}
-<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-  {[
-    { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
-    { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
-    { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
-    { title: 'Total Profit', value: formatPrice(stats.totalProfit), icon: TrendingUp, color: 'orange' },  // CHANGED THIS LINE
-  ].map((stat, i) => (
-    <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
-      <div className="flex items-center space-x-3">
-        <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
-          <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { title: t('stockOut.totalRevenue'), value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
+            { title: t('stockOut.unitsSold'), value: stats.totalSales, icon: Package, color: 'blue' },
+            { title: t('stockOut.transactions'), value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
+            { title: t('stockOut.totalProfit'), value: formatPrice(stats.totalProfit), icon: TrendingUp, color: 'orange' },  // CHANGED THIS LINE
+          ].map((stat, i) => (
+            <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-3 bg-${stat.color}-500/10 rounded-full flex items-center justify-center`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+                </div>
+                <div>
+                  <p className="text-xs text-theme-text-secondary">{stat.title}</p>
+                  <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">{stat.title}</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
 
         {/* Today's Summary */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-blue-50 rounded p-3 border border-blue-200">
-            <p className="text-xs font-medium text-blue-900">Today's Sales</p>
-            <p className="text-base font-bold text-blue-700 mt-1">{stats.todaySales} units</p>
+          <div className="bg-blue-500/10 rounded p-3 border border-blue-500/20">
+            <p className="text-xs font-medium text-blue-600">{t('stockOut.periodSales')}</p>
+            <p className="text-base font-bold text-blue-600 mt-1">{stats.filteredSales} units</p>
           </div>
-          <div className="bg-green-50 rounded p-3 border border-green-200">
-            <p className="text-xs font-medium text-green-900">Today's Revenue</p>
-            <p className="text-base font-bold text-green-700 mt-1">{formatPrice(stats.todayRevenue)}</p>
+          <div className="bg-green-500/10 rounded p-3 border border-green-500/20">
+            <p className="text-xs font-medium text-green-600">{t('stockOut.periodRevenue')}</p>
+            <p className="text-base font-bold text-green-600 mt-1">{formatPrice(stats.filteredRevenue)}</p>
           </div>
         </div>
 
@@ -634,7 +669,7 @@ const applyFiltersAndSearch = useCallback(() => {
                 <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search product, client, phone, transaction..."
+                  placeholder={t('stockOut.searchPlaceholder')}
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -661,7 +696,10 @@ const applyFiltersAndSearch = useCallback(() => {
                       : 'text-theme-text-secondary hover:text-theme-text-primary'
                       }`}
                   >
-                    {opt === 'all' ? 'All Time' : opt}
+                    {opt === 'all' ? t('stockIn.allTime') :
+                      opt === 'today' ? t('stockIn.today') :
+                        opt === 'week' ? t('stockIn.week') :
+                          opt === 'month' ? t('stockIn.month') : t('stockIn.custom')}
                   </button>
                 ))}
               </div>
@@ -675,7 +713,7 @@ const applyFiltersAndSearch = useCallback(() => {
                     onChange={e => setFilters(p => ({ ...p, startDate: e.target.value }))}
                     className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
-                  <span className="text-theme-text-secondary text-xs">to</span>
+                  <span className="text-theme-text-secondary text-xs">{t('stockIn.to')}</span>
                   <input
                     type="date"
                     value={filters.endDate}
@@ -686,42 +724,36 @@ const applyFiltersAndSearch = useCallback(() => {
               )}
             </div>
 
-            {/* Add this right before the Refresh button */}
-<select
-  value={`${sortBy}-${sortOrder}`}
-  onChange={(e) => {
-    const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
-    setSortBy(newSortBy);
-    setSortOrder(newSortOrder);
-  }}
-  className="px-3 py-2 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
->
-  <option value="date-desc">Latest First</option>
-  <option value="date-asc">Oldest First</option>
-  <option value="quantity-desc">Highest Quantity</option>
-  <option value="quantity-asc">Lowest Quantity</option>
-  <option value="revenue-desc">Highest Revenue</option>
-  <option value="revenue-asc">Lowest Revenue</option>
-</select>
+            <select
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              <option value="">{t('stockOut.allPaymentMethods')}</option>
+              <option value="CASH">{t('stockOut.cash')}</option>
+              <option value="MOMO">{t('stockOut.momo')}</option>
+              <option value="CARD">{t('stockOut.card')}</option>
+            </select>
 
-            <div className="flex gap-2">
-              <button
-                onClick={fetchData}
-                disabled={isLoading}
-                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
-                title="Refresh"
-              >
-                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
-              <button
-                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Record Sale</span>
-              </button>
-            </div>
+            {/* Add this right before the Refresh button */}
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
+                setSortBy(newSortBy);
+                setSortOrder(newSortOrder);
+              }}
+              className="px-3 py-2 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              <option value="date-desc">{t('stockOut.latestFirst')}</option>
+              <option value="date-asc">{t('stockOut.oldestFirst')}</option>
+              <option value="quantity-desc">{t('stockOut.highestQuantity')}</option>
+              <option value="quantity-asc">{t('stockOut.lowestQuantity')}</option>
+              <option value="revenue-desc">{t('stockOut.highestRevenue')}</option>
+              <option value="revenue-asc">{t('stockOut.lowestRevenue')}</option>
+            </select>
+
+            <ViewModeSwitcher />
           </div>
         </div>
 
@@ -729,20 +761,20 @@ const applyFiltersAndSearch = useCallback(() => {
         {isLoading ? (
           <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-4"></div>
-            <p className="text-theme-text-secondary">Loading sales...</p>
+            <p className="text-theme-text-secondary">{t('stockOut.loading')}</p>
           </div>
         ) : filteredStockOuts.length === 0 ? (
           <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center">
             <ShoppingCart className="w-12 h-12 text-theme-text-secondary mx-auto mb-4" />
-            <h3 className="text-base font-semibold mb-2 text-theme-text-primary">No sales found</h3>
+            <h3 className="text-base font-semibold mb-2 text-theme-text-primary">{t('stockOut.noSalesFound')}</h3>
             <p className="text-xs text-theme-text-secondary mb-6">
-              {searchTerm || filters.dateRange !== 'all' ? 'Try adjusting filters' : 'Start recording your first sale'}
+              {searchTerm || filters.dateRange !== 'all' ? t('stockOut.adjustFilters') : t('stockOut.startRecording')}
             </p>
             <button
               onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
               className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
             >
-              Record First Sale
+              {t('stockOut.recordFirstSale')}
             </button>
           </div>
         ) : (
@@ -761,7 +793,7 @@ const applyFiltersAndSearch = useCallback(() => {
           setSelectedStockOut(null);
         }}
         onSubmit={handleSubmit}
-        stockOut={selectedStockOut}
+        stockOut={selectedStockOut as any}
         stockIns={stockIns}
         isLoading={isLoading}
         title={selectedStockOut ? 'Edit Sale' : 'New Sale'}
@@ -774,6 +806,15 @@ const applyFiltersAndSearch = useCallback(() => {
           setSelectedStockOutForView(null);
         }}
         stockOut={selectedStockOutForView}
+      />
+
+      <ImportStockOutModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          fetchData();
+          showNotification(t('stockOut.importSuccess'), 'success');
+        }}
       />
     </div>
   );

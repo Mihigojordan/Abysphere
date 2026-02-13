@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/xlsx": "^0.0.35",
     "axios": "^1.11.0",
     "dexie": "^4.2.1",
     "dompurify": "^3.2.6",
@@ -29,7 +30,8 @@
     "sweetalert2": "^11.23.0",
     "swiper": "^12.0.2",
     "uuid": "^13.0.0",
-    "vite-plugin-pwa": "^1.1.0"
+    "vite-plugin-pwa": "^1.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

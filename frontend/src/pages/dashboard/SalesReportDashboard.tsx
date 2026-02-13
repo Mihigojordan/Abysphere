@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Download, Filter, Calendar, DollarSign, Package, TrendingUp, X } from 'lucide-react';
+import { Search, Download, DollarSign, Package, TrendingUp } from 'lucide-react';
 import stockOutService, { type StockOut, PaymentMethod } from '../../services/stockoutService';
+import { useLanguage } from '../../context/LanguageContext';
 
 const SalesReportPage = () => {
   const [stockOuts, setStockOuts] = useState<StockOut[]>([]);
@@ -10,6 +11,7 @@ const SalesReportPage = () => {
   const [filterMethod, setFilterMethod] = useState<PaymentMethod | 'ALL'>('ALL');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [dateRangeMode, setDateRangeMode] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchStockOuts();
@@ -132,7 +134,7 @@ const SalesReportPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading sales data...</p>
+          <p className="mt-4 text-gray-600">{t('salesReport.loading')}</p>
         </div>
       </div>
     );
@@ -145,17 +147,17 @@ const SalesReportPage = () => {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Sales Report</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Track and analyze all stock-out transactions</p>
+              <h1 className="text-lg font-semibold text-gray-900">{t('salesReport.title')}</h1>
+              <p className="text-xs text-gray-500 mt-0.5">{t('salesReport.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={exportToCSV}
                 className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50"
-                title="Export CSV"
+                title={t('salesReport.export')}
               >
                 <Download className="w-3 h-3" />
-                <span>Export</span>
+                <span>{t('salesReport.export')}</span>
               </button>
             </div>
           </div>
@@ -167,9 +169,9 @@ const SalesReportPage = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { title: 'Total Sales', value: formatCurrency(stats.totalSales), icon: DollarSign, color: 'green' },
-            { title: 'Total Quantity', value: stats.totalQuantity, icon: Package, color: 'blue' },
-            { title: 'Transactions', value: stats.totalTransactions, icon: TrendingUp, color: 'purple' },
+            { title: t('salesReport.totalSales'), value: formatCurrency(stats.totalSales), icon: DollarSign, color: 'green' },
+            { title: t('salesReport.totalQuantity'), value: stats.totalQuantity, icon: Package, color: 'blue' },
+            { title: t('salesReport.transactions'), value: stats.totalTransactions, icon: TrendingUp, color: 'purple' },
           ].map((stat, i) => (
             <div key={i} className="bg-white rounded shadow p-4">
               <div className="flex items-center space-x-3">
@@ -194,7 +196,7 @@ const SalesReportPage = () => {
                 <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search by client, email, phone, or ID..."
+                  placeholder={t('salesReport.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -217,7 +219,10 @@ const SalesReportPage = () => {
                       : 'text-gray-600 hover:text-gray-900'
                       }`}
                   >
-                    {opt === 'all' ? 'All Time' : opt}
+                    {opt === 'all' ? t('stockIn.allTime') :
+                      opt === 'today' ? t('stockIn.today') :
+                        opt === 'week' ? t('stockIn.week') :
+                          opt === 'month' ? t('stockIn.month') : t('stockIn.custom')}
                   </button>
                 ))}
               </div>
@@ -231,7 +236,7 @@ const SalesReportPage = () => {
                     onChange={(e) => setDateRange(p => ({ ...p, start: e.target.value }))}
                     className="px-2 py-1 text-xs border border-gray-200 rounded"
                   />
-                  <span className="text-gray-500 text-xs">to</span>
+                  <span className="text-gray-500 text-xs">{t('stockIn.to')}</span>
                   <input
                     type="date"
                     value={dateRange.end}
@@ -247,10 +252,10 @@ const SalesReportPage = () => {
               onChange={(e) => setFilterMethod(e.target.value as PaymentMethod | 'ALL')}
               className="px-3 py-1.5 text-xs border border-gray-200 rounded font-medium focus:outline-none focus:ring-1 focus:ring-primary-500"
             >
-              <option value="ALL">All Methods</option>
-              <option value="MOMO">Mobile Money</option>
-              <option value="CARD">Card</option>
-              <option value="CASH">Cash</option>
+              <option value="ALL">{t('salesReport.allMethods')}</option>
+              <option value="MOMO">{t('salesReport.momo')}</option>
+              <option value="CARD">{t('salesReport.card')}</option>
+              <option value="CASH">{t('salesReport.cash')}</option>
             </select>
           </div>
         </div>
@@ -261,21 +266,21 @@ const SalesReportPage = () => {
             <table className="w-full text-xs">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Transaction ID</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Date</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Client</th>
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Contact</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Qty</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Unit Price</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Total</th>
-                  <th className="text-center py-2 px-2 text-gray-600 font-medium">Payment</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">{t('salesReport.transactionId')}</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">{t('salesReport.date')}</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">{t('salesReport.client')}</th>
+                  <th className="text-left py-2 px-2 text-gray-600 font-medium">{t('salesReport.contact')}</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">{t('salesReport.qty')}</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">{t('salesReport.unitPrice')}</th>
+                  <th className="text-right py-2 px-2 text-gray-600 font-medium">{t('salesReport.total')}</th>
+                  <th className="text-center py-2 px-2 text-gray-600 font-medium">{t('salesReport.payment')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredData.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-2 py-8 text-center text-xs text-gray-500">
-                      No sales transactions found
+                      {t('salesReport.noTransactions')}
                     </td>
                   </tr>
                 ) : (

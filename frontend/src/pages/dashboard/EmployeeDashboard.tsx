@@ -8,16 +8,6 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  X,
-  AlertCircle,
-  FileText,
-  Users,
-  UserCheck,
-  UserX,
-  UserPlus,
   RefreshCw,
   Filter,
   Grid3X3,
@@ -26,7 +16,17 @@ import {
   Minimize2,
   Calendar,
   MapPin,
-  Mail
+  Mail,
+  Users,
+  UserCheck,
+  UserX,
+  UserPlus,
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  AlertTriangle,
+  X
 } from "lucide-react";
 import employeeService from "../../services/employeeService";
 import contractService from "../../services/contractService";
@@ -34,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import type { Employee, ContractData, Contract } from "../../types/model";
 import { useSocketEvent } from "../../context/SocketContext";
 import AddContractModal from "../../components/dashboard/contract/AddContractModal";
+import { useLanguage } from "../../context/LanguageContext";
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -42,7 +43,8 @@ interface OperationStatus {
   message: string;
 }
 
-const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
+const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
+  const { t } = useLanguage();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -76,7 +78,7 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
 
   // Real-time socket listeners
   useSocketEvent('contractCreated', (contract: Contract) => {
-    showOperationStatus('info', `New contract created${contract.employeeId ? ` for employee ${contract.employeeId}` : ''}!`);
+    showOperationStatus('info', t('employee.messages.contractCreated'));
     if (contract.employeeId) {
       setEmployeeContractStatus((prev) => ({
         ...prev,
@@ -85,12 +87,12 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
     }
   });
 
-  useSocketEvent('contractUpdated', (contract: Contract) => {
-    showOperationStatus('info', `Contract ${contract.id} updated!`);
+  useSocketEvent('contractUpdated', () => {
+    showOperationStatus('info', t('employee.messages.contractUpdated'));
   });
 
-  useSocketEvent('contractDeleted', ({ id }: { id: string }) => {
-    showOperationStatus('info', `Contract ${id} deleted!`);
+  useSocketEvent('contractDeleted', () => {
+    showOperationStatus('info', t('employee.messages.contractDeleted'));
     loadData();
   });
 
@@ -110,9 +112,9 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
         }
       }
       setEmployeeContractStatus(contractStatus);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError(err.message || "Failed to load data");
+      setError(err.message || t('employee.messages.loadError'));
     } finally {
       setLoading(false);
     }
@@ -156,7 +158,7 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
       const aValue = a[sortBy];
       const bValue = b[sortBy];
 
-      if (sortBy === "date_hired" || sortBy === "date_of_birth") {
+      if (sortBy === "date_hired") {
         const aDate = typeof aValue === "string" || aValue instanceof Date ? new Date(aValue) : new Date(0);
         const bDate = typeof bValue === "string" || bValue instanceof Date ? new Date(bValue) : new Date(0);
         return sortOrder === "asc" ? aDate.getTime() - bDate.getTime() : bDate.getTime() - aDate.getTime();
@@ -164,7 +166,7 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
 
       const aStr = aValue ? aValue.toString().toLowerCase() : "";
       const bStr = bValue ? bValue.toString().toLowerCase() : "";
-      
+
       if (sortOrder === "asc") return aStr > bStr ? 1 : aStr < bStr ? -1 : 0;
       else return aStr < bStr ? 1 : aStr > bStr ? -1 : 0;
     });
@@ -205,10 +207,10 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
       setDeleteConfirm(null);
       await employeeService.deleteEmployee(employee.id);
       loadData();
-      showOperationStatus("success", `${employee.first_name} ${employee.last_name} deleted successfully!`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      showOperationStatus("success", `${employee.first_name} ${employee.last_name} ${t('employee.messages.deleteSuccess')}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      showOperationStatus("error", err.message || "Failed to delete employee");
+      showOperationStatus("error", err.message || t('employee.messages.deleteError'));
     } finally {
       setOperationLoading(false);
     }
@@ -219,12 +221,12 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
       setOperationLoading(true);
       const contracts = await contractService.getContractsByEmployeeId(employee.id);
       if (contracts.length > 0) {
-        showOperationStatus('error', 'This employee already has a contract.');
+        showOperationStatus('error', t('employee.messages.hasContract'));
         return;
       }
       setSelectedEmployee(employee);
       setIsContractModalOpen(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showOperationStatus('error', err.message || 'Failed to check existing contracts');
     } finally {
@@ -249,10 +251,10 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
           [selectedEmployee.id]: true,
         }));
       }
-      showOperationStatus('success', 'Contract created and assigned successfully!');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      showOperationStatus('success', t('employee.messages.contractSuccess'));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      showOperationStatus('error', err.message || 'Failed to create contract');
+      showOperationStatus('error', err.message || t('employee.messages.contractError'));
     } finally {
       setOperationLoading(false);
       setIsContractModalOpen(false);
@@ -286,116 +288,116 @@ const EmployeeDashboard: React.FC<{role:string}> = ({role})  => {
   const endIndex = startIndex + itemsPerPage;
   const currentEmployees = employees.slice(startIndex, endIndex);
 
-const renderTableView = () => (
-  <div className="bg-theme-bg-primary rounded border border-theme-border">
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead className="bg-theme-bg-tertiary border-b border-theme-border">
-          <tr>
-            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
-            <th
-              className="text-left py-2 px-2 text-theme-text-secondary font-medium cursor-pointer hover:bg-theme-bg-secondary"
-              onClick={() => setSortBy("first_name")}
-            >
-              <div className="flex items-center space-x-1">
-                <span>Name</span>
-                <ChevronDown className={`w-3 h-3 ${sortBy === "first_name" ? "text-primary-600" : "text-theme-text-secondary"}`} />
-              </div>
-            </th>
-            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">Email</th>
-            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden lg:table-cell">Department</th>
-            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">Created Date</th>
-            <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Status</th>
-            <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-theme-border">
-          {currentEmployees.map((employee, index) => (
-            <tr key={employee.id || index} className="hover:bg-theme-bg-tertiary">
-              {/* Row Number */}
-              <td className="py-2 px-2 text-theme-text-secondary">{startIndex + index + 1}</td>
+  const renderTableView = () => (
+    <div className="bg-theme-bg-primary rounded border border-theme-border">
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-theme-bg-tertiary border-b border-theme-border">
+            <tr>
+              <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
+              <th
+                className="text-left py-2 px-2 text-theme-text-secondary font-medium cursor-pointer hover:bg-theme-bg-secondary"
+                onClick={() => setSortBy("first_name")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>{t('employee.table.name')}</span>
+                  <ChevronDown className={`w-3 h-3 ${sortBy === "first_name" ? "text-primary-600" : "text-theme-text-secondary"}`} />
+                </div>
+              </th>
+              <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">{t('employee.table.email')}</th>
+              <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden lg:table-cell">{t('employee.table.department')}</th>
+              <th className="text-left py-2 px-2 text-theme-text-secondary font-medium hidden sm:table-cell">{t('employee.table.createdDate')}</th>
+              <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('employee.table.status')}</th>
+              <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('employee.table.actions')}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-theme-border">
+            {currentEmployees.map((employee, index) => (
+              <tr key={employee.id || index} className="hover:bg-theme-bg-tertiary">
+                {/* Row Number */}
+                <td className="py-2 px-2 text-theme-text-secondary">{startIndex + index + 1}</td>
 
-              {/* Name with profile image */}
-              <td className="py-2 px-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
-                    {employee.profile_image ? (
-                      <img
-                        src={getUrlImage(employee.profile_image)}
-                        alt={`${employee.first_name} ${employee.last_name}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `<span class="text-xs font-medium text-primary-700">
+                {/* Name with profile image */}
+                <td className="py-2 px-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden">
+                      {employee.profile_image ? (
+                        <img
+                          src={getUrlImage(employee.profile_image)}
+                          alt={`${employee.first_name} ${employee.last_name}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<span class="text-xs font-medium text-primary-700">
                               ${employee.first_name?.charAt(0) || ''}${employee.last_name?.charAt(0) || ''}
                             </span>`;
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span className="text-xs font-medium text-primary-700">
-                        {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
-                      </span>
-                    )}
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-primary-700">
+                          {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-medium text-theme-text-primary text-xs">
+                      {employee.first_name} {employee.last_name}
+                    </div>
                   </div>
-                  <div className="font-medium text-theme-text-primary text-xs">
-                    {employee.first_name} {employee.last_name}
+                </td>
+
+                {/* Email */}
+                <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{employee.email}</td>
+
+                {/* Department */}
+                <td className="py-2 px-2 text-theme-text-secondary hidden lg:table-cell">{getDepartmentName(employee.department)}</td>
+
+                {/* Created Date */}
+                <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{formatDate(employee.created_at)}</td>
+
+                {/* Status */}
+                <td className="py-2 px-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {t('employee.active')}
+                  </span>
+                </td>
+
+                {/* Actions */}
+                <td className="py-2 px-2">
+                  <div className="flex items-center justify-end space-x-1">
+                    <button
+                      onClick={() => handleViewEmployee(employee)}
+                      className="text-theme-text-secondary hover:text-primary-600 p-1"
+                      title={t('employee.actions.view')}
+                    >
+                      <Eye className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleEditEmployee(employee)}
+                      className="text-theme-text-secondary hover:text-primary-600 p-1"
+                      title={t('employee.actions.edit')}
+                    >
+                      <Edit className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(employee)}
+                      className="text-theme-text-secondary hover:text-red-600 p-1"
+                      title={t('employee.actions.delete')}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
-                </div>
-              </td>
-
-              {/* Email */}
-              <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{employee.email}</td>
-
-              {/* Department */}
-              <td className="py-2 px-2 text-theme-text-secondary hidden lg:table-cell">{getDepartmentName(employee.department)}</td>
-
-              {/* Created Date */}
-              <td className="py-2 px-2 text-theme-text-secondary hidden sm:table-cell">{formatDate(employee.created_at)}</td>
-
-              {/* Status */}
-              <td className="py-2 px-2">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Active
-                </span>
-              </td>
-
-              {/* Actions */}
-              <td className="py-2 px-2">
-                <div className="flex items-center justify-end space-x-1">
-                  <button
-                    onClick={() => handleViewEmployee(employee)}
-                    className="text-theme-text-secondary hover:text-primary-600 p-1"
-                    title="View"
-                  >
-                    <Eye className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => handleEditEmployee(employee)}
-                    className="text-theme-text-secondary hover:text-primary-600 p-1"
-                    title="Edit"
-                  >
-                    <Edit className="w-3 h-3" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(employee)}
-                    className="text-theme-text-secondary hover:text-red-600 p-1"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-);
+  );
 
 
 
@@ -433,12 +435,11 @@ const renderTableView = () => (
               </div>
               <div className="text-theme-text-secondary text-xs truncate">{employee.position}</div>
             </div>
-            <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
-              employee.id && employeeContractStatus[employee.id]
-                ? 'bg-green-100 text-green-800'
-                : 'bg-theme-bg-tertiary text-theme-text-secondary'
-            }`}>
-              {employee.id && employeeContractStatus[employee.id] ? 'Active' : 'Inactive'}
+            <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${employee.id && employeeContractStatus[employee.id]
+              ? 'bg-green-100 text-green-800'
+              : 'bg-theme-bg-tertiary text-theme-text-secondary'
+              }`}>
+              {employee.id && employeeContractStatus[employee.id] ? t('employee.active') : t('employee.inactive')}
             </span>
           </div>
 
@@ -459,22 +460,22 @@ const renderTableView = () => (
 
           <div className="flex items-center justify-between">
             <div className="flex space-x-1">
-              <button onClick={() => handleViewEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title="View">
+              <button onClick={() => handleViewEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title={t('employee.actions.view')}>
                 <Eye className="w-3 h-3" />
               </button>
-              <button onClick={() => handleEditEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title="Edit">
+              <button onClick={() => handleEditEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title={t('employee.actions.edit')}>
                 <Edit className="w-3 h-3" />
               </button>
               <button
                 onClick={() => handleCreateContract(employee)}
                 disabled={!!(employee.id && employeeContractStatus[employee.id])}
                 className="text-theme-text-secondary hover:text-primary-600 p-1 disabled:opacity-50"
-                title="Contract"
+                title={t('employee.actions.contract')}
               >
                 <FileText className="w-3 h-3" />
               </button>
             </div>
-            <button onClick={() => setDeleteConfirm(employee)} className="text-theme-text-secondary hover:text-red-600 p-1" title="Delete">
+            <button onClick={() => setDeleteConfirm(employee)} className="text-theme-text-secondary hover:text-red-600 p-1" title={t('employee.actions.delete')}>
               <Trash2 className="w-3 h-3" />
             </button>
           </div>
@@ -483,85 +484,85 @@ const renderTableView = () => (
     </div>
   );
 
-// Improved List View (Full Name, Email, Department, Status, Created Date)
-const renderListView = () => (
-  <div className="bg-theme-bg-primary rounded border border-theme-border divide-y divide-theme-border">
-    {currentEmployees.map((employee) => (
-      <div key={employee.id} className="px-4 py-3 hover:bg-theme-bg-tertiary">
-        <div className="flex items-center justify-between">
+  // Improved List View (Full Name, Email, Department, Status, Created Date)
+  const renderListView = () => (
+    <div className="bg-theme-bg-primary rounded border border-theme-border divide-y divide-theme-border">
+      {currentEmployees.map((employee) => (
+        <div key={employee.id} className="px-4 py-3 hover:bg-theme-bg-tertiary">
+          <div className="flex items-center justify-between">
 
-          {/* Profile + Name */}
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            {/* Profile Image */}
-            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-              {employee.profile_image ? (
-                <img
-                  src={getUrlImage(employee.profile_image)}
-                  alt={`${employee.first_name} ${employee.last_name}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.innerHTML = `<span class="text-sm font-medium text-primary-700">
+            {/* Profile + Name */}
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              {/* Profile Image */}
+              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                {employee.profile_image ? (
+                  <img
+                    src={getUrlImage(employee.profile_image)}
+                    alt={`${employee.first_name} ${employee.last_name}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<span class="text-sm font-medium text-primary-700">
                         ${employee.first_name?.charAt(0) || ''}${employee.last_name?.charAt(0) || ''}
                       </span>`;
-                    }
-                  }}
-                />
-              ) : (
-                <span className="text-sm font-medium text-primary-700">
-                  {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
-                </span>
-              )}
-            </div>
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-primary-700">
+                    {employee.first_name?.charAt(0)}{employee.last_name?.charAt(0)}
+                  </span>
+                )}
+              </div>
 
-            {/* Full Name */}
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-theme-text-primary text-sm truncate">
-                {employee.first_name} {employee.last_name}
+              {/* Full Name */}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-theme-text-primary text-sm truncate">
+                  {employee.first_name} {employee.last_name}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Info Columns */}
-          <div className="hidden md:grid grid-cols-4 gap-4 text-xs text-theme-text-secondary flex-1 max-w-3xl px-4">
-            <span className="truncate">{employee.email}</span>
-            <span className="truncate">{getDepartmentName(employee.department)}</span>
-            <span className="text-green-700 font-medium">Active</span>
-            <span>{formatDate(employee.created_at)}</span>
-          </div>
+            {/* Info Columns */}
+            <div className="hidden md:grid grid-cols-4 gap-4 text-xs text-theme-text-secondary flex-1 max-w-3xl px-4">
+              <span className="truncate">{employee.email}</span>
+              <span className="truncate">{getDepartmentName(employee.department)}</span>
+              <span className="text-green-700 font-medium">{t('employee.active')}</span>
+              <span>{formatDate(employee.created_at)}</span>
+            </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-1 flex-shrink-0">
-            <button
-              onClick={() => handleViewEmployee(employee)}
-              className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
-              title="View Employee"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleEditEmployee(employee)}
-              className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
-              title="Edit Employee"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(employee)}
-              className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors"
-              title="Delete Employee"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {/* Actions */}
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <button
+                onClick={() => handleViewEmployee(employee)}
+                className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
+                title={t('employee.actions.view')}
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleEditEmployee(employee)}
+                className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
+                title={t('employee.actions.edit')}
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setDeleteConfirm(employee)}
+                className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                title={t('employee.actions.delete')}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
 
   const renderPagination = () => {
     const pages: number[] = [];
@@ -580,7 +581,7 @@ const renderListView = () => (
     return (
       <div className="flex items-center justify-between bg-theme-bg-primary px-3 py-2 border-t border-theme-border">
         <div className="text-xs text-theme-text-secondary">
-          Showing {startIndex + 1}-{Math.min(endIndex, employees.length)} of {employees.length}
+          {t('employee.showing')} {startIndex + 1}-{Math.min(endIndex, employees.length)} {t('employee.of')} {employees.length}
         </div>
         <div className="flex items-center space-x-1">
           <button
@@ -594,11 +595,10 @@ const renderListView = () => (
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-2 py-1 text-xs rounded ${
-                currentPage === page
-                  ? "bg-primary-500 text-white"
-                  : "text-theme-text-primary bg-theme-bg-primary border border-theme-border hover:bg-theme-bg-tertiary"
-              }`}
+              className={`px-2 py-1 text-xs rounded ${currentPage === page
+                ? "bg-primary-500 text-white"
+                : "text-theme-text-primary bg-theme-bg-primary border border-theme-border hover:bg-theme-bg-tertiary"
+                }`}
             >
               {page}
             </button>
@@ -618,7 +618,7 @@ const renderListView = () => (
   return (
     <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header */}
- <div className="bg-theme-bg-primary shadow-md border-b border-theme-border transition-colors duration-200">
+      <div className="bg-theme-bg-primary shadow-md border-b border-theme-border transition-colors duration-200">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -630,8 +630,8 @@ const renderListView = () => (
                 <Minimize2 className="w-4 h-4" />
               </button>
               <div>
-                <h1 className="text-lg font-semibold text-theme-text-primary">Employee Management</h1>
-                <p className="text-xs text-theme-text-secondary mt-0.5">Manage your organization's workforce</p>
+                <h1 className="text-lg font-semibold text-theme-text-primary">{t('employee.title')}</h1>
+                <p className="text-xs text-theme-text-secondary mt-0.5">{t('employee.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -639,10 +639,10 @@ const renderListView = () => (
                 onClick={loadData}
                 disabled={loading}
                 className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
-                title="Refresh"
+                title={t('employee.refresh')}
               >
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <span>{t('employee.refresh')}</span>
               </button>
               <button
                 onClick={handleAddEmployee}
@@ -650,68 +650,68 @@ const renderListView = () => (
                 className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
               >
                 <Plus className="w-3 h-3" />
-                <span>Add Employee</span>
+                <span>{t('employee.addEmployee')}</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-<div className="px-4 py-4 space-y-4">
-  {/* Summary Cards */}
-  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-    {/* Total Employees */}
-    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
-      <div className="flex items-center space-x-3">
-        <div className="p-3 bg-primary-100 rounded-full flex items-center justify-center">
-          <Users className="w-5 h-5 text-primary-600" />
-        </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">Total Employees</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{totalEmployees}</p>
-        </div>
-      </div>
-    </div>
+      <div className="px-4 py-4 space-y-4">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Total Employees */}
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-primary-100 rounded-full flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-xs text-theme-text-secondary">{t('employee.totalEmployees')}</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{totalEmployees}</p>
+              </div>
+            </div>
+          </div>
 
-    {/* Active */}
-    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
-      <div className="flex items-center space-x-3">
-        <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
-          <UserCheck className="w-5 h-5 text-green-600" />
-        </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">Active</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{activeEmployees}</p>
-        </div>
-      </div>
-    </div>
+          {/* Active */}
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-green-500/10 rounded-full flex items-center justify-center">
+                <UserCheck className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-theme-text-secondary">{t('employee.active')}</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{activeEmployees}</p>
+              </div>
+            </div>
+          </div>
 
-    {/* Inactive */}
-    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
-      <div className="flex items-center space-x-3">
-        <div className="p-3 bg-orange-100 rounded-full flex items-center justify-center">
-          <UserX className="w-5 h-5 text-orange-600" />
-        </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">Inactive</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{inactiveEmployees}</p>
-        </div>
-      </div>
-    </div>
+          {/* Inactive */}
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-orange-500/10 rounded-full flex items-center justify-center">
+                <UserX className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-xs text-theme-text-secondary">{t('employee.inactive')}</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{inactiveEmployees}</p>
+              </div>
+            </div>
+          </div>
 
-    {/* New Joiners */}
-    <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
-      <div className="flex items-center space-x-3">
-        <div className="p-3 bg-purple-100 rounded-full flex items-center justify-center">
-          <UserPlus className="w-5 h-5 text-purple-600" />
+          {/* New Joiners */}
+          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4 transition-colors duration-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-purple-500/10 rounded-full flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs text-theme-text-secondary">{t('employee.newJoiners')}</p>
+                <p className="text-lg font-semibold text-theme-text-primary">{newJoiners}</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">New Joiners (30d)</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{newJoiners}</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
 
@@ -725,7 +725,7 @@ const renderListView = () => (
                 <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search employees..."
+                  placeholder={t('employee.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-transparent"
@@ -734,12 +734,11 @@ const renderListView = () => (
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${
-                  showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-theme-border text-theme-text-secondary hover:bg-theme-bg-tertiary'
-                }`}
+                className={`flex items-center space-x-1 px-2 py-1.5 text-xs border rounded transition-colors ${showFilters ? 'bg-primary-500/10 border-primary-500 text-primary-600 font-bold' : 'border-theme-border text-theme-text-secondary hover:bg-theme-bg-tertiary'
+                  }`}
               >
                 <Filter className="w-3 h-3" />
-                <span>Filter</span>
+                <span>{t('employee.filter')}</span>
               </button>
             </div>
 
@@ -753,38 +752,35 @@ const renderListView = () => (
                 }}
                 className="text-xs border border-theme-border rounded px-2 py-1.5 bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
-                <option value="first_name-asc">Name (A-Z)</option>
-                <option value="first_name-desc">Name (Z-A)</option>
-                <option value="position-asc">Position (A-Z)</option>
-                <option value="date_hired-desc">Newest</option>
-                <option value="date_hired-asc">Oldest</option>
+                <option value="first_name-asc">{t('employee.sort.nameAsc')}</option>
+                <option value="first_name-desc">{t('employee.sort.nameDesc')}</option>
+                <option value="position-asc">{t('employee.sort.positionAsc')}</option>
+                <option value="date_hired-desc">{t('employee.sort.newest')}</option>
+                <option value="date_hired-asc">{t('employee.sort.oldest')}</option>
               </select>
 
-              <div className="flex items-center border border-theme-border rounded">
+              <div className="flex items-center border border-theme-border rounded overflow-hidden">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
-                  }`}
-                  title="Table View"
+                  className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                    }`}
+                  title={t('employee.viewMode.table')}
                 >
                   <List className="w-3 h-3" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
-                  }`}
-                  title="Grid View"
+                  className={`p-1.5 text-xs transition-colors ${viewMode === 'grid' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                    }`}
+                  title={t('employee.viewMode.grid')}
                 >
                   <Grid3X3 className="w-3 h-3" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 text-xs transition-colors ${
-                    viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary'
-                  }`}
-                  title="List View"
+                  className={`p-1.5 text-xs transition-colors ${viewMode === 'list' ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
+                    }`}
+                  title={t('employee.viewMode.list')}
                 >
                   <Settings className="w-3 h-3" />
                 </button>
@@ -874,11 +870,10 @@ const renderListView = () => (
 
       {operationStatus && (
         <div className="fixed top-4 right-4 z-50">
-          <div className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${
-            operationStatus.type === "success" ? "bg-green-50 border border-green-200 text-green-800" :
+          <div className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === "success" ? "bg-green-50 border border-green-200 text-green-800" :
             operationStatus.type === "error" ? "bg-red-50 border border-red-200 text-red-800" :
-            "bg-primary-50 border border-primary-200 text-primary-800"
-          }`}>
+              "bg-primary-50 border border-primary-200 text-primary-800"
+            }`}>
             {operationStatus.type === "success" && <CheckCircle className="w-4 h-4 text-green-600" />}
             {operationStatus.type === "error" && <XCircle className="w-4 h-4 text-red-600" />}
             {operationStatus.type === "info" && <AlertCircle className="w-4 h-4 text-primary-600" />}

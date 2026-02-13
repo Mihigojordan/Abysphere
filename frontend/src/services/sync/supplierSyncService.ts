@@ -62,11 +62,11 @@ interface OfflineAddSupplier {
   phone?: string;
   address?: string;
   adminId: string;
-  createdAt?: Date;
-  lastModified?: Date;
+  createdAt?: Date | string;
+  lastModified?: Date | string;
   syncRetryCount?: number;
   syncError?: string;
-  lastSyncAttempt?: Date;
+  lastSyncAttempt?: Date | string;
 }
 
 interface OfflineUpdateSupplier extends SupplierData {
@@ -231,8 +231,8 @@ class SupplierSyncService {
             phone: supplier.phone,
             address: supplier.address,
             adminId: supplier.adminId,
-            createdAt: supplier.createdAt || new Date(),
-            updatedAt: response.updatedAt || new Date(),
+            createdAt: supplier.createdAt ? new Date(supplier.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: response.updatedAt ? new Date(response.updatedAt).toISOString() : new Date().toISOString(),
           };
 
           if (existingSupplier) {
@@ -307,7 +307,7 @@ class SupplierSyncService {
             phone: supplier.phone,
             address: supplier.address,
             adminId: supplier.adminId,
-            updatedAt: response.updatedAt || new Date(),
+            updatedAt: response.updatedAt ? new Date(response.updatedAt).toISOString() : new Date().toISOString(),
           });
 
           await db.suppliers_offline_update.delete(supplier.id);
@@ -411,8 +411,8 @@ class SupplierSyncService {
             phone: serverSupplier.phone,
             address: serverSupplier.address,
             adminId: serverSupplier.adminId,
-            createdAt: serverSupplier.createdAt || new Date(),
-            updatedAt: serverSupplier.updatedAt || new Date(),
+            createdAt: serverSupplier.createdAt ? new Date(serverSupplier.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: serverSupplier.updatedAt ? new Date(serverSupplier.updatedAt).toISOString() : new Date().toISOString(),
           });
         }
 
@@ -447,9 +447,16 @@ class SupplierSyncService {
     return potentialDuplicates > 0;
   }
 
+  private safeGetTime(dateValue: Date | string | undefined | null): number {
+    if (!dateValue) return 0;
+    const date = new Date(dateValue);
+    const time = date.getTime();
+    return isNaN(time) ? 0 : time;
+  }
+
   private generateIdempotencyKey(supplier: OfflineAddSupplier): string {
-    const timestamp = supplier.createdAt?.getTime() || supplier.lastModified?.getTime() || Date.now();
-    const nameHash = supplier.name.toLowerCase().replace(/\s+/g, '');
+    const timestamp = this.safeGetTime(supplier.createdAt) || this.safeGetTime(supplier.lastModified) || Date.now();
+    const nameHash = (supplier.name || '').toLowerCase().replace(/\s+/g, '');
     return `supplier-${supplier.localId}-${timestamp}-${nameHash}`;
   }
 

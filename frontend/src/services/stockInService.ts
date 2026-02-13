@@ -86,7 +86,7 @@ class StockService {
   // -----------------------------
   async createCategory(data: CreateCategoryInput): Promise<StockCategory> {
     try {
-      const response: AxiosResponse<StockCategory> = await this.api.post('/stock/category', data);
+      const response: AxiosResponse<StockCategory> = await this.api.post('/stock-in/category', data);
       return response.data;
     } catch (error: any) {
       console.error('Error creating category:', error);
@@ -96,7 +96,7 @@ class StockService {
 
   async getAllCategories(): Promise<StockCategory[]> {
     try {
-      const response: AxiosResponse<StockCategory[]> = await this.api.get('/stock/category');
+      const response: AxiosResponse<StockCategory[]> = await this.api.get('/stock-in/category');
       return response.data;
     } catch (error: any) {
       console.error('Error fetching categories:', error);
@@ -106,7 +106,7 @@ class StockService {
 
   async getCategoryById(id: string): Promise<StockCategory | null> {
     try {
-      const response: AxiosResponse<StockCategory> = await this.api.get(`/stock/category/${id}`);
+      const response: AxiosResponse<StockCategory> = await this.api.get(`/stock-in/category/${id}`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) return null;
@@ -117,7 +117,7 @@ class StockService {
 
   async updateCategory(id: string, data: UpdateCategoryInput): Promise<StockCategory> {
     try {
-      const response: AxiosResponse<StockCategory> = await this.api.put(`/stock/category/${id}`, data);
+      const response: AxiosResponse<StockCategory> = await this.api.put(`/stock-in/category/${id}`, data);
       return response.data;
     } catch (error: any) {
       console.error('Error updating category:', error);
@@ -127,7 +127,7 @@ class StockService {
 
   async deleteCategory(id: string): Promise<DeleteResponse> {
     try {
-      const response: AxiosResponse<DeleteResponse> = await this.api.delete(`/stock/category/${id}`);
+      const response: AxiosResponse<DeleteResponse> = await this.api.delete(`/stock-in/category/${id}`);
       return response.data;
     } catch (error: any) {
       console.error('Error deleting category:', error);
@@ -146,7 +146,7 @@ class StockService {
   // -----------------------------
   async createStockIn(data: FormData | CreateStockInInput): Promise<StockIn> {
     try {
-      const response: AxiosResponse<StockIn> = await this.api.post('/stock/stockin', data, {
+      const response: AxiosResponse<StockIn> = await this.api.post('/stock-in/stockin', data, {
         headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
       });
       return response.data;
@@ -158,7 +158,7 @@ class StockService {
 
   async getAllStockIns(): Promise<StockIn[]> {
     try {
-      const response: AxiosResponse<StockIn[]> = await this.api.get('/stock/stockin');
+      const response: AxiosResponse<StockIn[]> = await this.api.get('/stock-in/stockin');
       return response.data;
     } catch (error: any) {
       console.error('Error fetching stock items:', error);
@@ -168,7 +168,7 @@ class StockService {
 
   async getStockInById(id: string): Promise<StockIn | null> {
     try {
-      const response: AxiosResponse<StockIn> = await this.api.get(`/stock/stockin/${id}`);
+      const response: AxiosResponse<StockIn> = await this.api.get(`/stock-in/stockin/${id}`);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) return null;
@@ -179,7 +179,7 @@ class StockService {
 
   async updateStockIn(id: string, data: FormData | UpdateStockInInput): Promise<StockIn> {
     try {
-      const response: AxiosResponse<StockIn> = await this.api.put(`/stock/stockin/${id}`, data, {
+      const response: AxiosResponse<StockIn> = await this.api.put(`/stock-in/stockin/${id}`, data, {
         headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
       });
       return response.data;
@@ -191,7 +191,7 @@ class StockService {
 
   async deleteStockIn(id: string): Promise<DeleteResponse> {
     try {
-      const response: AxiosResponse<DeleteResponse> = await this.api.delete(`/stock/stockin/${id}`);
+      const response: AxiosResponse<DeleteResponse> = await this.api.delete(`/stock-in/stockin/${id}`);
       return response.data;
     } catch (error: any) {
       console.error('Error deleting stock item:', error);
@@ -216,7 +216,7 @@ class StockService {
   // -----------------------------
   async getAllStockHistory(): Promise<StockHistory[]> {
     try {
-      const response: AxiosResponse<StockHistory[]> = await this.api.get('/stock/history');
+      const response: AxiosResponse<StockHistory[]> = await this.api.get('/stock-in/history');
       return response.data;
     } catch (error: any) {
       console.error('Error fetching stock history:', error);
@@ -226,7 +226,7 @@ class StockService {
 
   async getStockHistoryByStock(stockInId: string): Promise<StockHistory[]> {
     try {
-      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock/history/stock/${stockInId}`);
+      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock-in/history/stock/${stockInId}`);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching stock history for stock item:', error);
@@ -236,7 +236,7 @@ class StockService {
 
   async getStockHistoryByRequest(requestId: string): Promise<StockHistory[]> {
     try {
-      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock/history/request/${requestId}`);
+      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock-in/history/request/${requestId}`);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching stock history for request:', error);
@@ -246,7 +246,7 @@ class StockService {
 
   async getStockHistoryByMovement(type: MovementType): Promise<StockHistory[]> {
     try {
-      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock/history/movement`, {
+      const response: AxiosResponse<StockHistory[]> = await this.api.get(`/stock-in/history/movement`, {
         params: { type },
       });
       return response.data;

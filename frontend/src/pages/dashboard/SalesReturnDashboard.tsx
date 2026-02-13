@@ -11,7 +11,6 @@ import {
   ChevronRight,
   RotateCcw,
   RefreshCw,
-  TrendingUp,
   List,
   Grid3X3,
   Settings,
@@ -27,6 +26,7 @@ import ViewSalesReturnModal from '../../components/dashboard/salesReturn/ViewSal
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import CreditNoteComponent from '../../components/dashboard/salesReturn/CreditNote';
+import { useLanguage } from '../../context/LanguageContext';
 
 // ──────────────────────────────────────────────────────────────
 // Types & Interfaces
@@ -101,6 +101,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
+  const { t } = useLanguage();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -178,7 +179,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
       setStatistics(salesReturnService.calculateReturnStatistics(dataArray));
     } catch (error: any) {
       console.error('Error fetching sales returns:', error);
-      showOperationStatus('error', `Failed to fetch sales returns: ${error.message}`);
+      showOperationStatus('error', `${t('salesReturn.fetchError')}: ${error.message}`);
       setSalesReturns([]);
       setFilteredSalesReturns([]);
       setStatistics(null);
@@ -231,7 +232,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const handleAddSalesReturn = async (returnData: any): Promise<void> => {
     setIsLoading(true);
     try {
-      if (!adminData?.id && !employeeData?.id) throw new Error('User authentication required');
+      if (!adminData?.id && !employeeData?.id) throw new Error(t('salesReturn.authRequired'));
       const requestData = {
         transactionId: returnData.transactionId,
         reason: returnData.reason,
@@ -240,20 +241,20 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         adminId: role === 'admin' && adminData?.id ? adminData.id : undefined,
         employeeId: role === 'employee' && employeeData?.id ? employeeData.id : undefined,
       };
-      if (!requestData.transactionId) throw new Error('Transaction ID is required');
-      if (!requestData.items?.length) throw new Error('At least one item must be provided');
+      if (!requestData.transactionId) throw new Error(t('salesReturn.transactionIdRequired'));
+      if (!requestData.items?.length) throw new Error(t('salesReturn.itemRequired'));
       const response = await salesReturnService.createSalesReturn(requestData);
       updateSearchParam('salesReturnId', response.salesReturn.id);
       setSalesReturnId(response.salesReturn.id);
       setIsCreditNoteOpen(true);
       await fetchSalesReturns();
       setIsAddModalOpen(false);
-      showOperationStatus('success', 'Sales return processed successfully!');
+      showOperationStatus('success', t('salesReturn.success'));
     } catch (error: any) {
       const msg =
-        error.message.includes('required') ? 'Please fill all required fields' :
-          error.message.includes('authentication') ? 'Please log in again' :
-            `Failed to process sales return: ${error.message}`;
+        error.message.includes('required') ? t('salesReturn.fillFields') :
+          error.message.includes('authentication') ? t('salesReturn.loginAgain') :
+            `${t('salesReturn.error')}: ${error.message}`;
       showOperationStatus('error', msg);
     } finally {
       setIsLoading(false);
@@ -304,20 +305,20 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
   // ── Sub-Components ─────────────────────────────────────────────
   const StatisticsCards = () => (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {[
-        { title: 'Total Returns', value: statistics?.totalReturns ?? 0, icon: RotateCcw, color: 'blue' },
-        { title: 'Total Items', value: statistics?.totalItems ?? 0, icon: Package, color: 'green' },
-        { title: 'Total Qty', value: statistics?.totalQuantity ?? 0, icon: ShoppingCart, color: 'purple' },
+        { title: t('salesReturn.totalReturns'), value: statistics?.totalReturns ?? 0, icon: RotateCcw, color: 'primary' },
+        { title: t('salesReturn.totalItems'), value: statistics?.totalItems ?? 0, icon: Package, color: 'emerald' },
+        { title: t('salesReturn.totalQty'), value: statistics?.totalQuantity ?? 0, icon: ShoppingCart, color: 'amber' },
       ].map((s, i) => (
-        <div key={i} className="bg-white rounded shadow p-4">
+        <div key={i} className="bg-theme-bg-primary rounded border border-theme-border p-4 shadow-sm">
           <div className="flex items-center space-x-3">
-            <div className={`p-3 bg-${s.color}-100 rounded-full flex items-center justify-center`}>
+            <div className={`p-3 bg-${s.color}-500/10 rounded-full flex items-center justify-center`}>
               <s.icon className={`w-5 h-5 text-${s.color}-600`} />
             </div>
             <div>
-              <p className="text-xs text-gray-600">{s.title}</p>
-              <p className="text-lg font-semibold text-gray-900">{s.value}</p>
+              <p className="text-[10px] text-theme-text-secondary">{s.title}</p>
+              <p className="text-lg font-semibold text-theme-text-primary">{s.value}</p>
             </div>
           </div>
         </div>
@@ -326,27 +327,27 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   );
 
   const PaginationComponent = () => (
-    <div className="flex items-center justify-between py-4 border-t border-gray-200 bg-gray-50 px-6">
-      <p className="text-sm text-gray-600">
+    <div className="flex items-center justify-between py-3 border-t border-theme-border bg-theme-bg-secondary px-6">
+      <p className="text-[10px] text-theme-text-secondary">
         Showing {startIdx + 1}–{Math.min(startIdx + itemsPerPage, safeList.length)} of {safeList.length}
       </p>
       <div className="flex gap-2">
         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
-          <ChevronLeft size={16} />
+          className="p-1.5 border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary disabled:opacity-50 hover:bg-theme-bg-tertiary transition-colors">
+          <ChevronLeft size={14} />
         </button>
         {getPageNumbers().map((p) => (
           <button
             key={p}
             onClick={() => setCurrentPage(p)}
-            className={`px-3 py-1.5 rounded ${currentPage === p ? 'bg-primary-600 text-white' : 'border hover:bg-gray-100'}`}
+            className={`px-3 py-1 text-[10px] font-medium rounded transition-all ${currentPage === p ? 'bg-primary-600 text-white shadow-sm' : 'border border-theme-border bg-theme-bg-primary text-theme-text-primary hover:bg-theme-bg-tertiary'}`}
           >
             {p}
           </button>
         ))}
         <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-          className="px-3 py-1.5 border rounded disabled:opacity-50 hover:bg-gray-100">
-          <ChevronRight size={16} />
+          className="p-1.5 border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary disabled:opacity-50 hover:bg-theme-bg-tertiary transition-colors">
+          <ChevronRight size={14} />
         </button>
       </div>
     </div>
@@ -356,48 +357,48 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
     <div className="flex items-center justify-center gap-2">
       <button
         onClick={() => openViewModal(sr)}
-        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-        title="View Details"
+        className="p-1.5 text-theme-text-secondary hover:text-primary-600 hover:bg-primary-500/10 rounded transition-colors"
+        title={t('salesReturn.viewDetails')}
       >
-        <Eye size={16} />
+        <Eye size={14} />
       </button>
     </div>
   );
 
   // ── View Renderers ─────────────────────────────────────────────
   const TableView = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-theme-bg-primary rounded border border-theme-border overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+        <table className="w-full text-[10px]">
+          <thead className="bg-theme-bg-secondary border-b border-theme-border">
             <tr>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Date</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Transaction ID</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600">Products</th>
-              <th className="px-5 py-3 text-right font-medium text-gray-600">Items</th>
-              <th className="px-5 py-3 text-right font-medium text-gray-600">Qty</th>
-              <th className="px-5 py-3 text-left font-medium text-gray-600 pl-8">Reason</th>
-              <th className="px-5 py-3 text-center font-medium text-gray-600">Actions</th>
+              <th className="px-5 py-2.5 text-left font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.date')}</th>
+              <th className="px-5 py-2.5 text-left font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.transactionId')}</th>
+              <th className="px-5 py-2.5 text-left font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.products')}</th>
+              <th className="px-5 py-2.5 text-right font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.items')}</th>
+              <th className="px-5 py-2.5 text-right font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.qty')}</th>
+              <th className="px-5 py-2.5 text-left font-semibold text-theme-text-secondary uppercase tracking-wider pl-8">{t('salesReturn.reason')}</th>
+              <th className="px-5 py-2.5 text-center font-semibold text-theme-text-secondary uppercase tracking-wider">{t('salesReturn.actions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-theme-border">
             {currentItems.map((sr) => (
-              <tr key={sr.id} className="hover:bg-gray-50">
-                <td className="px-5 py-4 text-gray-600 whitespace-nowrap">{formatDate(sr.createdAt).split(',')[0]}</td>
-                <td className="px-5 py-4 font-medium text-gray-900">{sr.transactionId || 'N/A'}</td>
-                <td className="px-5 py-4 max-w-xs">
-                  <span className="text-gray-900 line-clamp-1 text-xs">{getProductNames(sr)}</span>
+              <tr key={sr.id} className="hover:bg-theme-bg-tertiary transition-colors">
+                <td className="px-5 py-3 text-theme-text-secondary whitespace-nowrap">{formatDate(sr.createdAt).split(',')[0]}</td>
+                <td className="px-5 py-3 font-medium text-theme-text-primary">{sr.transactionId || 'N/A'}</td>
+                <td className="px-5 py-3 max-w-xs">
+                  <span className="text-theme-text-primary line-clamp-1">{getProductNames(sr)}</span>
                 </td>
-                <td className="px-5 py-4 text-right">{getTotalItemsCount(sr)}</td>
-                <td className="px-5 py-4 text-right font-medium">{getTotalQuantity(sr)}</td>
-                <td className="px-5 py-4 pl-8">
+                <td className="px-5 py-3 text-right text-theme-text-primary">{getTotalItemsCount(sr)}</td>
+                <td className="px-5 py-3 text-right font-medium text-theme-text-primary">{getTotalQuantity(sr)}</td>
+                <td className="px-5 py-3 pl-8">
                   {sr.reason ? (
-                    <span className="text-gray-600 line-clamp-1 italic">{sr.reason}</span>
+                    <span className="text-theme-text-secondary line-clamp-1 italic">{sr.reason}</span>
                   ) : (
-                    <span className="text-gray-400 italic">No reason</span>
+                    <span className="text-theme-text-tertiary italic">{t('salesReturn.noReason')}</span>
                   )}
                 </td>
-                <td className="px-5 py-4 text-center">
+                <td className="px-5 py-3 text-center">
                   <ActionButtons sr={sr} />
                 </td>
               </tr>
@@ -414,32 +415,32 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
       {currentItems.map((sr) => (
         <motion.div
           key={sr.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+          className="bg-theme-bg-primary rounded border border-theme-border p-4 hover:shadow-md transition-all group"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center">
-                <RotateCcw className="w-5 h-5 text-primary-600" />
+              <div className="w-9 h-9 bg-primary-500/10 rounded-full flex items-center justify-center">
+                <RotateCcw className="w-4 h-4 text-primary-600" />
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-gray-900 text-xs truncate">{sr.transactionId || '—'}</p>
-                <p className="text-[10px] text-gray-500">{formatDate(sr.createdAt).split(',')[0]}</p>
+                <p className="font-semibold text-theme-text-primary text-[11px] truncate">{sr.transactionId || '—'}</p>
+                <p className="text-[10px] text-theme-text-secondary">{formatDate(sr.createdAt).split(',')[0]}</p>
               </div>
             </div>
             <ActionButtons sr={sr} />
           </div>
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Items:</span>
-              <span className="font-medium text-gray-900">{getTotalItemsCount(sr)} ({getTotalQuantity(sr)} qty)</span>
+          <div className="space-y-2 text-[10px]">
+            <div className="flex justify-between border-b border-theme-border/50 pb-2">
+              <span className="text-theme-text-secondary">{t('salesReturn.items')}:</span>
+              <span className="font-semibold text-theme-text-primary">{getTotalItemsCount(sr)} ({getTotalQuantity(sr)} {t('salesReturn.qty')})</span>
             </div>
-            <div className="text-gray-600 line-clamp-2 min-h-[2rem]">
+            <div className="text-theme-text-secondary line-clamp-2 min-h-[2.5rem] py-1">
               {getProductNames(sr)}
             </div>
             {sr.reason && (
-              <div className="bg-gray-50 p-2 rounded text-[10px] text-gray-500 italic line-clamp-2">
+              <div className="bg-theme-bg-secondary p-2 rounded text-[10px] text-theme-text-secondary italic line-clamp-2 border border-theme-border/50">
                 "{sr.reason}"
               </div>
             )}
@@ -453,31 +454,31 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   );
 
   const ListView = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+    <div className="bg-theme-bg-primary rounded border border-theme-border divide-y divide-theme-border shadow-sm">
       {currentItems.map((sr) => (
         <motion.div
           key={sr.id}
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="px-6 py-3 hover:bg-gray-50 flex items-center justify-between"
+          className="px-6 py-3 hover:bg-theme-bg-tertiary flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center flex-shrink-0">
-              <RotateCcw className="w-5 h-5 text-primary-600" />
+            <div className="w-9 h-9 bg-primary-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+              <RotateCcw className="w-4 h-4 text-primary-600" />
             </div>
             <div className="min-w-0">
-              <p className="font-medium text-gray-900 truncate">{sr.transactionId || '—'}</p>
-              <p className="text-xs text-gray-500 truncate">{getProductNames(sr)}</p>
+              <p className="font-medium text-theme-text-primary text-xs truncate">{sr.transactionId || '—'}</p>
+              <p className="text-[10px] text-theme-text-secondary truncate">{getProductNames(sr)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-8 text-xs text-gray-600 px-4">
+          <div className="flex items-center gap-8 text-[10px] text-theme-text-secondary px-4">
             <div className="text-center">
-              <p className="font-bold text-gray-900">{getTotalQuantity(sr)}</p>
-              <p className="text-[10px]">Qty</p>
+              <p className="font-bold text-theme-text-primary">{getTotalQuantity(sr)}</p>
+              <p className="text-[9px] uppercase tracking-wider">{t('salesReturn.qty')}</p>
             </div>
             <div className="text-right whitespace-nowrap hidden sm:block">
-              <p>{formatDate(sr.createdAt).split(',')[0]}</p>
-              <p className="text-[10px]">{sr.reason ? 'Return' : 'General'}</p>
+              <p className="text-theme-text-primary font-medium">{formatDate(sr.createdAt).split(',')[0]}</p>
+              <p className="text-[9px] uppercase tracking-wider">{sr.reason ? t('salesReturn.return') : t('salesReturn.general')}</p>
             </div>
           </div>
           <ActionButtons sr={sr} />
@@ -489,18 +490,23 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
   // ── Render ─────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 text-xs">
+    <div className="min-h-screen bg-theme-bg-secondary text-[10px] text-theme-text-primary">
       {/* Toast Notification */}
       <AnimatePresence>
         {operationStatus && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg bg-green-50 border border-green-200 text-green-800 text-sm"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded border shadow-xl ${operationStatus.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
+                : operationStatus.type === 'error'
+                  ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                  : 'bg-primary-500/10 border-primary-500/20 text-primary-500'
+              }`}
           >
-            <Check size={16} />
-            <span className="font-medium">{operationStatus.message}</span>
+            {operationStatus.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+            <span className="font-semibold text-xs">{operationStatus.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -512,27 +518,27 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
       />
 
       {/* Header Section */}
-      <div className="bg-white shadow-md">
+      <div className="bg-theme-bg-primary border-b border-theme-border sticky top-0 z-30 shadow-sm">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Sales Return Management</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Process returns & track inventory movement</p>
+              <h1 className="text-base font-bold text-theme-text-primary">{t('salesReturn.title')}</h1>
+              <p className="text-[10px] text-theme-text-secondary mt-0.5">{t('salesReturn.subtitle')}</p>
             </div>
             {/* View Mode Switcher */}
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+            <div className="flex items-center bg-theme-bg-secondary border border-theme-border rounded overflow-hidden">
               {[
-                { mode: 'table' as ViewMode, icon: List, title: 'Table' },
-                { mode: 'grid' as ViewMode, icon: Grid3X3, title: 'Grid' },
-                { mode: 'list' as ViewMode, icon: Settings, title: 'List' },
+                { mode: 'table' as ViewMode, icon: List, title: t('salesReturn.tableView') },
+                { mode: 'grid' as ViewMode, icon: Grid3X3, title: t('salesReturn.gridView') },
+                { mode: 'list' as ViewMode, icon: Settings, title: t('salesReturn.listView') },
               ].map(({ mode, icon: Icon, title }) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`p-2.5 transition-colors ${viewMode === mode ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-2 transition-all ${viewMode === mode ? 'bg-primary-600 text-white' : 'text-theme-text-secondary hover:bg-theme-bg-tertiary'}`}
                   title={title}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                 </button>
               ))}
             </div>
@@ -541,28 +547,28 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
       </div>
 
       {/* Main Content */}
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-4 max-w-[1600px] mx-auto">
         {/* Statistics Cards */}
         {statistics && <StatisticsCards />}
 
         {/* Search + Controls */}
-        <div className="bg-white rounded border border-gray-200 p-3">
+        <div className="bg-theme-bg-primary rounded border border-theme-border p-3 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
-            <div className="flex items-center space-x-2 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
               {/* Search */}
               <div className="relative">
-                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search transaction, reason, product..."
+                  placeholder={t('salesReturn.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="w-full sm:w-48 pl-7 pr-3 py-1.5 text-[10px] bg-theme-bg-secondary border border-theme-border rounded text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all placeholder:text-theme-text-tertiary"
                 />
               </div>
 
               {/* Date Filter Buttons */}
-              <div className="flex gap-1 bg-gray-100 p-1 rounded">
+              <div className="flex gap-1 bg-theme-bg-secondary p-1 rounded border border-theme-border">
                 {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
                   <button
                     key={opt}
@@ -574,12 +580,15 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
                         endDate: opt !== 'custom' ? '' : prev.endDate,
                       }));
                     }}
-                    className={`px-2 py-1 text-xs font-medium rounded capitalize transition-colors ${filters.dateRange === opt
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                    className={`px-2 py-1 text-[10px] font-medium rounded capitalize transition-all ${filters.dateRange === opt
+                      ? 'bg-primary-600 text-white shadow-sm'
+                      : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
                       }`}
                   >
-                    {opt === 'all' ? 'All Time' : opt}
+                    {opt === 'all' ? t('stockIn.allTime') :
+                      opt === 'today' ? t('stockIn.today') :
+                        opt === 'week' ? t('stockIn.week') :
+                          opt === 'month' ? t('stockIn.month') : t('stockIn.custom')}
                   </button>
                 ))}
               </div>
@@ -591,14 +600,14 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
                     type="date"
                     value={filters.startDate}
                     onChange={(e) => setFilters(p => ({ ...p, startDate: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-[10px] bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:ring-1 focus:ring-primary-500 outline-none"
                   />
-                  <span className="text-gray-500 text-xs text-center">to</span>
+                  <span className="text-theme-text-secondary text-[10px]">{t('stockIn.to')}</span>
                   <input
                     type="date"
                     value={filters.endDate}
                     onChange={(e) => setFilters(p => ({ ...p, endDate: e.target.value }))}
-                    className="px-2 py-1 text-xs border border-gray-200 rounded"
+                    className="px-2 py-1 text-[10px] bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:ring-1 focus:ring-primary-500 outline-none"
                   />
                 </div>
               )}
@@ -608,18 +617,18 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
               <button
                 onClick={fetchSalesReturns}
                 disabled={isLoading}
-                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-                title="Refresh"
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-1 px-4 py-2 text-theme-text-secondary border border-theme-border rounded bg-theme-bg-primary hover:bg-theme-bg-tertiary disabled:opacity-50 transition-colors"
+                title={t('salesReturn.refresh')}
               >
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.refresh')}</span>
               </button>
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
+                className="flex-1 sm:flex-none flex items-center justify-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded shadow-sm transition-all active:scale-95"
               >
                 <Plus className="w-3 h-3" />
-                <span>Process Return</span>
+                <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.processReturn')}</span>
               </button>
             </div>
           </div>
@@ -627,30 +636,36 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
 
         {/* Loading / Empty / Views */}
         {isLoading ? (
-          <div className="bg-white rounded border border-gray-200 p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-4"></div>
-            <p className="text-gray-600">Loading returns...</p>
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center shadow-sm">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent mb-4"></div>
+            <p className="text-theme-text-secondary text-[11px]">{t('salesReturn.loading')}</p>
           </div>
         ) : safeList.length === 0 ? (
-          <div className="bg-white rounded border border-gray-200 p-12 text-center">
-            <RotateCcw className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-base font-semibold mb-2">No returns found</h3>
-            <p className="text-xs text-gray-600 mb-6">
-              {searchTerm || filters.dateRange !== 'all' ? 'Try adjusting filters' : 'Start processing your first return'}
+          <div className="bg-theme-bg-primary rounded border border-theme-border p-12 text-center shadow-sm">
+            <div className="w-16 h-16 bg-theme-bg-secondary rounded-full flex items-center justify-center mx-auto mb-4 border border-theme-border">
+              <RotateCcw className="w-8 h-8 text-theme-text-tertiary" />
+            </div>
+            <h3 className="text-sm font-bold text-theme-text-primary mb-2">{t('salesReturn.noReturnsFound')}</h3>
+            <p className="text-[10px] text-theme-text-secondary max-w-xs mx-auto mb-6">
+              {searchTerm || filters.dateRange !== 'all' ? t('salesReturn.adjustFilters') : t('salesReturn.startProcessing')}
             </p>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
+              className="bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold uppercase tracking-widest px-6 py-2.5 rounded shadow-sm transition-all"
             >
-              Process First Return
+              {t('salesReturn.processFirst')}
             </button>
           </div>
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             {viewMode === 'table' && <TableView />}
             {viewMode === 'grid' && <GridView />}
             {viewMode === 'list' && <ListView />}
-          </>
+          </motion.div>
         )}
       </div>
 

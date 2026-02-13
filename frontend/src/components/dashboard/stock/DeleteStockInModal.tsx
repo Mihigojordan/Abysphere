@@ -13,23 +13,25 @@ const DeleteStockInModal: React.FC<Props> = ({ isOpen, stock, onClose, onDelete 
   if (!isOpen || !stock) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-theme-bg-primary rounded-2xl shadow-2xl max-w-md w-full p-6 border border-theme-border animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Delete Stock-In?</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <h3 className="text-lg font-black text-theme-text-primary uppercase tracking-widest">Delete Stock-In?</h3>
+          <button onClick={onClose} className="p-2 hover:bg-theme-bg-tertiary rounded-xl transition-colors text-theme-text-secondary hover:text-theme-text-primary">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg mb-4">
+        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-4">
           <Package className="w-8 h-8 text-red-600" />
           <div>
-            <p className="font-medium text-gray-900">{stock.itemName || stock.productName}</p>
-            <p className="text-xs text-gray-600">SKU: {stock.sku || 'N/A'}</p>
+            <p className="font-black text-theme-text-primary uppercase tracking-tighter truncate">{stock.itemName || stock.productName}</p>
+            <p className="font-mono text-[10px] text-red-500/70">SKU: {stock.sku || 'N/A'}</p>
           </div>
         </div>
-        <p className="text-sm text-gray-600 mb-6">This action cannot be undone.</p>
+        <p className="text-[11px] font-black text-theme-text-secondary uppercase tracking-widest mb-6">This action cannot be undone.</p>
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg">Cancel</button>
-          <button onClick={() => { onDelete(stock); onClose(); }} className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
+          <button onClick={onClose} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-xl transition-all">Cancel</button>
+          <button onClick={() => { onDelete(stock); onClose(); }} className="px-5 py-2.5 text-[10px] font-black uppercase tracking-widest bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-600/20 transition-all">Delete</button>
         </div>
       </div>
     </div>

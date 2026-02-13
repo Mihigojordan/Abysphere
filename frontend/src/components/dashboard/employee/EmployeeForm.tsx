@@ -234,19 +234,19 @@ const EmployeeForm: React.FC<{
   const isEditMode = !!(employeeId || paramsEmployeeId);
 
   return (
-    <div className=" mx-auto p-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div className="mx-auto p-4 sm:p-6 transition-colors duration-200">
+      <div className="bg-theme-bg-primary rounded-xl shadow-lg border border-theme-border overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-primary-600" />
+        <div className="p-6 border-b border-theme-border bg-theme-bg-tertiary/50">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center border border-primary-500/20">
+              <User className="w-6 h-6 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-bold text-theme-text-primary">
                 {isEditMode ? 'Edit Employee' : 'Add New Employee'}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-theme-text-secondary mt-1">
                 {isEditMode ? 'Update employee information' : 'Fill in the employee details'}
               </p>
             </div>
@@ -254,20 +254,21 @@ const EmployeeForm: React.FC<{
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {errors.general && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{errors.general}</p>
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <p className="text-sm text-red-500 font-medium">{errors.general}</p>
             </div>
           )}
 
           {/* Profile Picture */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture / national id picture
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-theme-text-primary">
+              Profile Picture / National ID Picture
             </label>
             {!profileImgPreview ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+              <div className="border-2 border-dashed border-theme-border rounded-xl p-8 text-center hover:border-primary-500/50 hover:bg-theme-bg-tertiary transition-all group cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
@@ -275,231 +276,251 @@ const EmployeeForm: React.FC<{
                   className="hidden"
                   id="profileImg"
                 />
-                <label htmlFor="profileImg" className="cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">Click to upload Identity Card or Image</p>
-                  <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                <label htmlFor="profileImg" className="cursor-pointer block">
+                  <Upload className="mx-auto h-12 w-12 text-theme-text-secondary group-hover:text-primary-500 transition-colors" />
+                  <p className="mt-3 text-sm font-medium text-theme-text-primary">Click to upload Identity Card or Image</p>
+                  <p className="mt-1 text-xs text-theme-text-secondary">PNG, JPG up to 5MB</p>
                 </label>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <img
-                  src={profileImgPreview}
-                  alt="Profile preview"
-                  className="w-24 h-24 rounded-lg object-cover border border-gray-200"
-                />
-                <div className="flex space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => window.open(profileImgPreview)}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg"
-                  >
-                    <Eye className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={removeFile}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+              <div className="flex items-center space-x-6 p-4 bg-theme-bg-tertiary rounded-xl border border-theme-border">
+                <div className="relative group">
+                  <img
+                    src={profileImgPreview}
+                    alt="Profile preview"
+                    className="w-28 h-28 rounded-xl object-cover border border-theme-border shadow-md"
+                  />
+                  <div className="absolute inset-0 bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.open(profileImgPreview)}
+                      className="p-2 bg-white/20 backdrop-blur-sm hover:bg-white/40 rounded-lg text-white"
+                      title="View Full Image"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeFile}
+                      className="p-2 bg-white/20 backdrop-blur-sm hover:bg-red-500/40 rounded-lg text-white"
+                      title="Remove"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-theme-text-primary truncate">Image Selected</h4>
+                  <p className="text-xs text-theme-text-secondary mt-1">This will be updated upon saving</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                value={formData.first_name}
-                onChange={(e) => handleInputChange('first_name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Enter first name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                value={formData.last_name}
-                onChange={(e) => handleInputChange('last_name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Enter last name"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Enter email address"
-              />
-              {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Enter phone number"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => handleInputChange('gender', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="">Select gender</option>
-                {GENDERS.map(g => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                National ID
-              </label>
-              <input
-                type="text"
-                value={formData.national_id}
-                onChange={(e) => handleInputChange('national_id', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Enter national ID"
-              />
-            </div>
-          </div>
-
-          {/* Employment Information */}
-          <div className="border-t border-gray-100 pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Employment Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Position
-                </label>
-                <input
-                  type="text"
-                  value={formData.position}
-                  onChange={(e) => handleInputChange('position', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Enter position/title"
-                />
+          {/* Sections Grid */}
+          <div className="space-y-10">
+            {/* Basic Information */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-theme-border pb-2">
+                <h3 className="text-sm font-bold text-primary-600 uppercase tracking-wider">Basic Information</h3>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.first_name}
+                    onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter first name"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(e) => handleInputChange('department', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Enter department name"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.last_name}
+                    onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter last name"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date Hired
-                </label>
-                <input
-                  type="date"
-                  value={formData.date_hired}
-                  onChange={(e) => handleInputChange('date_hired', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className={`w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border rounded-xl focus:outline-none focus:ring-2 transition-all ${errors.email ? 'border-red-500 focus:ring-red-500/20' : 'border-theme-border focus:ring-primary-500/20 focus:border-primary-500'} text-theme-text-primary`}
+                    placeholder="Enter email address"
+                  />
+                  {errors.email && <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 uppercase">{errors.email}</p>}
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {EMPLOYEE_STATUS.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Gender
+                  </label>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary appearance-none cursor-pointer"
+                  >
+                    <option value="">Select gender</option>
+                    {GENDERS.map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    National ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.national_id}
+                    onChange={(e) => handleInputChange('national_id', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter national ID"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Emergency Contact */}
-          <div className="border-t border-gray-100 pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.emergency_contact_name}
-                  onChange={(e) => handleInputChange('emergency_contact_name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Enter emergency contact name"
-                />
+            {/* Employment Information */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-theme-border pb-2">
+                <h3 className="text-sm font-bold text-primary-600 uppercase tracking-wider">Employment Details</h3>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Position
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.position}
+                    onChange={(e) => handleInputChange('position', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter position/title"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Phone
-                </label>
-                <input
-                  type="tel"
-                  value={formData.emergency_contact_phone}
-                  onChange={(e) => handleInputChange('emergency_contact_phone', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Enter emergency contact phone"
-                />
-                {errors.emergency_contact_phone && (
-                  <p className="text-sm text-red-600 mt-1">{errors.emergency_contact_phone}</p>
-                )}
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.department}
+                    onChange={(e) => handleInputChange('department', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter department name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Date Hired
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date_hired}
+                    onChange={(e) => handleInputChange('date_hired', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary appearance-none cursor-pointer"
+                  >
+                    {EMPLOYEE_STATUS.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Emergency Contact */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-theme-border pb-2">
+                <h3 className="text-sm font-bold text-primary-600 uppercase tracking-wider">Emergency Contact</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Contact Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.emergency_contact_name}
+                    onChange={(e) => handleInputChange('emergency_contact_name', e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all"
+                    placeholder="Enter emergency contact name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-theme-text-secondary uppercase mb-1.5 ml-1">
+                    Contact Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.emergency_contact_phone}
+                    onChange={(e) => handleInputChange('emergency_contact_phone', e.target.value)}
+                    className={`w-full px-4 py-2.5 text-sm bg-theme-bg-secondary border rounded-xl focus:outline-none focus:ring-2 transition-all ${errors.emergency_contact_phone ? 'border-red-500 focus:ring-red-500/20' : 'border-theme-border focus:ring-primary-500/20 focus:border-primary-500'} text-theme-text-primary`}
+                    placeholder="Enter emergency contact phone"
+                  />
+                  {errors.emergency_contact_phone && (
+                    <p className="text-[10px] text-red-500 font-bold mt-1.5 ml-1 uppercase">{errors.emergency_contact_phone}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-theme-border bg-theme-bg-tertiary/20 -mx-6 -mb-6 p-6">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-2.5 border border-theme-border text-theme-text-secondary rounded-xl hover:bg-theme-bg-tertiary hover:text-theme-text-primary transition-all font-semibold order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+              className="px-8 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 font-bold shadow-lg shadow-primary-500/20 order-1 sm:order-2 active:scale-95"
             >
               {isLoading ? (
                 <>

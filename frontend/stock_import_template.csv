@@ -1,0 +1,6 @@
+ItemName,SKU,Category,Supplier,Quantity,UnitCost,Location,ReorderLevel,Description,ExpiryDate
+Tilapia Feed A,FEED-001,Feeds,AquaSupplies,100,5000,Warehouse A,10,High quality feed,2025-12-31
+PH Meter,EQ-PH-01,Equipment,TechInstruments,5,15000,Lab Cabinet,2,Digital PH Meter,
+Antibiotics,MED-001,Medicine,VetPharma,50,2000,Cold Storage,5,General antibiotics,2024-06-30
+Netting 50m,NET-050,Equipment,NetMaster,10,12000,Warehouse B,2,Heavy duty netting,
+Vitamin Mix,VIT-001,Medicine,VetPharma,20,3500,Cold Storage,5,Growth supplement,2025-01-01

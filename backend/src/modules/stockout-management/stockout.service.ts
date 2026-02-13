@@ -14,9 +14,50 @@ import { Prisma } from 'generated/prisma';
 export class StockoutService {
   constructor(private readonly prisma: PrismaService) { }
 
+  async getProductPerformance(adminId: string) {
+    const stockOuts = await this.prisma.stockOut.groupBy({
+      by: ['stockinId'],
+      where: {
+        stockin: { adminId },
+      },
+      _sum: {
+        quantity: true,
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    const detailedPerformance = await Promise.all(
+      stockOuts.map(async (item) => {
+        if (!item.stockinId) return null;
+        const stock = await this.prisma.stock.findUnique({
+          where: { id: item.stockinId },
+          select: { itemName: true, sku: true },
+        });
+        return {
+          ...stock,
+          totalSold: Number(item._sum.quantity),
+        };
+      })
+    );
+
+    const validPerformance = detailedPerformance.filter((item) => item !== null);
+
+    return {
+      mostSold: validPerformance,
+      leastSold: [...validPerformance].reverse(), // Simple reverse for now
+    };
+  }
+
   async create(data: {
     sales: {
-      stockinId: number; // now an integer
+      stockinId?: number; // Optional for external items
+      externalItemName?: string;
+      externalSku?: string;
       quantity: number;
       soldPrice?: number;
     }[];
@@ -50,83 +91,112 @@ export class StockoutService {
 
     return await this.prisma.$transaction(async (tx) => {
       for (const sale of sales) {
-        const { stockinId, quantity, soldPrice: overrideSoldPrice } = sale;
+        const { stockinId, quantity, soldPrice: overrideSoldPrice, externalItemName, externalSku } = sale;
 
-        if (!stockinId) {
-          throw new BadRequestException('Stock ID is required for sales');
+        let soldPrice = overrideSoldPrice;
+        let createdRecord;
+
+        if (stockinId) {
+          // INTERNAL STOCK SALE
+          // Fetch Stock details
+          const stock = await tx.stock.findUnique({
+            where: { id: stockinId },
+          });
+
+          if (!stock) {
+            throw new NotFoundException(`Stock not found for ID: ${stockinId}`);
+          }
+
+          if (stock.receivedQuantity < quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for "${stock.itemName}". Available: ${stock.receivedQuantity}, Requested: ${quantity}`,
+            );
+          }
+
+          if (!stock.unitCost) {
+            throw new BadRequestException(
+              `Unit cost not set for stock "${stock.itemName}"`,
+            );
+          }
+
+          const oldQty = Number(stock.receivedQuantity);
+          const newQty = oldQty - quantity;
+
+          // Decrement Stock quantity
+          const updatedStock = await tx.stock.updateMany({
+            where: { id: stockinId, receivedQuantity: { gte: quantity } },
+            data: { receivedQuantity: { decrement: quantity } },
+          });
+
+          if (updatedStock.count === 0) {
+            throw new BadRequestException(
+              `Failed to decrement stock for "${stock.itemName}"`,
+            );
+          }
+
+          soldPrice = overrideSoldPrice ?? Number(stock.unitCost);
+
+          // Create StockOut record
+          createdRecord = await tx.stockOut.create({
+            data: {
+              stockinId,
+              quantity,
+              soldPrice,
+              clientName,
+              clientEmail,
+              clientPhone,
+              adminId,
+              employeeId,
+              transactionId,
+              paymentMethod,
+            },
+          });
+
+          // Record stock history — OUT (sale)
+          await tx.stockHistory.create({
+            data: {
+              stockId: stockinId,
+              movementType: 'OUT',
+              sourceType: 'ISSUE',
+              qtyBefore: new Prisma.Decimal(oldQty),
+              qtyChange: new Prisma.Decimal(quantity),
+              qtyAfter: new Prisma.Decimal(newQty),
+              unitPrice: new Prisma.Decimal(Number(soldPrice)),
+              notes: `Sold: ${stock.itemName} x${quantity} to ${clientName || 'N/A'} (Tx: ${transactionId})`,
+              createdByAdminId: adminId,
+              createdByEmployeeId: employeeId || null,
+            },
+          });
+
+        } else {
+          // EXTERNAL / NON-STOCK SALE
+          if (!externalItemName) {
+            throw new BadRequestException('Item Name is required for non-stock items.');
+          }
+          if (!soldPrice) {
+            throw new BadRequestException(`Selling price is required for non-stock item "${externalItemName}".`);
+          }
+
+          // Create StockOut record without stockinId
+          createdRecord = await tx.stockOut.create({
+            data: {
+              stockinId: null,
+              externalItemName,
+              externalSku,
+              quantity,
+              soldPrice,
+              clientName,
+              clientEmail,
+              clientPhone,
+              adminId,
+              employeeId,
+              transactionId,
+              paymentMethod,
+            },
+          });
         }
 
-        // Fetch Stock details
-        const stock = await tx.stock.findUnique({
-          where: { id: stockinId },
-        });
-
-        if (!stock) {
-          throw new NotFoundException(`Stock not found for ID: ${stockinId}`);
-        }
-
-        if (stock.receivedQuantity < quantity) {
-          throw new BadRequestException(
-            `Insufficient stock for "${stock.itemName}". Available: ${stock.receivedQuantity}, Requested: ${quantity}`,
-          );
-        }
-
-        if (!stock.unitCost) {
-          throw new BadRequestException(
-            `Unit cost not set for stock "${stock.itemName}"`,
-          );
-        }
-
-        const oldQty = Number(stock.receivedQuantity);
-        const newQty = oldQty - quantity;
-
-        // Decrement Stock quantity
-        const updatedStock = await tx.stock.updateMany({
-          where: { id: stockinId, receivedQuantity: { gte: quantity } },
-          data: { receivedQuantity: { decrement: quantity } },
-        });
-
-        if (updatedStock.count === 0) {
-          throw new BadRequestException(
-            `Failed to decrement stock for "${stock.itemName}"`,
-          );
-        }
-
-        const soldPrice = overrideSoldPrice ?? stock.unitCost;
-
-        // Create StockOut record
-        const newStockout = await tx.stockOut.create({
-          data: {
-            stockinId,
-            quantity,
-            soldPrice,
-            clientName,
-            clientEmail,
-            clientPhone,
-            adminId,
-            employeeId,
-            transactionId,
-            paymentMethod,
-          },
-        });
-
-        // Record stock history — OUT (sale)
-        await tx.stockHistory.create({
-          data: {
-            stockId: stockinId,
-            movementType: 'OUT',
-            sourceType: 'ISSUE',
-            qtyBefore: new Prisma.Decimal(oldQty),
-            qtyChange: new Prisma.Decimal(quantity),
-            qtyAfter: new Prisma.Decimal(newQty),
-            unitPrice: new Prisma.Decimal(Number(soldPrice)),
-            notes: `Sold: ${stock.itemName} x${quantity} to ${clientName || 'N/A'} (Tx: ${transactionId})`,
-            createdByAdminId: adminId,
-            createdByEmployeeId: employeeId || null,
-          },
-        });
-
-        createdStockouts.push(newStockout);
+        createdStockouts.push(createdRecord);
       }
 
       // Generate barcode for transaction
@@ -254,4 +324,122 @@ export class StockoutService {
 
     return this.prisma.stockOut.delete({ where: { id } });
   }
+
+  async bulkImport(
+    data: {
+      itemName: string;
+      sku?: string;
+      quantity: number;
+      soldPrice: number;
+      clientName?: string;
+      clientEmail?: string;
+      clientPhone?: string;
+      paymentMethod?: any;
+    }[],
+    adminId: string,
+  ) {
+    if (!adminId) throw new BadRequestException('Admin ID is required');
+
+    const results = {
+      success: 0,
+      failed: 0,
+      external: 0,
+      errors: [] as string[],
+    };
+
+    const transactionId = generateStockSKU('abyride', 'bulk-out');
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
+        try {
+          // 1. Try to find stock by SKU or Item Name
+          let stock: any = null;
+          if (item.sku) {
+            stock = await tx.stock.findUnique({ where: { sku: item.sku } });
+          }
+          if (!stock && item.itemName) {
+            stock = await tx.stock.findFirst({
+              where: { itemName: item.itemName },
+            });
+          }
+
+          if (stock !== null) {
+            // STOCK FOUND -> Reduce Stock
+            if (stock.receivedQuantity < item.quantity) {
+              throw new Error(
+                `Insufficient stock for "${item.itemName}". Available: ${stock.receivedQuantity}, Requested: ${item.quantity}`
+              );
+            }
+
+            const oldQty = Number(stock.receivedQuantity);
+            const newQty = oldQty - item.quantity;
+
+
+            await tx.stock.update({
+              where: { id: stock.id },
+              data: { receivedQuantity: { decrement: item.quantity } },
+            });
+
+            // Record stock history — OUT (bulk sale)
+            await tx.stockHistory.create({
+              data: {
+                stockId: stock.id,
+                movementType: 'OUT',
+                sourceType: 'ISSUE',
+                qtyBefore: new Prisma.Decimal(oldQty),
+                qtyChange: new Prisma.Decimal(item.quantity),
+                qtyAfter: new Prisma.Decimal(newQty),
+                unitPrice: new Prisma.Decimal(item.soldPrice),
+                notes: `Bulk Sold: ${item.itemName} x${item.quantity} (Tx: ${transactionId})`,
+                createdByAdminId: adminId,
+              },
+            });
+
+            await tx.stockOut.create({
+              data: {
+                stockinId: stock.id,
+                quantity: item.quantity,
+                soldPrice: item.soldPrice,
+                adminId,
+                transactionId,
+                clientName: item.clientName,
+                clientEmail: item.clientEmail,
+                clientPhone: item.clientPhone ? String(item.clientPhone) : undefined,
+                paymentMethod: item.paymentMethod,
+              },
+            });
+
+            results.success++;
+          } else {
+            // STOCK NOT FOUND -> Register as External Sale
+            await tx.stockOut.create({
+              data: {
+                stockinId: null, // No relation
+                externalItemName: item.itemName || 'Unknown Item',
+                externalSku: item.sku,
+                quantity: item.quantity,
+                soldPrice: item.soldPrice,
+                adminId,
+                transactionId,
+                clientName: item.clientName,
+                clientEmail: item.clientEmail,
+                clientPhone: item.clientPhone ? String(item.clientPhone) : undefined,
+                paymentMethod: item.paymentMethod,
+              },
+            });
+            results.external++;
+            results.success++;
+          }
+        } catch (error: any) {
+          results.failed++;
+          results.errors.push(
+            `Item: ${item.itemName || 'Unknown'} - ${error.message}`,
+          );
+        }
+      }
+    });
+
+    return results;
+  }
 }
+

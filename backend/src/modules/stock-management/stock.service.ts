@@ -111,9 +111,28 @@ export class StockService {
     });
   }
 
+  async getStockAlerts(adminId: string) {
+    const lowStock = await this.prisma.stock.findMany({
+      where: {
+        adminId,
+        receivedQuantity: { lte: this.prisma.stock.fields.reorderLevel },
+      },
+      orderBy: { receivedQuantity: 'asc' },
+      take: 10,
+    });
+
+    const highStock = await this.prisma.stock.findMany({
+      where: { adminId },
+      orderBy: { receivedQuantity: 'desc' },
+      take: 10,
+    });
+
+    return { lowStock, highStock };
+  }
+
   async findOne(id: number) {
     const stock = await this.prisma.stock.findUnique({ where: { id } });
-    
+
     if (!stock) throw new NotFoundException('Stock item not found');
     return stock;
   }
@@ -136,42 +155,42 @@ export class StockService {
     const newQuantity = data.receivedQuantity !== undefined ? Number(data.receivedQuantity) : oldQty;
     const newUnitCost = data.unitCost !== undefined ? Number(data.unitCost) : Number(existing.unitCost);
     const totalValue = newQuantity * newUnitCost;
-   // remove FK from spread so Prisma doesn't see it
-const { categoryId , ...rest } = data;
+    // remove FK from spread so Prisma doesn't see it
+    const { categoryId, ...rest } = data;
 
 
-const updateData = {
-  ...rest,
+    const updateData = {
+      ...rest,
 
-  receivedQuantity: newQuantity,
-  unitCost: new Prisma.Decimal(newUnitCost),
-  totalValue: new Prisma.Decimal(totalValue),
-  supplier: supplierName,
-  receivedDate: data.receivedDate
-    ? new Date(data.receivedDate)
-    : existing.receivedDate,
-  reorderLevel:
-    data.reorderLevel !== undefined
-      ? Number(data.reorderLevel)
-      : existing.reorderLevel,
-  expiryDate: data.expiryDate
-    ? new Date(data.expiryDate)
-    : existing.expiryDate,
-};
+      receivedQuantity: newQuantity,
+      unitCost: new Prisma.Decimal(newUnitCost),
+      totalValue: new Prisma.Decimal(totalValue),
+      supplier: supplierName,
+      receivedDate: data.receivedDate
+        ? new Date(data.receivedDate)
+        : existing.receivedDate,
+      reorderLevel:
+        data.reorderLevel !== undefined
+          ? Number(data.reorderLevel)
+          : existing.reorderLevel,
+      expiryDate: data.expiryDate
+        ? new Date(data.expiryDate)
+        : existing.expiryDate,
+    };
 
-// ✅ only update relation if provided
-if (categoryId) {
-  updateData.category = {
-    connect: { id: categoryId }
-  };
-}
+    // ✅ only update relation if provided
+    if (categoryId) {
+      updateData.category = {
+        connect: { id: categoryId }
+      };
+    }
 
-const updated = await this.prisma.stock.update({
-  where: { id },
-  data: updateData,
-});
+    const updated = await this.prisma.stock.update({
+      where: { id },
+      data: updateData,
+    });
 
-  
+
     // Record stock history — ADJUSTMENT (update)
     if (oldQty !== newQuantity) {
       await this.prisma.stockHistory.create({
@@ -199,7 +218,7 @@ const updated = await this.prisma.stock.update({
 
   // ── Stock History Queries ──────────────────────────────────────────
 
-  async getStockHistory(adminId:string) {
+  async getStockHistory(adminId: string) {
     return this.prisma.stockHistory.findMany({
       where: { stockId: { not: null }, createdByAdminId: adminId },
       include: {
@@ -211,9 +230,9 @@ const updated = await this.prisma.stock.update({
     });
   }
 
-  async getStockHistoryByStockId(stockId: number,adminId:string) {
+  async getStockHistoryByStockId(stockId: number, adminId: string) {
     return this.prisma.stockHistory.findMany({
-      where: { stockId ,createdByAdminId:adminId},
+      where: { stockId, createdByAdminId: adminId },
       include: {
         stock: true,
         createdByAdmin: true,
@@ -221,5 +240,65 @@ const updated = await this.prisma.stock.update({
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async bulkImport(data: any[], adminId: string) {
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+
+    for (const [index, item] of data.entries()) {
+      try {
+        // Validate required fields
+        if (!item.itemName) throw new Error('Item Name is required');
+
+        // Resolve Category
+        let categoryId = item.categoryId;
+        if (!categoryId && item.category) {
+          const category = await this.prisma.category.findFirst({
+            where: { name: item.category },
+          });
+          if (category) categoryId = category.id;
+        }
+
+        // Resolve Supplier (if name provided)
+        let supplierName = item.supplier;
+        // If supplier is not provided or is just a name string, it's handled in createStock logic slightly differently
+        // But here we can just pass it through. logic in createStock handles ID or Name check.
+        // However, if we want to be strict about mapping existing suppliers:
+        if (item.supplier && typeof item.supplier === 'string') {
+          // Check if it's an ID or Name. If it's a valid UUID, createStock handles it. 
+          // If it's a name, createStock handles it as a string name. 
+          // So we might not need extra logic here unless we want to enforce existing supplier.
+        }
+
+        // Prepare data for createStock
+        const stockData = {
+          sku: item.sku || `SKU-${Date.now()}-${index}`, // Generate SKU if missing
+          itemName: item.itemName,
+          categoryId: categoryId,
+          supplier: item.supplier,
+          receivedQuantity: item.quantity || item.receivedQuantity || 0,
+          unitCost: item.unitCost || 0,
+          unitOfMeasure: item.unitOfMeasure || 'PCS',
+          warehouseLocation: item.warehouseLocation || item.location,
+          minStockLevel: item.minStockLevel || item.reorderLevel,
+          reorderLevel: item.reorderLevel || 0,
+          expiryDate: item.expiryDate,
+          receivedDate: item.receivedDate,
+          description: item.description,
+        };
+
+        await this.createStock(stockData, adminId);
+        results.success++;
+      } catch (error: any) {
+        results.failed++;
+        results.errors.push(`Row ${index + 1} (${item.itemName || 'Unknown'}): ${error.message}`);
+      }
+    }
+
+    return results;
   }
 }

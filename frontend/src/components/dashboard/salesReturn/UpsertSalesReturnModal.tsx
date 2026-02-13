@@ -299,23 +299,21 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
   const isItemSelected = (id: string): boolean => selectedItems.some(i => i.stockoutId === id);
   const getSelectedItem = (id: string): SelectedItem | undefined => selectedItems.find(i => i.stockoutId === id);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl w-full max-w-6xl mx-4 max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-theme-bg-primary rounded-xl border border-theme-border w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50">
+        <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-secondary">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-theme-text-primary flex items-center gap-2">
                 <RotateCcw className="w-5 h-5 text-primary-600" />
                 {title}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">Search transaction → select items → process return</p>
+              <p className="text-[10px] text-theme-text-secondary mt-1">Search transaction → select items → process return</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-              <X size={20} className="text-gray-500" />
+            <button onClick={onClose} className="p-2 hover:bg-theme-bg-tertiary rounded-lg transition-colors">
+              <X size={20} className="text-theme-text-secondary" />
             </button>
           </div>
         </div>
@@ -325,12 +323,12 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
           <div className="p-6">
             {/* User Info */}
             {currentUser && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <User size={16} className="text-blue-600" />
-                  <span className="font-medium text-blue-900">Processing as: {userRole}</span>
+              <div className="mb-6 p-4 bg-primary-500/10 border border-primary-500/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <User size={14} className="text-primary-600" />
+                  <span className="font-semibold text-xs text-theme-text-primary">Processing as: <span className="capitalize">{userRole}</span></span>
                 </div>
-                <p className="text-sm text-blue-700">
+                <p className="text-[11px] text-theme-text-secondary">
                   {userRole === 'admin' ? currentUser.adminName : `${currentUser.firstname} ${currentUser.lastname}`}
                   {currentUser.email && ` (${currentUser.email})`}
                 </p>
@@ -339,7 +337,7 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
 
             {/* Transaction Search */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-[10px] font-semibold text-theme-text-secondary uppercase tracking-wider mb-2">
                 Transaction ID <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-3">
@@ -350,24 +348,24 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
                   onKeyPress={(e) => e.key === 'Enter' && handleSearchTransaction()}
                   placeholder="e.g., ABTR64943"
                   disabled={isSearching}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="flex-1 px-3 py-2 bg-theme-bg-secondary border border-theme-border rounded-lg text-theme-text-primary focus:ring-1 focus:ring-primary-500 outline-none text-[11px] transition-all"
                 />
                 <button
                   onClick={handleSearchTransaction}
                   disabled={isSearching || !transactionId.trim()}
-                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 font-medium"
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wider transition-all"
                 >
                   {isSearching ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   ) : (
-                    <Search size={16} />
+                    <Search size={14} />
                   )}
                   {isSearching ? 'Searching...' : 'Search'}
                 </button>
               </div>
               {searchError && (
-                <div className="mt-2 flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
-                  <AlertTriangle size={16} />
+                <div className="mt-2 flex items-center gap-2 text-red-500 text-[10px] bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                  <AlertTriangle size={14} />
                   {searchError}
                 </div>
               )}
@@ -377,56 +375,55 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
             {hasSearched && soldProducts.length > 0 && (
               <>
                 {/* Transaction Info */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <Info size={16} className="text-gray-600" />
+                <div className="mb-6 p-4 bg-theme-bg-secondary rounded-lg border border-theme-border">
+                  <h3 className="font-semibold text-theme-text-primary text-xs mb-3 flex items-center gap-2">
+                    <Info size={14} className="text-primary-600" />
                     Transaction Details
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-[10px]">
                     <div className="flex items-center gap-2">
-                      <Hash size={14} className="text-gray-400" />
-                      <span className="text-gray-600">ID:</span>
-                      <span className="font-medium">{soldProducts[0].transactionId}</span>
+                      <Hash size={12} className="text-theme-text-tertiary" />
+                      <span className="text-theme-text-secondary">ID:</span>
+                      <span className="font-semibold text-theme-text-primary">{soldProducts[0].transactionId}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <User size={14} className="text-gray-400" />
-                      <span className="text-gray-600">Client:</span>
-                      <span className="font-medium">{soldProducts[0].clientName || 'N/A'}</span>
+                      <User size={12} className="text-theme-text-tertiary" />
+                      <span className="text-theme-text-secondary">Client:</span>
+                      <span className="font-semibold text-theme-text-primary">{soldProducts[0].clientName || 'N/A'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-gray-400" />
-                      <span className="text-gray-600">Date:</span>
-                      <span className="font-medium">{formatDate(soldProducts[0].createdAt)}</span>
+                      <Calendar size={12} className="text-theme-text-tertiary" />
+                      <span className="text-theme-text-secondary">Date:</span>
+                      <span className="font-semibold text-theme-text-primary">{formatDate(soldProducts[0].createdAt)}</span>
                     </div>
                     {soldProducts[0].clientEmail && (
                       <div className="flex items-center gap-2">
-                        <Mail size={14} className="text-gray-400" />
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium text-xs">{soldProducts[0].clientEmail}</span>
+                        <Mail size={12} className="text-theme-text-tertiary" />
+                        <span className="text-theme-text-secondary">Email:</span>
+                        <span className="font-semibold text-theme-text-primary">{soldProducts[0].clientEmail}</span>
                       </div>
                     )}
                     {soldProducts[0].clientPhone && (
                       <div className="flex items-center gap-2">
-                        <Phone size={14} className="text-gray-400" />
-                        <span className="text-gray-600">Phone:</span>
-                        <span className="font-medium">{soldProducts[0].clientPhone}</span>
+                        <Phone size={12} className="text-theme-text-tertiary" />
+                        <span className="text-theme-text-secondary">Phone:</span>
+                        <span className="font-semibold text-theme-text-primary">{soldProducts[0].clientPhone}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Return Reason */}
-                <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                    <Info size={16} className="text-yellow-600" />
+                <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  <h3 className="font-semibold text-theme-text-primary text-xs mb-3 flex items-center gap-2">
+                    <RotateCcw size={14} className="text-amber-500" />
                     Return Reason <span className="text-red-500">*</span>
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">Applies to all returned items.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <select
                       value={reason}
                       onChange={(e) => { setReason(e.target.value); setSearchError(''); }}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      className="px-3 py-2 bg-theme-bg-primary border border-theme-border rounded-lg text-theme-text-primary text-[11px] outline-none focus:ring-1 focus:ring-amber-500"
                     >
                       <option value="">Select reason...</option>
                       {commonReasons.map(r => <option key={r} value={r}>{r}</option>)}
@@ -436,15 +433,15 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
                       value={reason}
                       onChange={(e) => { setReason(e.target.value); setSearchError(''); }}
                       placeholder="Custom reason"
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                      className="px-3 py-2 bg-theme-bg-primary border border-theme-border rounded-lg text-theme-text-primary text-[11px] outline-none focus:ring-1 focus:ring-amber-500"
                     />
                   </div>
                 </div>
 
                 {/* Items */}
                 <div className="mb-6">
-                  <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <Package size={16} className="text-gray-600" />
+                  <h3 className="font-semibold text-theme-text-primary text-xs mb-4 flex items-center gap-2">
+                    <Package size={14} className="text-primary-600" />
                     Select Items to Return
                   </h3>
                   <div className="space-y-3">
@@ -457,49 +454,51 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
                       return (
                         <div
                           key={product.id}
-                          className={`border rounded-lg p-4 transition-all ${
-                            isSel ? 'border-primary-300 bg-primary-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-                          } ${hasErr ? 'border-red-300 bg-red-50' : ''}`}
+                          className={`border rounded-xl p-4 transition-all ${isSel ? 'border-primary-500/50 bg-primary-500/5 shadow-sm' : 'border-theme-border hover:border-primary-500/30 bg-theme-bg-secondary/50'
+                            } ${hasErr ? 'border-red-500/50 bg-red-500/5' : ''}`}
                         >
                           <div className="flex items-start gap-4">
                             <input
                               type="checkbox"
                               checked={isSel}
                               onChange={(e) => handleItemSelect(product.id, e.target.checked)}
-                              className="mt-1 w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                              className="mt-1.5 w-4 h-4 text-primary-600 bg-theme-bg-primary border-theme-border rounded focus:ring-primary-500"
                             />
                             <div className="flex-1">
-                              <div className="flex justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white">
-                                    <Package size={18} />
+                              <div className="flex justify-between mb-3 min-w-0">
+                                <div className="flex items-center gap-4 min-w-0">
+                                  <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                                    <Package size={20} />
                                   </div>
-                                  <div>
-                                    <h4 className="font-medium text-gray-900 text-lg">
+                                  <div className="min-w-0">
+                                    <h4 className="font-bold text-theme-text-primary text-sm truncate">
                                       {product.stockin?.itemName || 'Unknown Item'}
                                     </h4>
-                                    <div className="flex gap-4 text-sm text-gray-500 mt-1">
-                                      <span>SKU: {product.stockin?.sku || 'N/A'}</span>
-                                      <span>•</span>
-                                      <span>Avail: {product.quantity} {product.stockin?.unitOfMeasure}</span>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-theme-text-secondary mt-1">
+                                      <span>SKU: <span className="font-semibold text-theme-text-primary">{product.stockin?.sku || 'N/A'}</span></span>
+                                      <span>Avail: <span className="font-semibold text-theme-text-primary">{product.quantity} {product.stockin?.unitOfMeasure}</span></span>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <div className="font-semibold text-gray-900 text-lg">
+                                <div className="text-right flex-shrink-0">
+                                  <div className="font-bold text-theme-text-primary text-sm">
                                     {formatPrice(parseFloat(product.soldPrice || '0'))}
                                   </div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="text-[10px] text-theme-text-secondary">
                                     {formatPrice(unitPrice)} / {product.stockin?.unitOfMeasure}
                                   </div>
                                 </div>
                               </div>
 
                               {isSel && selItem && (
-                                <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  className="mt-4 p-4 bg-theme-bg-primary rounded-lg border border-theme-border shadow-inner"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      <label className="block text-[10px] font-semibold text-theme-text-secondary uppercase tracking-wider mb-2">
                                         Qty to Return <span className="text-red-500">*</span>
                                       </label>
                                       <input
@@ -508,30 +507,29 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
                                         max={selItem.maxQuantity}
                                         value={selItem.quantity}
                                         onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                                        className={`w-full text-center font-medium px-3 py-2 border rounded-lg focus:ring-2 ${
-                                          hasErr ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-primary-500'
-                                        }`}
+                                        className={`w-full text-center font-bold px-3 py-2 bg-theme-bg-secondary border rounded-lg text-theme-text-primary focus:ring-1 outline-none ${hasErr ? 'border-red-500/50 focus:ring-red-500' : 'border-theme-border focus:ring-primary-500'
+                                          }`}
                                       />
-                                      <p className="text-xs text-gray-500 text-center mt-1">Max: {selItem.maxQuantity}</p>
+                                      <p className="text-[9px] text-theme-text-tertiary text-center mt-1.5 uppercase tracking-tighter">Maximum returnable: {selItem.maxQuantity}</p>
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-2">Refund</label>
-                                      <div className="w-full px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-center">
-                                        <span className="font-bold text-green-600 text-lg">
+                                      <label className="block text-[10px] font-semibold text-theme-text-secondary uppercase tracking-wider mb-2">Total Refund</label>
+                                      <div className="w-full px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-center">
+                                        <span className="font-bold text-emerald-500 text-sm">
                                           {formatPrice(selItem.unitPrice * selItem.quantity)}
                                         </span>
                                       </div>
-                                      <p className="text-xs text-gray-500 text-center mt-1">
-                                        {formatPrice(selItem.unitPrice)} × {selItem.quantity}
+                                      <p className="text-[9px] text-theme-text-tertiary text-center mt-1.5 uppercase tracking-tighter">
+                                        {formatPrice(selItem.unitPrice)} × {selItem.quantity} units
                                       </p>
                                     </div>
                                   </div>
-                                </div>
+                                </motion.div>
                               )}
 
                               {hasErr && (
-                                <div className="mt-3 flex items-center gap-2 text-red-600 text-sm bg-red-100 p-2 rounded-lg">
-                                  <AlertTriangle size={14} />
+                                <div className="mt-3 flex items-center gap-2 text-red-500 text-[10px] font-medium bg-red-500/5 p-2 rounded-lg border border-red-500/10">
+                                  <AlertTriangle size={12} />
                                   {hasErr}
                                 </div>
                               )}
@@ -545,37 +543,31 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
 
                 {/* Summary */}
                 {selectedItems.length > 0 && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-3 flex items-center gap-2">
+                  <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl shadow-sm">
+                    <h4 className="font-bold text-emerald-500 text-xs mb-4 flex items-center gap-2 uppercase tracking-widest">
                       <Check size={16} />
                       Return Summary
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">{selectedItems.length}</div>
-                        <div className="text-green-600">Items</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-theme-bg-primary rounded-lg border border-emerald-500/20 shadow-inner">
+                        <div className="text-xl font-bold text-emerald-500 leading-none">{selectedItems.length}</div>
+                        <div className="text-[9px] text-theme-text-secondary uppercase tracking-tighter mt-1">Unique Items</div>
                       </div>
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">{calculateTotalQuantity()}</div>
-                        <div className="text-green-600">Qty</div>
+                      <div className="text-center p-3 bg-theme-bg-primary rounded-lg border border-emerald-500/20 shadow-inner">
+                        <div className="text-xl font-bold text-emerald-500 leading-none">{calculateTotalQuantity()}</div>
+                        <div className="text-[9px] text-theme-text-secondary uppercase tracking-tighter mt-1">Total Quantity</div>
                       </div>
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">{formatPrice(calculateTotalRefund())}</div>
-                        <div className="text-green-600">Refund</div>
+                      <div className="text-center p-3 bg-theme-bg-primary rounded-lg border border-emerald-500/20 shadow-inner">
+                        <div className="text-xl font-bold text-emerald-500 leading-none">{formatPrice(calculateTotalRefund())}</div>
+                        <div className="text-[9px] text-theme-text-secondary uppercase tracking-tighter mt-1">Total Refund</div>
                       </div>
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className="text-center p-3 bg-theme-bg-primary rounded-lg border border-emerald-500/20 shadow-inner">
+                        <div className="text-xl font-bold text-emerald-500 leading-none">
                           {formatPrice(calculateTotalRefund() / calculateTotalQuantity() || 0)}
                         </div>
-                        <div className="text-green-600">Avg/Unit</div>
+                        <div className="text-[9px] text-theme-text-secondary uppercase tracking-tighter mt-1">Avg Refund/Unit</div>
                       </div>
                     </div>
-                    {reason && (
-                      <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
-                        <div className="text-sm text-gray-600">Reason:</div>
-                        <div className="font-medium text-gray-900">{reason}</div>
-                      </div>
-                    )}
                   </div>
                 )}
               </>
@@ -584,12 +576,12 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
             {/* Empty State */}
             {hasSearched && soldProducts.length === 0 && !searchError && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <RotateCcw className="w-8 h-8 text-gray-400" />
+                <div className="w-16 h-16 bg-theme-bg-secondary rounded-full flex items-center justify-center mx-auto mb-4 border border-theme-border">
+                  <RotateCcw className="w-8 h-8 text-theme-text-tertiary" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Returnable Items</h3>
-                <p className="text-gray-600">
-                  Transaction <strong>{transactionId}</strong> has no returnable items.
+                <h3 className="text-sm font-bold text-theme-text-primary mb-2">No Returnable Items</h3>
+                <p className="text-[10px] text-theme-text-secondary">
+                  Transaction <strong className="text-theme-text-primary">{transactionId}</strong> has no returnable items left.
                 </p>
               </div>
             )}
@@ -597,27 +589,27 @@ const UpsertSalesReturnModal: React.FC<UpsertSalesReturnModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-theme-border bg-theme-bg-secondary">
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+              className="px-6 py-2 border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary hover:bg-theme-bg-tertiary font-semibold text-[10px] uppercase tracking-wider transition-colors shadow-sm"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={isLoading || selectedItems.length === 0 || !reason.trim()}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 font-medium"
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 font-bold text-[10px] uppercase tracking-wider transition-all shadow-md active:scale-95"
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Processing...
                 </>
               ) : (
                 <>
-                  <RotateCcw size={16} />
+                  <RotateCcw size={14} />
                   Process Return ({selectedItems.length} items)
                 </>
               )}

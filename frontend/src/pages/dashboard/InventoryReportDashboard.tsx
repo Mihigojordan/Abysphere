@@ -6,10 +6,9 @@ import {
   DollarSign,
   AlertTriangle,
   Warehouse,
-  Calendar,
-  X,
 } from 'lucide-react';
 import stockService, { type Stock } from '../../services/stockService';
+import { useLanguage } from '../../context/LanguageContext';
 
 const InventoryReportPage = () => {
   const [stocks, setStocks] = useState<Stock[]>([]);
@@ -18,6 +17,7 @@ const InventoryReportPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRangeMode, setDateRangeMode] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const { t } = useLanguage();
 
   // --------------------------------------------------------------------
   // FETCH DATA
@@ -148,9 +148,9 @@ const InventoryReportPage = () => {
     new Intl.NumberFormat('en-RW', { style: 'currency', currency: 'RWF' }).format(amount);
 
   const getStockStatus = (qty: number, reorder: number) => {
-    if (qty === 0) return { label: 'Out of Stock', color: 'bg-red-100 text-red-800' };
-    if (qty <= reorder) return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-800' };
-    return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+    if (qty === 0) return { label: t('inventoryReport.outOfStock'), color: 'bg-red-100 text-red-800' };
+    if (qty <= reorder) return { label: t('inventoryReport.low'), color: 'bg-yellow-100 text-yellow-800' };
+    return { label: t('inventoryReport.inStock'), color: 'bg-green-100 text-green-800' };
   };
 
   // --------------------------------------------------------------------
@@ -161,7 +161,7 @@ const InventoryReportPage = () => {
       <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center transition-colors duration-200">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-theme-text-secondary">Loading inventory data...</p>
+          <p className="mt-4 text-theme-text-secondary">{t('inventoryReport.loading')}</p>
         </div>
       </div>
     );
@@ -174,17 +174,17 @@ const InventoryReportPage = () => {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-theme-text-primary">Inventory Report</h1>
-              <p className="text-xs text-theme-text-secondary mt-0.5">Full overview of received stock and current levels</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">{t('inventoryReport.title')}</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">{t('inventoryReport.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={exportToCSV}
                 className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary"
-                title="Export CSV"
+                title={t('inventoryReport.export')}
               >
                 <Download className="w-3 h-3" />
-                <span>Export</span>
+                <span>{t('inventoryReport.export')}</span>
               </button>
             </div>
           </div>
@@ -196,10 +196,10 @@ const InventoryReportPage = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { title: 'Total Inventory Value', value: formatCurrency(stats.totalValue), icon: DollarSign, color: 'green' },
-            { title: 'Total Quantity', value: stats.totalQty, icon: Package, color: 'blue' },
-            { title: 'Low / Out of Stock', value: stats.lowStock, icon: AlertTriangle, color: 'orange' },
-            { title: 'Avg Unit Cost', value: formatCurrency(stats.avgUnitCost), icon: Warehouse, color: 'purple' },
+            { title: t('inventoryReport.totalValue'), value: formatCurrency(stats.totalValue), icon: DollarSign, color: 'green' },
+            { title: t('inventoryReport.totalQty'), value: stats.totalQty, icon: Package, color: 'blue' },
+            { title: t('inventoryReport.lowStock'), value: stats.lowStock, icon: AlertTriangle, color: 'orange' },
+            { title: t('inventoryReport.avgCost'), value: formatCurrency(stats.avgUnitCost), icon: Warehouse, color: 'purple' },
           ].map((stat, i) => (
             <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
               <div className="flex items-center space-x-3">
@@ -224,7 +224,7 @@ const InventoryReportPage = () => {
                 <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search SKU, name, supplier, location..."
+                  placeholder={t('inventoryReport.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-48 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -245,7 +245,10 @@ const InventoryReportPage = () => {
                       : 'text-theme-text-secondary hover:text-theme-text-primary'
                       }`}
                   >
-                    {opt === 'all' ? 'All Time' : opt}
+                    {opt === 'all' ? t('stockIn.allTime') :
+                      opt === 'today' ? t('stockIn.today') :
+                        opt === 'week' ? t('stockIn.week') :
+                          opt === 'month' ? t('stockIn.month') : t('stockIn.custom')}
                   </button>
                 ))}
               </div>
@@ -259,7 +262,7 @@ const InventoryReportPage = () => {
                     onChange={(e) => setDateRange((p) => ({ ...p, start: e.target.value }))}
                     className="px-2 py-1 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary"
                   />
-                  <span className="text-theme-text-secondary text-xs">to</span>
+                  <span className="text-theme-text-secondary text-xs">{t('stockIn.to')}</span>
                   <input
                     type="date"
                     value={dateRange.end}
@@ -278,21 +281,21 @@ const InventoryReportPage = () => {
             <table className="w-full text-xs">
               <thead className="bg-theme-bg-tertiary border-b border-theme-border">
                 <tr>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">SKU</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Item</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Location</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Unit Cost</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Total Value</th>
-                  <th className="text-center py-2 px-2 text-theme-text-secondary font-medium">Status</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Received</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.sku')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.item')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.location')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.qty')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.unitCost')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.value')}</th>
+                  <th className="text-center py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.status')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('inventoryReport.received')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-theme-border">
                 {filteredData.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-2 py-8 text-center text-xs text-theme-text-secondary">
-                      No inventory items match the current filters
+                      {t('inventoryReport.noItems')}
                     </td>
                   </tr>
                 ) : (

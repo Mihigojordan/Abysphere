@@ -14,6 +14,7 @@ import stockService from '../../services/stockInService';
 import stockOutService from '../../services/stockoutService';
 import salesReturnService from '../../services/salesReturnService';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 function formatCurrency(amount: number | bigint, currency = "RWF", locale = "en-US") {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -215,6 +216,7 @@ const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle, li
   );
 };
 const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
   const [customDateRange, setCustomDateRange] = useState<DateRange>({ start: null, end: null });
@@ -394,7 +396,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-theme-bg-secondary">
         <RefreshCw className="w-8 h-8 text-primary-600 animate-spin mr-3" />
-        <span className="text-lg text-theme-text-primary">Loading Dashboard...</span>
+        <span className="text-lg text-theme-text-primary">{t('dashboard.loading')}</span>
       </div>
     );
   }
@@ -405,9 +407,9 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
       <div className="bg-theme-bg-primary shadow-sm border-b border-theme-border sticky top-0 z-10 transition-colors duration-200">
         <div className="px-4 py-3 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold text-theme-text-primary">Analytics Dashboard</h1>
+            <h1 className="text-xl font-bold text-theme-text-primary">{t('dashboard.title')}</h1>
             <p className="text-[10px] text-theme-text-secondary">
-              {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -429,7 +431,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* KPI ROW 1 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <StatCard
-            title="Clients"
+            title={t('dashboard.clients')}
             value={stats.totalClients}
             change={12}
             trend="up"
@@ -438,7 +440,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             link="/admin/dashboard/client-management"
           />
           <StatCard
-            title="Employees"
+            title={t('dashboard.employees')}
             value={stats.totalEmployees}
             change={5}
             trend="up"
@@ -447,7 +449,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             link="/admin/dashboard/employee-management"
           />
           <StatCard
-            title="Suppliers"
+            title={t('dashboard.suppliers')}
             value={stats.totalSuppliers}
             change={8}
             trend="up"
@@ -460,41 +462,41 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* KPI ROW 2 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
-            title="Today Sales"
+            title={t('dashboard.todaySales')}
             value={`${formatCurrency(stats.todaySales)}`}
             change={18}
             trend="up"
             icon={DollarSign}
             color="bg-green-500"
-            subtitle="Daily revenue"
+            subtitle={t('dashboard.dailyRevenue')}
             link="/admin/dashboard/stockout-management"
           />
           <StatCard
-            title="Week Sales"
+            title={t('dashboard.weekSales')}
             value={`${formatCurrency(stats.weekSales)}`}
             change={15}
             trend="up"
             icon={TrendingUp}
             color="bg-emerald-500"
-            subtitle="7-day revenue"
+            subtitle={t('dashboard.weeklyRevenue')}
             link="/admin/dashboard/stockout-management"
           />
           <StatCard
-            title="Month Sales"
+            title={t('dashboard.monthSales')}
             value={`${formatCurrency(stats.monthSales)}`}
             change={22}
             trend="up"
             icon={Activity}
             color="bg-teal-500"
-            subtitle="30-day revenue"
+            subtitle={t('dashboard.monthlyRevenue')}
             link="/admin/dashboard/reports/sales"
           />
           <StatCard
-            title="Avg Order"
+            title={t('dashboard.avgOrder')}
             value={`${formatCurrency(stats.avgOrderValue)}`}
             icon={ShoppingCart}
             color="bg-cyan-500"
-            subtitle="Per transaction"
+            subtitle={t('dashboard.perTransaction')}
             link="/admin/dashboard/stockout-management"
           />
         </div>
@@ -502,35 +504,35 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* KPI ROW 3 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
-            title="Stock Value"
+            title={t('dashboard.stockValue')}
             value={`${formatCurrency(stats.totalStockValue)}`}
             icon={Package}
             color="bg-primary-600"
-            subtitle="Total inventory"
+            subtitle={t('dashboard.totalInventory')}
             link="/admin/dashboard/stockin-management"
           />
           <StatCard
-            title="Stock Items"
+            title={t('dashboard.stockItems')}
             value={stats.totalStockItems.toLocaleString()}
             icon={Layers}
             color="bg-indigo-600"
-            subtitle="Total units"
+            subtitle={t('dashboard.totalUnits')}
             link="/admin/dashboard/stockin-management"
           />
           <StatCard
-            title="Low Stock"
+            title={t('dashboard.lowStock')}
             value={stats.lowStock}
             icon={AlertCircle}
             color="bg-yellow-500"
-            subtitle="Need reorder"
+            subtitle={t('dashboard.needReorder')}
             link="/admin/dashboard/stockin-management"
           />
           <StatCard
-            title="Out of Stock"
+            title={t('dashboard.outOfStock')}
             value={stats.outOfStock}
             icon={TrendingDown}
             color="bg-red-500"
-            subtitle="Zero inventory"
+            subtitle={t('dashboard.zeroInventory')}
             link="/admin/dashboard/stockin-management"
           />
         </div>
@@ -538,39 +540,39 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* KPI ROW 4 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
-            title="Returns"
+            title={t('dashboard.returns')}
             value={stats.pendingReturns}
             icon={RefreshCw}
             color="bg-amber-500"
-            subtitle="Pending"
+            subtitle={t('dashboard.pending')}
             link="/admin/dashboard/sales-return-management"
           />
           <StatCard
-            title="Returns Value"
+            title={t('dashboard.returnsValue')}
             value={`${formatCurrency(stats.totalReturnsValue)}`}
             icon={DollarSign}
             color="bg-orange-600"
-            subtitle="Total refunds"
+            subtitle={t('dashboard.refunds')}
             link="/admin/dashboard/sales-return-management"
           />
           <StatCard
-            title="Total Profit"
+            title={t('dashboard.totalProfit')}
             value={`${formatCurrency(stats.totalProfit)}`}
             change={8.5}
             trend="up"
             icon={TrendingUp}
             color="bg-emerald-600"
-            subtitle="Revenue - Cost"
+            subtitle={t('dashboard.revenueCost')}
             link="/admin/dashboard/reports/sales"
           />
           <StatCard
-            title="Profit Margin"
+            title={t('dashboard.profitMargin')}
             value={`${stats.profitMargin}%`}
             change={3.2}
             trend="up"
             icon={TrendingUp}
             color="bg-green-600"
-            subtitle="Overall margin"
+            subtitle={t('dashboard.overallMargin')}
             link="/admin/dashboard/reports/sales"
           />
         </div>
@@ -580,27 +582,27 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
-              <Package className="w-4 h-4 text-teal-600" /> Stock Health Overview
+              <Package className="w-4 h-4 text-teal-600" /> {t('dashboard.stockHealth')}
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">Healthy Stock</p><p className="text-[10px] text-theme-text-secondary">Above reorder level</p></div>
+                  <div className="p-2 bg-primary-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.healthyStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.aboveReorder')}</p></div>
                 </div>
-                <p className="text-lg font-bold text-green-700 dark:text-green-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
               </div>
               <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-yellow-500 rounded-lg"><AlertCircle className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">Low Stock Items</p><p className="text-[10px] text-theme-text-secondary">Need reordering soon</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.lowStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.needReorder')}</p></div>
                 </div>
                 <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">{stats.lowStock}</p>
               </div>
               <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-500 rounded-lg"><TrendingDown className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">Out of Stock</p><p className="text-[10px] text-theme-text-secondary">Immediate action needed</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.outOfStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.immediateAction')}</p></div>
                 </div>
                 <p className="text-lg font-bold text-red-700 dark:text-red-400">{stats.outOfStock}</p>
               </div>
@@ -609,31 +611,31 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
           <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
-              <DollarSign className="w-4 h-4 text-green-600" /> Financial Summary
+              <DollarSign className="w-4 h-4 text-green-600" /> {t('dashboard.financialSummary')}
             </h3>
             <div className="space-y-3">
-              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-xs font-medium text-theme-text-primary">Total Revenue (Month)</p>
-                  <TrendingUp className="w-4 h-4 text-green-600" />
+                  <p className="text-xs font-medium text-theme-text-primary">{t('dashboard.monthSales')}</p>
+                  <TrendingUp className="w-4 h-4 text-primary-600" />
                 </div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-400">{formatCurrency(stats.monthSales)}</p>
-                <p className="text-[10px] text-theme-text-secondary mt-1">Last 30 days performance</p>
+                <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.monthSales)}</p>
+                <p className="text-[10px] text-theme-text-secondary mt-1">{t('dashboard.monthlyRevenue')}</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Inventory Value</p>
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.stockValue')}</p>
                   <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.totalStockValue)}</p>
                 </div>
 
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-teal-50 dark:bg-primary-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Profit Margin</p>
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.profitMargin')}</p>
                   <p className="text-lg font-bold text-teal-700 dark:text-teal-400">{stats.profitMargin}%</p>
                 </div>
                 <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">Avg Order Value</p>
+                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.avgOrder')}</p>
                   <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(stats.avgOrderValue)}</p>
                 </div>
               </div>
@@ -644,12 +646,12 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         {/* FOOTER */}
         <div className="bg-theme-bg-primary p-3 rounded-lg shadow-sm border border-theme-border">
           <div className="flex items-center justify-between text-[10px] text-theme-text-secondary">
-            <p>Last updated: {new Date().toLocaleTimeString()}</p>
+            <p>{t('dashboard.lastUpdated')}: {new Date().toLocaleTimeString()}</p>
             <p className="flex items-center gap-1">
               <Activity className="w-3 h-3" />
-              Auto-refresh every 30 seconds
+              {t('dashboard.autoRefresh')}
             </p>
-            <p>Role: {role}</p>
+            <p>{t('dashboard.roleLabel')}: {role}</p>
           </div>
         </div>
       </div>

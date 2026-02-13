@@ -12,29 +12,29 @@ datasource db {
 }
 
 model SuperAdmin {
-  id         String   @id @unique @default(uuid())
-  adminName  String?
-  adminEmail String?  @unique
-  phone      String?
-  password   String?
-  profileImage  String?
-  status       AdminStatus    @default(ACTIVE)
-  google_id    String?  @unique
-  is2FA   Boolean? @default(false)
-  isLocked   Boolean? @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String      @id @unique @default(uuid())
+  adminName    String?
+  adminEmail   String?     @unique
+  phone        String?
+  password     String?
+  profileImage String?
+  status       AdminStatus @default(ACTIVE)
+  google_id    String?     @unique
+  is2FA        Boolean?    @default(false)
+  isLocked     Boolean?    @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model SystemFeature {
-  id          String       @id @default(uuid())
-  name        String       @unique
-  description String?      @db.Text
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // 🔹 Relation with Admin
-  admins      AdminFeature[]
+  admins AdminFeature[]
 }
 
 model DemoRequest {
@@ -43,82 +43,88 @@ model DemoRequest {
   email              String
   phone              String
   companyName        String
-  companyWebsite     String?  // Optional
-  companyDescription String?  // Optional
+  companyWebsite     String? // Optional
+  companyDescription String? // Optional
   companySize        String?
   message            String?
   status             String   @default("pending") // New field for approval status
   createdAt          DateTime @default(now())
 }
 
-
 model AdminFeature {
   adminId   String
   featureId String
   createdAt DateTime @default(now())
 
-  admin     Admin         @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  feature   SystemFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  admin   Admin         @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  feature SystemFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
 
   @@id([adminId, featureId])
 }
 
-
 model Admin {
-  id            String          @id @unique @default(uuid())
-  adminName     String?
-  adminEmail    String?         @unique
-  phone         String?
-  password      String?
-  profileImage  String?
-  status        AdminStatus     @default(ACTIVE)
-  google_id     String?         @unique
-  website       String?
-  address       String?
-  city          String?
-  country       String?
-  description   String?
+  id           String      @id @unique @default(uuid())
+  adminName    String?
+  adminEmail   String?     @unique
+  phone        String?
+  password     String?
+  profileImage String?
+  status       AdminStatus @default(ACTIVE)
+  google_id    String?     @unique
+  website      String?
+  address      String?
+  city         String?
+  country      String?
+  description  String?
 
-  message           String?
-  messageExpiry     DateTime?
-  isMessage         Boolean?        @default(false)
-  messageTextColor  String?
-  messageBgColor    String?
+  message          String?
+  messageExpiry    DateTime?
+  isMessage        Boolean?  @default(false)
+  messageTextColor String?
+  messageBgColor   String?
 
-  is2FA         Boolean?        @default(false)
-  isLocked      Boolean?        @default(false)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  is2FA     Boolean? @default(false)
+  isLocked  Boolean? @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-
-  medications   Medication[]
-  requestedBy   Request[]       @relation("RequestedByAdmin")
-  closedBy      Request[]       @relation("ClosedByAdmin")
-  issuedBy      Request[]       @relation("IssuedByAdmin")
-  rejectedBy    Request[]       @relation("rejectedByAdmin")
+  medications           Medication[]
+  requestedBy           Request[]      @relation("RequestedByAdmin")
+  closedBy              Request[]      @relation("ClosedByAdmin")
+  issuedBy              Request[]      @relation("IssuedByAdmin")
+  rejectedBy            Request[]      @relation("rejectedByAdmin")
   stockHistoriesCreated StockHistory[]
-  Activity      Activity[]
-  category      Category[]
-  client        Client[]
-  suppliers      Supplier[]
-  store  Store[]
-  employee Employee[]
+  Activity              Activity[]
+  category              Category[]
+  client                Client[]
+  suppliers             Supplier[]
+  store                 Store[]
+  employee              Employee[]
 
   stockout StockOut[]
 
   // 🔹 Relation with SystemFeature
-  features      AdminFeature[]
+  features AdminFeature[]
 
   Stock Stock[]
 
   membershipPlans MembershipPlan[]
+
+  // 🔥 Purchase Order & GRN Relations
+  purchaseOrdersCreated  PurchaseOrder[]      @relation("POCreatedByAdmin")
+  purchaseOrdersApproved PurchaseOrder[]      @relation("POApprovedByAdmin")
+  grnsReceived           GoodsReceivingNote[] @relation("GRNReceivedByAdmin")
+  grnsApproved           GoodsReceivingNote[] @relation("GRNApprovedByAdmin")
+  approvalsRequested     ApprovalWorkflow[]   @relation("ApprovalRequestedByAdmin")
+  approvalsApproved      ApprovalWorkflow[]   @relation("ApprovalApprovedByAdmin")
+  documentsUploaded      DocumentAttachment[] @relation("DocUploadedByAdmin")
+  alertsAcknowledged     AlertNotification[]  @relation("AlertAcknowledgedByAdmin")
 }
 
 enum AdminStatus {
   ACTIVE
   INACTIVE
 }
-
 
 model MembershipPlan {
   id               String   @id @default(uuid())
@@ -129,13 +135,14 @@ model MembershipPlan {
   amountPaid       Float
   shortDescription String?
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  company          Admin    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Admin @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
 }
+
 // Define the enum first
 enum EmployeeStatus {
   ACTIVE
@@ -160,73 +167,84 @@ model Employee {
   status                  EmployeeStatus @default(ACTIVE)
   emergency_contact_name  String?
   emergency_contact_phone String?
-  store  Store[]
-  adminId  String
-  admin       Admin      @relation(fields: [adminId], references: [id])
+  store                   Store[]
+  adminId                 String
+  admin                   Admin          @relation(fields: [adminId], references: [id])
   // security
-  google_id    String?  @unique
-  isLocked   Boolean? @default(false)
-  is2FA   Boolean? @default(false)
+  google_id               String?        @unique
+  isLocked                Boolean?       @default(false)
+  is2FA                   Boolean?       @default(false)
 
-  category      Category[]
-  activity              Activity[]
-  contract              Contract[]
-  managedSites    Site[] @relation("ManagerRelation")
-  supervisedSites Site[] @relation("SupervisorRelation")
-  medications      Medication[]
-  feeds  FeedCage[]
+  category        Category[]
+  activity        Activity[]
+  contract        Contract[]
+  managedSites    Site[]       @relation("ManagerRelation")
+  supervisedSites Site[]       @relation("SupervisorRelation")
+  medications     Medication[]
+  feeds           FeedCage[]
 
-  eggToPondMigration  EggToPondMigration[]
+  eggToPondMigration EggToPondMigration[]
   // Assigned site (one site only)
-  siteId       String?
-  site         Site?    @relation("SiteEmployees", fields: [siteId], references: [id] , onDelete: SetNull, onUpdate: Cascade)
+  siteId             String?
+  site               Site?                @relation("SiteEmployees", fields: [siteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   // 🔹 Requests
-  requestedBy    Request[] @relation("RequestedByEmployee")
-  closedBy       Request[] @relation("ClosedByEmployee")
-  issuedBy       Request[] @relation("IssuedByEmployee")
-  rejectedBy       Request[] @relation("rejectedByEmployee")
+  requestedBy Request[] @relation("RequestedByEmployee")
+  closedBy    Request[] @relation("ClosedByEmployee")
+  issuedBy    Request[] @relation("IssuedByEmployee")
+  rejectedBy  Request[] @relation("rejectedByEmployee")
 
   // 🔹 StockHistory
-  stockHistoriesCreated StockHistory[] 
-  parentFishPools ParentFishPool[]
-  parentWaterChanging ParentWaterChanging[]
-  parentEggMigration  ParentEggMigration[]
-  eggFishFeeding   EggFishFeeding[]
+  stockHistoriesCreated StockHistory[]
+  parentFishPools       ParentFishPool[]
+  parentWaterChanging   ParentWaterChanging[]
+  parentEggMigration    ParentEggMigration[]
+  eggFishFeeding        EggFishFeeding[]
 
-  grownEggPondFeeding  GrownEggPondFeeding[]
+  grownEggPondFeeding GrownEggPondFeeding[]
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   AssetRequest AssetRequest[]
 
-  ParentFishFeeding ParentFishFeeding[]
-  medicines Medicine[]
-stockout StockOut[]
-  ParentFishMedication ParentFishMedication[]
-  EggFishMedication  EggFishMedication[]
+  ParentFishFeeding          ParentFishFeeding[]
+  medicines                  Medicine[]
+  stockout                   StockOut[]
+  ParentFishMedication       ParentFishMedication[]
+  EggFishMedication          EggFishMedication[]
   laboratoryBoxWaterChanging LaboratoryBoxWaterChanging[]
-  PondWaterChanging   PondWaterChanging[]
-  PondMedication   PondMedication[]
+  PondWaterChanging          PondWaterChanging[]
+  PondMedication             PondMedication[]
+
+  // 🔥 Purchase Order & GRN Relations
+  purchaseOrdersCreated  PurchaseOrder[]      @relation("POCreatedByEmployee")
+  purchaseOrdersApproved PurchaseOrder[]      @relation("POApprovedByEmployee")
+  grnsReceived           GoodsReceivingNote[] @relation("GRNReceivedByEmployee")
+  grnsApproved           GoodsReceivingNote[] @relation("GRNApprovedByEmployee")
+  approvalsRequested     ApprovalWorkflow[]   @relation("ApprovalRequestedByEmployee")
+  approvalsApproved      ApprovalWorkflow[]   @relation("ApprovalApprovedByEmployee")
+  documentsUploaded      DocumentAttachment[] @relation("DocUploadedByEmployee")
+  alertsAcknowledged     AlertNotification[]  @relation("AlertAcknowledgedByEmployee")
+  stockLocationsManaged  StockLocation[]
 }
 
 model Contract {
-  id                     String       @id @default(uuid())
-  employeeId             String?
-  employee               Employee?    @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  contractType           ContractType
-  startDate              DateTime
-  endDate                DateTime?
-  salary                 Float
-  currency               String       @default("RWF")
-  benefits               String?      // e.g., health insurance, PTO
-  workingHours           String?      // e.g., "40 hours/week"
-  probationPeriod        String?      // e.g., "3 months"
-  terminationConditions  String?
-  terms                  String?      // General terms text
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
+  id                    String       @id @default(uuid())
+  employeeId            String?
+  employee              Employee?    @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  contractType          ContractType
+  startDate             DateTime
+  endDate               DateTime?
+  salary                Float
+  currency              String       @default("RWF")
+  benefits              String? // e.g., health insurance, PTO
+  workingHours          String? // e.g., "40 hours/week"
+  probationPeriod       String? // e.g., "3 months"
+  terminationConditions String?
+  terms                 String? // General terms text
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 }
 
 enum ContractType {
@@ -236,66 +254,61 @@ enum ContractType {
 }
 
 model Stock {
-  id                Int       @id @default(autoincrement())
-  sku               String    @unique   // SKU / Item Code – unique identifier
-  itemName          String    // Item Name – product name or description
+  id       Int    @id @default(autoincrement())
+  sku      String @unique // SKU / Item Code – unique identifier
+  itemName String // Item Name – product name or description
 
   // Category relation (optional)
-  categoryId        String?      // FK to Category.id (String)
-  category          Category? @relation(fields: [categoryId], references: [id])
+  categoryId String? // FK to Category.id (String)
+  category   Category? @relation(fields: [categoryId], references: [id])
 
   // Supplier is flexible optional text (not a strict FK)
-  supplier          String?   // Supplier – optional, not a foreign key (can be text)
+  supplier String? // Supplier – optional, not a foreign key (can be text)
 
-  unitOfMeasure     String    // Unit of Measure – e.g., pcs, box, kg, liter
-  receivedQuantity  Int       // Received Quantity – how many units were received
+  unitOfMeasure    String // Unit of Measure – e.g., pcs, box, kg, liter
+  receivedQuantity Int // Received Quantity – how many units were received
 
   // Monetary values stored as Decimal for safety
-  unitCost          Decimal   @db.Decimal(12, 2) // Unit Cost – cost per unit
-  totalValue        Decimal   @db.Decimal(14, 2) // Total Value – (Received Quantity × Unit Cost)
+  unitCost   Decimal @db.Decimal(12, 2) // Unit Cost – cost per unit
+  totalValue Decimal @db.Decimal(14, 2) // Total Value – (Received Quantity × Unit Cost)
 
-  warehouseLocation String    // Warehouse Location – where the item is stored
-  receivedDate      DateTime  // Received Date – when it arrived
-  reorderLevel      Int       // Reorder Level – stock level that triggers reordering
+  warehouseLocation String // Warehouse Location – where the item is stored
+  receivedDate      DateTime // Received Date – when it arrived
+  reorderLevel      Int // Reorder Level – stock level that triggers reordering
   expiryDate        DateTime? // Expiry Date – optional product expiration
 
   // Admin foreign key (matches Admin.id which is String)
-  adminId           String
-  admin             Admin     @relation(fields: [adminId], references: [id])
+  adminId String
+  admin   Admin  @relation(fields: [adminId], references: [id])
 
-  stockout StockOut[]
+  stockout     StockOut[]
   stockhistory StockHistory[]
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([sku])
 }
 
-
-
-
-
-
 model Job {
-  id                String       @id @default(uuid())
+  id               String          @id @default(uuid())
   title            String
-  description      String?      @db.Text
+  description      String?         @db.Text
   location         String
   employment_type  EmploymentType
   experience_level ExperienceLevel
   industry         String?
 
-  skills_required  Json             
-  status           JobStatus         @default(OPEN)
+  skills_required Json
+  status          JobStatus @default(OPEN)
 
-  posted_at        DateTime?         @default(now())
-  expiry_date      DateTime?
+  posted_at   DateTime? @default(now())
+  expiry_date DateTime?
 
-  applicants       Applicant[]
+  applicants Applicant[]
 
-  created_at       DateTime          @default(now())
-  updated_at       DateTime          @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 enum EmploymentType {
@@ -326,78 +339,78 @@ enum ApplicationStage {
 }
 
 model Applicant {
-  id               String       @id @default(uuid())
-  jobId           String               // FK → Job.id
-  job             Job               @relation(fields: [jobId], references: [id],onDelete:Cascade,onUpdate:Cascade)
+  id    String @id @default(uuid())
+  jobId String // FK → Job.id
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   name            String
   email           String
   phone           String?
-  cvUrl           String?           // link to uploaded CV
-  skills          Json?             // array of candidate’s skills
-  experienceYears Int?              // number of years experience
-  education       Json?             // [{ degree: "BSc CS", school: "XYZ", year: 2023 }]
-  coverLetter     String?      @db.Text
+  cvUrl           String? // link to uploaded CV
+  skills          Json? // array of candidate’s skills
+  experienceYears Int? // number of years experience
+  education       Json? // [{ degree: "BSc CS", school: "XYZ", year: 2023 }]
+  coverLetter     String?   @db.Text
   start_date      DateTime?
 
-  stage           ApplicationStage  @default(APPLIED)
+  stage ApplicationStage @default(APPLIED)
 
-  created_at      DateTime          @default(now())
-  updated_at      DateTime          @updatedAt 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model Client {
   id           String       @id @default(uuid())
   firstname    String
   lastname     String
-  email        String  @unique
+  email        String       @unique
   phone        String?
   address      String?
-  status       ClientStatus    @default(ACTIVE)
+  status       ClientStatus @default(ACTIVE)
   profileImage String? // store URL or file path
 
-  adminId  String?
-  admin       Admin?      @relation(fields: [adminId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  adminId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-enum ClientStatus{
+enum ClientStatus {
   ACTIVE
   INACTIVE
 }
 
 model Activity {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
   description String?
   dueDate     DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  adminId     String?   // must match Admin.id type
-  employeeId  String?
+  adminId    String? // must match Admin.id type
+  employeeId String?
 
-  admin       Admin?    @relation(fields: [adminId], references: [id])
-  employee    Employee?    @relation(fields: [employeeId], references: [id])
+  admin    Admin?    @relation(fields: [adminId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
 }
 
 model Asset {
-  id             String       @id @default(uuid())
-  name           String
-  category       AssetCategory             // Machinery, Vehicle, Building, etc.
-  description    String?
-  assetImg       String?
-  location       String?
-  quantity       String
+  id          String        @id @default(uuid())
+  name        String
+  category    AssetCategory // Machinery, Vehicle, Building, etc.
+  description String?
+  assetImg    String?
+  location    String?
+  quantity    String
 
   // Financial
-  purchaseDate   DateTime?
-  purchaseCost   Float?
+  purchaseDate DateTime?
+  purchaseCost Float?
 
   // Status & tracking
-  status         AssetStatus @default(ACTIVE)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  status    AssetStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   AssetRequestItem AssetRequestItem[]
 }
@@ -419,59 +432,59 @@ enum AssetStatus {
 }
 
 model Store {
-  id            String       @id @default(uuid())
-  code          String   @unique
-  name          String
-  location      String
-  description   String?   @db.Text
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  location    String
+  description String? @db.Text
 
-  managerId    String?
-  manager     Employee?    @relation(fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  
-  adminId  String
-  admin       Admin      @relation(fields: [adminId], references: [id])
+  managerId String?
+  manager   Employee? @relation(fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  adminId String
+  admin   Admin  @relation(fields: [adminId], references: [id])
 
   contact_phone String?
   contact_email String?
-  stockins    StockIn[]
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  stockins      StockIn[]
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
 }
 
-model Site{
-  id          String     @id @default(uuid())
-  siteCode    String   @unique
-  name        String
-  location    String
+model Site {
+  id           String  @id @default(uuid())
+  siteCode     String  @unique
+  name         String
+  location     String
   siteImg      String?
-  managerId     String?
-  supervisorId  String?
+  managerId    String?
+  supervisorId String?
 
   //relations
-  manager      Employee? @relation("ManagerRelation", fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Site_manager_fkey")
-  supervisor   Employee? @relation("SupervisorRelation", fields: [supervisorId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Site_supervisor_fkey")
-  employees    Employee[] @relation("SiteEmployees")
+  manager    Employee?  @relation("ManagerRelation", fields: [managerId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Site_manager_fkey")
+  supervisor Employee?  @relation("SupervisorRelation", fields: [supervisorId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "Site_supervisor_fkey")
+  employees  Employee[] @relation("SiteEmployees")
   request    Request[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Cage {
-  id           String          @id @default(uuid())
-  cageCode     String       @unique
+  id           String      @id @default(uuid())
+  cageCode     String      @unique
   cageName     String
-  cageNetType  CageNetType  // FINGERLING, JUVENILE, ADULT
+  cageNetType  CageNetType // FINGERLING, JUVENILE, ADULT
   cageDepth    Float
   cageStatus   CageStatus
   cageCapacity Int
-  cageType     String?      // floating, fixed, submersible
+  cageType     String? // floating, fixed, submersible
   cageVolume   Float?
   stockingDate DateTime?
 
   //relations 
-  Medication   Medication[]
-  feeds  FeedCage[]
+  Medication Medication[]
+  feeds      FeedCage[]
 
   createdAt DateTime @default(now())
 }
@@ -489,22 +502,22 @@ enum CageNetType {
 }
 
 model Medication {
-  id             String    @id @default(uuid())
-  name String
-  dosage         String
-  method         MedicationMethod
-  reason         String?
-  startDate      DateTime
-  endDate        DateTime?
+  id        String           @id @default(uuid())
+  name      String
+  dosage    String
+  method    MedicationMethod
+  reason    String?
+  startDate DateTime
+  endDate   DateTime?
 
-  cageId  String
-  cage    Cage   @relation(fields: [cageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cageId String
+  cage   Cage   @relation(fields: [cageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   administeredByEmployee String?
-  employee              Employee? @relation(fields: [administeredByEmployee], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  employee               Employee? @relation(fields: [administeredByEmployee], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  administeredByAdmin    String?
-  admin                 Admin?    @relation(fields: [administeredByAdmin], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  administeredByAdmin String?
+  admin               Admin?  @relation(fields: [administeredByAdmin], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -518,22 +531,22 @@ enum MedicationMethod {
 }
 
 model FeedCage {
-  id                     String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  quantityGiven          Float
-  notes                  String?
+  quantityGiven Float
+  notes         String?
 
-  cageId                 String
-  cage                   Cage       @relation(fields: [cageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  cageId String
+  cage   Cage   @relation(fields: [cageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  feed           FeedStock      @relation(fields: [feedId], references: [id])
-  feedId         String
+  feed   FeedStock @relation(fields: [feedId], references: [id])
+  feedId String
 
   employeeId String?
-  employee               Employee?  @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([cageId])
   @@index([employeeId])
@@ -549,86 +562,109 @@ enum FeedType {
 }
 
 model StockCategory {
-  id          String      @id @default(uuid())
-  name        String      @unique
+  id          String   @id @default(uuid())
+  name        String   @unique
   description String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relation: one category has many stock items
-  stockins    StockIn[]
+  stockins StockIn[]
 }
 
 model StockIn {
-  id               String         @id @default(uuid())
-  productName      String
-  sku              String?        @unique
-  quantity         Int            @default(0)
-  unit             Unit
-  unitPrice        Decimal        @db.Decimal(10,2)
-  reorderLevel     Int?           @default(1)
-  supplier         String?
-  location         String?
-  description      String?
+  id           String  @id @default(uuid())
+  productName  String
+  sku          String? @unique
+  quantity     Int     @default(0)
+  unit         Unit
+  unitPrice    Decimal @db.Decimal(10, 2)
+  reorderLevel Int?    @default(1)
+  supplier     String?
+  location     String?
+  description  String?
 
-  expiryDate       DateTime?
+  expiryDate DateTime?
+
+  // 🔥 GRN & Batch Tracking
+  grnItemId String?  @unique // Link to GRN item that created this stock
+  grnItem   GRNItem? @relation("StockInGRNItem")
+
+  batchNumber       String? // Batch/Lot tracking
+  serialNumbers     Json? // Serial numbers for this stock entry
+  manufacturingDate DateTime? // Manufacturing date
+
+  // 🔥 Cost Management
+  landedCost      Decimal?         @db.Decimal(10, 2) // Actual cost per unit after all charges
+  valuationMethod ValuationMethod? @default(WEIGHTED_AVERAGE)
+
+  // 🔥 Quality & Inspection
+  inspectionStatus InspectionStatus? @default(APPROVED)
+  qualityNotes     String?           @db.Text
 
   // Relation: belongs to a category
-  stockcategoryId  String
-  stockcategory    StockCategory  @relation(fields: [stockcategoryId], references: [id])
+  stockcategoryId String
+  stockcategory   StockCategory @relation(fields: [stockcategoryId], references: [id])
 
   // Relation: belongs to a store
-  storeId          String
-  store            Store          @relation(fields: [storeId], references: [id])
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
 
-  stockhistory   StockHistory[]
-  requestItems  RequestItem[]
-  
+  stockhistory StockHistory[]
+  requestItems RequestItem[]
 
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([batchNumber])
 }
-
-
 
 enum Unit {
-  PCS        // pieces
-  KG         // kilograms
-  LITERS     // liters
-  METER      // meters
-  BOX        // boxes
-  PACK       // packs
-  OTHER      // fallback
+  PCS // pieces
+  KG // kilograms
+  LITERS // liters
+  METER // meters
+  BOX // boxes
+  PACK // packs
+  OTHER // fallback
 }
 
-
+// Stock Valuation Methods
+enum ValuationMethod {
+  FIFO // First In First Out
+  LIFO // Last In First Out
+  WEIGHTED_AVERAGE //Weighted Average Cost
+}
 
 model StockOut {
-  id              String         @id @default(uuid())
-  stockinId       Int?
-  adminId         String?
-  employeeId      String?
-  transactionId   String?        
-  quantity        Int            @default(0)
-  soldPrice       Decimal?       @db.Decimal(10,2)
-  clientName      String?
-  clientEmail     String?
-  clientPhone     String?
-  paymentMethod   PaymentMethod?
+  id            String         @id @default(uuid())
+  stockinId     Int?
+  adminId       String?
+  employeeId    String?
+  transactionId String?
+  quantity      Int            @default(0)
+  soldPrice     Decimal?       @db.Decimal(10, 2)
+  clientName    String?
+  clientEmail   String?
+  clientPhone   String?
+  paymentMethod PaymentMethod?
+
+  // External Items (Not in Inventory)
+  externalItemName String?
+  externalSku      String?
 
   // Relations
-  
-  stockin         Stock?       @relation(fields: [stockinId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  admin           Admin?         @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  employee        Employee?      @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  stockin  Stock?    @relation(fields: [stockinId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  admin    Admin?    @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   salesReturnItems SalesReturnItem[]
 
   // Timestamps
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 enum PaymentMethod {
   MOMO
@@ -636,98 +672,93 @@ enum PaymentMethod {
   CASH
 }
 
-
 model SalesReturn {
-  id        String              @id @default(uuid())
+  id            String            @id @default(uuid())
   transactionId String?
-  creditnoteId String?
-  adminId   String
-  reason    String?
-  createdAt DateTime            @default(now())
-  items     SalesReturnItem[]
+  creditnoteId  String?
+  adminId       String
+  reason        String?
+  createdAt     DateTime          @default(now())
+  items         SalesReturnItem[]
 }
 
 model SalesReturnItem {
-  id            String   @id @default(uuid())
+  id            String @id @default(uuid())
   salesReturnId String
   stockoutId    String
   quantity      Int
 
-  
-  stockout      StockOut?     @relation(fields: [stockoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  salesReturn   SalesReturn @relation(fields: [salesReturnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stockout    StockOut?   @relation(fields: [stockoutId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  salesReturn SalesReturn @relation(fields: [salesReturnId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
-
-
-
 model Request {
-  id            String         @id @default(uuid()) // UUID primary key
-  ref_no        String         @unique @db.VarChar(50)
+  id     String @id @default(uuid()) // UUID primary key
+  ref_no String @unique @db.VarChar(50)
 
-  siteId        String
-  site          Site           @relation(fields: [siteId], references: [id])
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id])
 
   // 🔹 Requested by (can be Admin or Employee)
-  requestedByAdminId   String?
-  requestedByAdmin     Admin?       @relation("RequestedByAdmin", fields: [requestedByAdminId], references: [id])
+  requestedByAdminId    String?
+  requestedByAdmin      Admin?    @relation("RequestedByAdmin", fields: [requestedByAdminId], references: [id])
   requestedByEmployeeId String?
-  requestedByEmployee   Employee?   @relation("RequestedByEmployee", fields: [requestedByEmployeeId], references: [id])
+  requestedByEmployee   Employee? @relation("RequestedByEmployee", fields: [requestedByEmployeeId], references: [id])
 
-  status        RequestStatus   @default(PENDING)
-  notes         String?         @db.Text
+  status RequestStatus @default(PENDING)
+  notes  String?       @db.Text
 
   // 🔹 Received by (Admin or Employee)
-  receivedAt    DateTime?       
+  receivedAt         DateTime?
   // 🔹 Closed by
-  closedAt      DateTime?      
-  closedByAdminId   String?
-  closedByAdmin     Admin?       @relation("ClosedByAdmin", fields: [closedByAdminId], references: [id])
+  closedAt           DateTime?
+  closedByAdminId    String?
+  closedByAdmin      Admin?    @relation("ClosedByAdmin", fields: [closedByAdminId], references: [id])
   closedByEmployeeId String?
-  closedByEmployee   Employee?   @relation("ClosedByEmployee", fields: [closedByEmployeeId], references: [id])
+  closedByEmployee   Employee? @relation("ClosedByEmployee", fields: [closedByEmployeeId], references: [id])
 
   // 🔹 Issued by
-  issuedAt      DateTime?      
-  issuedByAdminId   String?
-  issuedByAdmin     Admin?       @relation("IssuedByAdmin", fields: [issuedByAdminId], references: [id])
+  issuedAt           DateTime?
+  issuedByAdminId    String?
+  issuedByAdmin      Admin?    @relation("IssuedByAdmin", fields: [issuedByAdminId], references: [id])
   issuedByEmployeeId String?
-  issuedByEmployee   Employee?   @relation("IssuedByEmployee", fields: [issuedByEmployeeId], references: [id])
-  
-  rejectedAt      DateTime?      
-  rejectedByAdminId   String?
-  rejectedByAdmin     Admin?       @relation("rejectedByAdmin", fields: [rejectedByAdminId], references: [id])
-  rejectedByEmployeeId String?
-  rejectedByEmployee   Employee?   @relation("rejectedByEmployee", fields: [rejectedByEmployeeId], references: [id])
+  issuedByEmployee   Employee? @relation("IssuedByEmployee", fields: [issuedByEmployeeId], references: [id])
 
-  comments   Json?
-  
-  attachments Json?  //  {"fileName":"string","fileUrl":"string","uploadedBy":"string","uploadedById":"string","uploadedAt":"string","description":"string"}[]
+  rejectedAt           DateTime?
+  rejectedByAdminId    String?
+  rejectedByAdmin      Admin?    @relation("rejectedByAdmin", fields: [rejectedByAdminId], references: [id])
+  rejectedByEmployeeId String?
+  rejectedByEmployee   Employee? @relation("rejectedByEmployee", fields: [rejectedByEmployeeId], references: [id])
+
+  comments Json?
+
+  attachments Json? //  {"fileName":"string","fileUrl":"string","uploadedBy":"string","uploadedById":"string","uploadedAt":"string","description":"string"}[]
 
   // 🔹 Relations
-  requestItems  RequestItem[]
-  stockhistory  StockHistory[]
+  requestItems RequestItem[]
+  stockhistory StockHistory[]
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RequestItem {
-  id             String      @id @default(uuid())        // UUID primary key
+  id String @id @default(uuid()) // UUID primary key
 
-  requestId      String
-  request        Request     @relation(fields: [requestId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  requestId String
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  stockInId      String
-  stockIn        StockIn     @relation(fields: [stockInId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  stockInId String
+  stockIn   StockIn @relation(fields: [stockInId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  qtyRequested   Decimal     @db.Decimal(12, 3)
+  qtyRequested Decimal @db.Decimal(12, 3)
 
-  qtyIssued      Decimal     @default(0) @db.Decimal(12, 3)
-  qtyRemaining   Decimal     @default(0) @db.Decimal(12, 3)
-  qtyReceived    Decimal?    @default(0) @db.Decimal(12, 3)
+  qtyIssued    Decimal  @default(0) @db.Decimal(12, 3)
+  qtyRemaining Decimal  @default(0) @db.Decimal(12, 3)
+  qtyReceived  Decimal? @default(0) @db.Decimal(12, 3)
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum RequestStatus {
@@ -741,32 +772,32 @@ enum RequestStatus {
 }
 
 model AssetRequest {
-  id          String         @id @default(uuid())
+  id          String        @id @default(uuid())
   employeeId  String
-  status        RequestStatus  @default(PENDING)
-  description      String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  status      RequestStatus @default(PENDING)
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   // Relations
-  employee    Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  items       AssetRequestItem[]
+  employee Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  items    AssetRequestItem[]
 }
 
 model AssetRequestItem {
-  id         String       @id @default(uuid())
-  requestId  String
-  assetId    String
-  quantity   Int          @default(1)
-  quantityIssued Int?             @default(0)
-  status         RequestedItemStatus @default(PENDING)
-  procurementStatus ProcurementStatus @default(NOT_REQUIRED)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id                String              @id @default(uuid())
+  requestId         String
+  assetId           String
+  quantity          Int                 @default(1)
+  quantityIssued    Int?                @default(0)
+  status            RequestedItemStatus @default(PENDING)
+  procurementStatus ProcurementStatus   @default(NOT_REQUIRED)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
   // Relations
-  request    AssetRequest @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  asset      Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  request AssetRequest @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  asset   Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 enum RequestedItemStatus {
@@ -783,6 +814,7 @@ enum ProcurementStatus {
   PARTIALLY_ORDERED
   COMPLETED
 }
+
 enum MovementType {
   IN
   OUT
@@ -797,72 +829,83 @@ enum SourceType {
 }
 
 model StockHistory {
-  id             String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  stockInId      String?
-  stockIn        StockIn?      @relation(fields: [stockInId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stockInId String?
+  stockIn   StockIn? @relation(fields: [stockInId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  stockId        Int?
-  stock          Stock?        @relation(fields: [stockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  stockId Int?
+  stock   Stock? @relation(fields: [stockId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  movementType   MovementType
-  sourceType     SourceType
-  sourceId       String?       
-  request        Request?      @relation(fields: [sourceId], references: [id])
+  // 🔥 GRN Tracking
+  grnId String?
+  grn   GoodsReceivingNote? @relation("GRNStockHistory", fields: [grnId], references: [id])
 
-  qtyBefore      Decimal       @db.Decimal(12, 3) 
-  qtyChange      Decimal       @db.Decimal(12, 3)
-  qtyAfter       Decimal       @db.Decimal(12, 3)
+  batchNumber String? // Track which batch this movement relates to
 
-  unitPrice      Decimal?      @db.Decimal(12, 2) 
-  notes          String?       @db.Text          
+  movementType MovementType
+  sourceType   SourceType
+  sourceId     String?
+  request      Request?     @relation(fields: [sourceId], references: [id])
 
-  createdByAdminId   String?
-  createdByAdmin     Admin?    @relation(fields: [createdByAdminId], references: [id])
+  qtyBefore Decimal @db.Decimal(12, 3)
+  qtyChange Decimal @db.Decimal(12, 3)
+  qtyAfter  Decimal @db.Decimal(12, 3)
+
+  unitPrice Decimal? @db.Decimal(12, 2)
+
+  // 🔥 Cost & Valuation
+  costAtTransaction Decimal?         @db.Decimal(12, 2) // Cost at time of this transaction
+  valuationMethod   ValuationMethod? // Method used for this transaction
+
+  notes String? @db.Text
+
+  createdByAdminId    String?
+  createdByAdmin      Admin?    @relation(fields: [createdByAdminId], references: [id])
   createdByEmployeeId String?
   createdByEmployee   Employee? @relation(fields: [createdByEmployeeId], references: [id])
 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ParentFishPool {
-  id          String   @id @default(uuid())
-  name        String @unique
-  description String?
-  numberOfFishes   Int?
-  employeeId  String?   // ✅ foreign key to Employee
-  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String    @id @default(uuid())
+  name           String    @unique
+  description    String?
+  numberOfFishes Int?
+  employeeId     String? // ✅ foreign key to Employee
+  employee       Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  parentWaterChanging ParentWaterChanging[]
-  ParentFishFeeding ParentFishFeeding[]
+  parentWaterChanging  ParentWaterChanging[]
+  ParentFishFeeding    ParentFishFeeding[]
   ParentFishMedication ParentFishMedication[]
-  parentEggMigration  ParentEggMigration[]
+  parentEggMigration   ParentEggMigration[]
 }
 
 model Medicine {
-  id             String    @id @default(uuid())
-  name           String                     // e.g. "Oxytetracycline"
-  description    String?                    // Details about the medicine
-  dosageForm     DosageForm                 // e.g. LIQUID, POWDER, TABLET
-  quantity       Float                      // Total amount in stock
-  unit           String                     // e.g. "ml", "g", "kg", "bottle"
-  purchaseDate   DateTime?
-  expiryDate     DateTime?
-  pricePerUnit   Float?
-  totalCost      Float?
+  id           String     @id @default(uuid())
+  name         String // e.g. "Oxytetracycline"
+  description  String? // Details about the medicine
+  dosageForm   DosageForm // e.g. LIQUID, POWDER, TABLET
+  quantity     Float // Total amount in stock
+  unit         String // e.g. "ml", "g", "kg", "bottle"
+  purchaseDate DateTime?
+  expiryDate   DateTime?
+  pricePerUnit Float?
+  totalCost    Float?
 
-  addedById      String?
-  employee       Employee?   @relation(fields: [addedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  addedById String?
+  employee  Employee? @relation(fields: [addedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   ParentFishMedication ParentFishMedication[]
-  EggFishMedication EggFishMedication[]
-  PondMedication PondMedication[]
+  EggFishMedication    EggFishMedication[]
+  PondMedication       PondMedication[]
 }
 
 enum DosageForm {
@@ -874,63 +917,64 @@ enum DosageForm {
 }
 
 model FeedStock {
-  id            String   @id @default(uuid())
-  name          String
-  quantity      Int       @default(0)
-  lowStockLevel Int?      @default(1)
-  category      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  eggFishFeeding   EggFishFeeding[]
-  ParentFishFeeding ParentFishFeeding[]
-  grownEggPondFeeding  GrownEggPondFeeding[]
-  feedCage  FeedCage[]
+  id                  String                @id @default(uuid())
+  name                String
+  quantity            Int                   @default(0)
+  lowStockLevel       Int?                  @default(1)
+  category            String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  eggFishFeeding      EggFishFeeding[]
+  ParentFishFeeding   ParentFishFeeding[]
+  grownEggPondFeeding GrownEggPondFeeding[]
+  feedCage            FeedCage[]
 }
 
 model ParentFishFeeding {
-  id             String         @id @default(uuid())
-  parentFishPool ParentFishPool @relation(fields: [parentFishPoolId], references: [id])
+  id               String         @id @default(uuid())
+  parentFishPool   ParentFishPool @relation(fields: [parentFishPoolId], references: [id])
   parentFishPoolId String
-  feed           FeedStock      @relation(fields: [feedId], references: [id])
-  feedId         String
-  employee       Employee       @relation(fields: [employeeId], references: [id])
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
+  feed             FeedStock      @relation(fields: [feedId], references: [id])
+  feedId           String
+  employee         Employee       @relation(fields: [employeeId], references: [id])
+  employeeId       String
+  quantity         Int            @default(0)
+  createdAt        DateTime       @default(now())
 }
 
 model ParentWaterChanging {
-  id            String          @id @default(uuid())
+  id            String         @id @default(uuid())
   parentPoolId  String
-  parentPool    ParentFishPool  @relation(fields: [parentPoolId], references: [id], onDelete: Cascade)
+  parentPool    ParentFishPool @relation(fields: [parentPoolId], references: [id], onDelete: Cascade)
   employeeId    String
-  employee      Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  date          DateTime        @default(now())  // when the water change happened
-  litersChanged Float           // ✅ liters of water changed
-  description   String?         // optional notes
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-}
-model ParentFishMedication {
-  id             String         @id @default(uuid())
-  parentFishPool ParentFishPool @relation(fields: [parentFishPoolId], references: [id])
-  parentFishPoolId String
-  medication     Medicine       @relation(fields: [medicationId], references: [id])
-  medicationId   String
-  employee       Employee       @relation(fields: [employeeId], references: [id])
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
+  employee      Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date          DateTime       @default(now()) // when the water change happened
+  litersChanged Float // ✅ liters of water changed
+  description   String? // optional notes
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
-model LaboratoryBox{
-  id       String   @id @default(uuid())
-  name      String @unique
-  code      String @unique
-  description String?
-  createdAt   DateTime @default(now())
-  parentEggMigration  ParentEggMigration[]
-  BoxWaterChanging LaboratoryBoxWaterChanging[]
+model ParentFishMedication {
+  id               String         @id @default(uuid())
+  parentFishPool   ParentFishPool @relation(fields: [parentFishPoolId], references: [id])
+  parentFishPoolId String
+  medication       Medicine       @relation(fields: [medicationId], references: [id])
+  medicationId     String
+  employee         Employee       @relation(fields: [employeeId], references: [id])
+  employeeId       String
+  quantity         Int            @default(0)
+  createdAt        DateTime       @default(now())
+}
+
+model LaboratoryBox {
+  id                 String                       @id @default(uuid())
+  name               String                       @unique
+  code               String                       @unique
+  description        String?
+  createdAt          DateTime                     @default(now())
+  parentEggMigration ParentEggMigration[]
+  BoxWaterChanging   LaboratoryBoxWaterChanging[]
 }
 
 enum ParentEggMigrationStatus {
@@ -940,90 +984,91 @@ enum ParentEggMigrationStatus {
 }
 
 model ParentEggMigration {
-  id               String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  parentPoolId     String
-  parentPool       ParentFishPool  @relation(fields: [parentPoolId], references: [id], onDelete: Cascade)
+  parentPoolId String
+  parentPool   ParentFishPool @relation(fields: [parentPoolId], references: [id], onDelete: Cascade)
 
-  laboratoryBoxId  String
-  laboratoryBox    LaboratoryBox   @relation(fields: [laboratoryBoxId], references: [id], onDelete: Cascade)
+  laboratoryBoxId String
+  laboratoryBox   LaboratoryBox @relation(fields: [laboratoryBoxId], references: [id], onDelete: Cascade)
 
-  employeeId       String
-  employee         Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  status           ParentEggMigrationStatus @default(ACTIVE)  // ✅ Default is ACTIVE
+  status ParentEggMigrationStatus @default(ACTIVE) // ✅ Default is ACTIVE
 
-  date             DateTime        @default(now())
-  description      String?
+  date        DateTime @default(now())
+  description String?
 
-  eggFishFeeding   EggFishFeeding[]
-  EggFishMedication   EggFishMedication[]
-  eggToPondMigration   EggToPondMigration[]
+  eggFishFeeding     EggFishFeeding[]
+  EggFishMedication  EggFishMedication[]
+  eggToPondMigration EggToPondMigration[]
 
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EggFishFeeding {
-  id             String         @id @default(uuid())
-  parentEggMigrationId  String
-  parentEggMigration ParentEggMigration @relation(fields: [parentEggMigrationId], references: [id])
-  feed           FeedStock      @relation(fields: [feedId], references: [id])
-  feedId         String
-  employee       Employee       @relation(fields: [employeeId], references: [id])
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
-}
-model EggFishMedication {
-  id             String         @id @default(uuid())
-  ParentEggMigration ParentEggMigration @relation(fields: [parentEggMigrationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id                   String             @id @default(uuid())
   parentEggMigrationId String
-  medication     Medicine       @relation(fields: [medicationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  medicationId   String
-  employee       Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
+  parentEggMigration   ParentEggMigration @relation(fields: [parentEggMigrationId], references: [id])
+  feed                 FeedStock          @relation(fields: [feedId], references: [id])
+  feedId               String
+  employee             Employee           @relation(fields: [employeeId], references: [id])
+  employeeId           String
+  quantity             Int                @default(0)
+  createdAt            DateTime           @default(now())
+}
+
+model EggFishMedication {
+  id                   String             @id @default(uuid())
+  ParentEggMigration   ParentEggMigration @relation(fields: [parentEggMigrationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentEggMigrationId String
+  medication           Medicine           @relation(fields: [medicationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  medicationId         String
+  employee             Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employeeId           String
+  quantity             Int                @default(0)
+  createdAt            DateTime           @default(now())
 }
 
 model LaboratoryBoxWaterChanging {
-  id            String          @id @default(uuid())
-  boxId  String
-  laboratoryBox   LaboratoryBox @relation(fields: [boxId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id            String        @id @default(uuid())
+  boxId         String
+  laboratoryBox LaboratoryBox @relation(fields: [boxId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   employeeId    String
-  employee      Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  litersChanged Float           // ✅ liters of water changed
-  description   String?         // optional notes
-  createdAt     DateTime        @default(now())
+  employee      Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  litersChanged Float // ✅ liters of water changed
+  description   String? // optional notes
+  createdAt     DateTime      @default(now())
 }
 
 model EggToPondMigration {
-  id                 String              @id @default(uuid())
+  id String @id @default(uuid())
 
   parentEggMigrationId String
   parentEggMigration   ParentEggMigration @relation(fields: [parentEggMigrationId], references: [id], onDelete: Cascade)
 
-  pondId             String
-  pond               GrownEggPond                @relation(fields: [pondId], references: [id], onDelete: Cascade)
+  pondId String
+  pond   GrownEggPond @relation(fields: [pondId], references: [id], onDelete: Cascade)
 
-  employeeId         String
-  employee           Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  date               DateTime            @default(now())
-  description        String?
+  date        DateTime @default(now())
+  description String?
 
-  status             EggToPondStatus     @default(ACTIVE)
+  status EggToPondStatus @default(ACTIVE)
 
-  grownEggPondFeeding  GrownEggPondFeeding[]
+  grownEggPondFeeding GrownEggPondFeeding[]
 
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // relations
 
-  PondWaterChanging      PondWaterChanging[]
-  PondMedication         PondMedication[]
+  PondWaterChanging PondWaterChanging[]
+  PondMedication    PondMedication[]
 }
 
 enum EggToPondStatus {
@@ -1033,26 +1078,26 @@ enum EggToPondStatus {
 }
 
 model PondWaterChanging {
-  id            String          @id @default(uuid())
-  EggtoPondId  String
-  eggToPondMigration   EggToPondMigration @relation(fields: [EggtoPondId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  employeeId    String
-  employee      Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  litersChanged Float           // ✅ liters of water changed
-  description   String?         // optional notes
-  createdAt     DateTime        @default(now())
+  id                 String             @id @default(uuid())
+  EggtoPondId        String
+  eggToPondMigration EggToPondMigration @relation(fields: [EggtoPondId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employeeId         String
+  employee           Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  litersChanged      Float // ✅ liters of water changed
+  description        String? // optional notes
+  createdAt          DateTime           @default(now())
 }
 
 model PondMedication {
-  id             String         @id @default(uuid())
+  id                 String             @id @default(uuid())
   eggToPondMigration EggToPondMigration @relation(fields: [eggtoPondId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  eggtoPondId  String
-  medication     Medicine       @relation(fields: [medicationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  medicationId   String
-  employee       Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
+  eggtoPondId        String
+  medication         Medicine           @relation(fields: [medicationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  medicationId       String
+  employee           Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  employeeId         String
+  quantity           Int                @default(0)
+  createdAt          DateTime           @default(now())
 }
 
 model GrownEggPond {
@@ -1068,47 +1113,660 @@ model GrownEggPond {
 }
 
 model GrownEggPondFeeding {
-  id             String         @id @default(uuid())
-  eggToPondMigrationId  String
-  eggToPondMigration EggToPondMigration @relation(fields: [eggToPondMigrationId], references: [id])
+  id                   String             @id @default(uuid())
+  eggToPondMigrationId String
+  eggToPondMigration   EggToPondMigration @relation(fields: [eggToPondMigrationId], references: [id])
 
-  feed           FeedStock      @relation(fields: [feedId], references: [id])
-  feedId         String
-  employee       Employee       @relation(fields: [employeeId], references: [id])
-  employeeId     String
-  quantity       Int            @default(0)
-  createdAt      DateTime       @default(now())
+  feed       FeedStock @relation(fields: [feedId], references: [id])
+  feedId     String
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  employeeId String
+  quantity   Int       @default(0)
+  createdAt  DateTime  @default(now())
 }
 
 model Category {
-  id          String    @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String?
   description String?
-  adminId  String?
+  adminId     String?
   employeeId  String?
 
-  admin       Admin?       @relation(fields: [adminId], references: [id])
-  employee       Employee?       @relation(fields: [employeeId], references: [id])
-  createdAt   DateTime  @default(now())
+  admin     Admin?    @relation(fields: [adminId], references: [id])
+  employee  Employee? @relation(fields: [employeeId], references: [id])
+  createdAt DateTime  @default(now())
 
   Stock Stock[]
 }
 
+// ============================================
+// 🔥 PURCHASE ORDER & GRN SYSTEM
+// ============================================
+
+// Supplier Management
 model Supplier {
-  id          String       @id @default(uuid())
-  name        String
-  email       String?   @unique
-  phone       String?   @unique
-  address     String?
+  id            String  @id @default(uuid())
+  code          String  @unique // Supplier code (e.g., SUP-001)
+  name          String
+  contactPerson String?
+  email         String? @unique
+  phone         String?
+  address       String? @db.Text
+  city          String?
+  country       String? @default("Rwanda")
 
-  adminId  String
-  admin       Admin      @relation(fields: [adminId], references: [id])
+  // Payment & Terms
+  paymentTerms String? // e.g., "Net 30", "COD"
+  creditLimit  Decimal? @db.Decimal(14, 2)
+  taxId        String? // Tax ID / TIN
 
+  // Performance Metrics
+  rating            Float? @default(0) // 0-5 star rating
+  onTimeDeliveryPct Float? @default(0) // Percentage
+  qualityScore      Float? @default(0) // 0-100
 
+  // Status
+  status SupplierStatus @default(ACTIVE)
+  notes  String?        @db.Text
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
+  // Relations
+  purchaseOrders PurchaseOrder[]
+  grns           GoodsReceivingNote[]
+  documents      DocumentAttachment[]
 
-  @@index([email])
-  @@index([phone])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?
+
+  @@index([code])
+  @@index([name])
+}
+
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+// Purchase Order
+model PurchaseOrder {
+  id       String @id @default(uuid())
+  poNumber String @unique // Auto-generated: PO-2026-02-0001
+
+  // Supplier
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  // Dates
+  orderDate            DateTime  @default(now())
+  expectedDeliveryDate DateTime?
+
+  // Status
+  status POStatus @default(DRAFT)
+
+  // Financial
+  subtotal     Decimal @default(0) @db.Decimal(14, 2)
+  taxAmount    Decimal @default(0) @db.Decimal(14, 2)
+  shippingCost Decimal @default(0) @db.Decimal(14, 2)
+  otherCharges Decimal @default(0) @db.Decimal(14, 2)
+  grandTotal   Decimal @default(0) @db.Decimal(14, 2)
+
+  // Terms & Notes
+  paymentTerms  String?
+  deliveryTerms String?
+  notes         String? @db.Text
+  internalNotes String? @db.Text
+
+  // Created By
+  createdByAdminId    String?
+  createdByAdmin      Admin?    @relation("POCreatedByAdmin", fields: [createdByAdminId], references: [id])
+  createdByEmployeeId String?
+  createdByEmployee   Employee? @relation("POCreatedByEmployee", fields: [createdByEmployeeId], references: [id])
+
+  // Approved By
+  approvedAt           DateTime?
+  approvedByAdminId    String?
+  approvedByAdmin      Admin?    @relation("POApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee   Employee? @relation("POApprovedByEmployee", fields: [approvedByEmployeeId], references: [id])
+
+  // Closed/Cancelled
+  closedAt           DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?   @db.Text
+
+  // Relations
+  items     PurchaseOrderItem[]
+  grns      GoodsReceivingNote[]
+  approvals ApprovalWorkflow[]
+  documents DocumentAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([poNumber])
+  @@index([supplierId])
+  @@index([status])
+}
+
+enum POStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CLOSED
+  CANCELLED
+}
+
+// Purchase Order Line Items
+model PurchaseOrderItem {
+  id String @id @default(uuid())
+
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  // Product Info
+  productName String
+  productSku  String?
+  description String? @db.Text
+
+  // Quantities
+  orderedQty   Decimal @db.Decimal(12, 3)
+  receivedQty  Decimal @default(0) @db.Decimal(12, 3)
+  remainingQty Decimal @default(0) @db.Decimal(12, 3)
+
+  unit String // e.g., PCS, KG, LITERS
+
+  // Pricing
+  unitPrice      Decimal @db.Decimal(12, 2)
+  discountPct    Decimal @default(0) @db.Decimal(5, 2)
+  discountAmount Decimal @default(0) @db.Decimal(12, 2)
+  taxPct         Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount      Decimal @default(0) @db.Decimal(12, 2)
+  lineTotal      Decimal @default(0) @db.Decimal(14, 2)
+
+  // Status
+  status POItemStatus @default(PENDING)
+
+  // Relations
+  grnItems GRNItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([purchaseOrderId])
+}
+
+enum POItemStatus {
+  PENDING
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+// Goods Receiving Note (GRN)
+model GoodsReceivingNote {
+  id        String @id @default(uuid())
+  grnNumber String @unique // Auto-generated: GRN-2026-02-0001
+
+  // Purchase Order Reference
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+
+  // Supplier
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  // Dates
+  receivedDate DateTime @default(now())
+
+  // Received By
+  receivedByAdminId    String?
+  receivedByAdmin      Admin?    @relation("GRNReceivedByAdmin", fields: [receivedByAdminId], references: [id])
+  receivedByEmployeeId String?
+  receivedByEmployee   Employee? @relation("GRNReceivedByEmployee", fields: [receivedByEmployeeId], references: [id])
+
+  // Inspection
+  inspectionStatus InspectionStatus @default(PENDING)
+  inspectionDate   DateTime?
+  inspectionNotes  String?          @db.Text
+  qualityNotes     String?          @db.Text
+
+  // Discrepancies
+  hasDiscrepancies Boolean @default(false)
+  discrepancyNotes String? @db.Text
+
+  // Status
+  status GRNStatus @default(PENDING)
+
+  // Approved By
+  approvedAt           DateTime?
+  approvedByAdminId    String?
+  approvedByAdmin      Admin?    @relation("GRNApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee   Employee? @relation("GRNApprovedByEmployee", fields: [approvedByEmployeeId], references: [id])
+
+  // Relations
+  items          GRNItem[]
+  costBreakdowns CostBreakdown[]
+  stockHistory   StockHistory[]       @relation("GRNStockHistory")
+  approvals      ApprovalWorkflow[]
+  documents      DocumentAttachment[]
+  alerts         AlertNotification[]
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([grnNumber])
+  @@index([purchaseOrderId])
+  @@index([supplierId])
+}
+
+enum InspectionStatus {
+  PENDING
+  INSPECTED
+  APPROVED
+  REJECTED
+}
+
+enum GRNStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PARTIALLY_APPROVED
+}
+
+// GRN Line Items
+model GRNItem {
+  id String @id @default(uuid())
+
+  grnId String
+  grn   GoodsReceivingNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
+
+  // PO Item Reference
+  poItemId String?
+  poItem   PurchaseOrderItem? @relation(fields: [poItemId], references: [id])
+
+  // Product Info
+  productName String
+  productSku  String?
+  description String? @db.Text
+
+  // Quantities
+  orderedQty  Decimal @db.Decimal(12, 3)
+  receivedQty Decimal @db.Decimal(12, 3)
+  acceptedQty Decimal @db.Decimal(12, 3)
+  rejectedQty Decimal @default(0) @db.Decimal(12, 3)
+
+  unit String
+
+  // Batch Tracking
+  batchNumber       String?
+  serialNumbers     Json? // Array of serial numbers for serialized items
+  manufacturingDate DateTime?
+  expiryDate        DateTime?
+
+  // Costing
+  unitCost   Decimal  @db.Decimal(12, 2)
+  landedCost Decimal? @db.Decimal(12, 2) // Actual cost after all charges
+  lineTotal  Decimal  @db.Decimal(14, 2)
+
+  // Location
+  locationId String?
+  location   StockLocation? @relation(fields: [locationId], references: [id])
+
+  // Quality
+  qualityStatus QualityStatus @default(ACCEPTED)
+  qualityNotes  String?       @db.Text
+  damageNotes   String?       @db.Text
+
+  // Link to StockIn (auto-created)
+  stockInId String?  @unique
+  stockIn   StockIn? @relation("StockInGRNItem", fields: [stockInId], references: [id])
+
+  // Relations
+  batches BatchTracking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([grnId])
+  @@index([batchNumber])
+}
+
+enum QualityStatus {
+  ACCEPTED
+  REJECTED
+  PENDING_INSPECTION
+  CONDITIONALLY_ACCEPTED
+}
+
+// Batch / Lot / Serial Tracking
+model BatchTracking {
+  id            String  @id @default(uuid())
+  batchNumber   String  @unique
+  lotNumber     String?
+  serialNumbers Json? // Array for individual tracking
+
+  // Product Reference
+  productName String
+  productSku  String?
+
+  // GRN Reference
+  grnItemId String?
+  grnItem   GRNItem? @relation(fields: [grnItemId], references: [id])
+
+  // Dates
+  manufacturingDate DateTime?
+  expiryDate        DateTime?
+  receivedDate      DateTime  @default(now())
+
+  // Quantities
+  initialQty  Decimal @db.Decimal(12, 3)
+  currentQty  Decimal @db.Decimal(12, 3)
+  consumedQty Decimal @default(0) @db.Decimal(12, 3)
+
+  unit String
+
+  // Status
+  status BatchStatus @default(ACTIVE)
+
+  // Supplier Batch Reference
+  supplierBatchRef String?
+
+  // Location
+  locationId String?
+  location   StockLocation? @relation(fields: [locationId], references: [id])
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([batchNumber])
+  @@index([expiryDate])
+}
+
+enum BatchStatus {
+  ACTIVE
+  EXPIRED
+  RECALLED
+  DEPLETED
+  QUARANTINED
+}
+
+// Cost Breakdown (Landed Cost)
+model CostBreakdown {
+  id String @id @default(uuid())
+
+  grnId String
+  grn   GoodsReceivingNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
+
+  // Cost Components
+  baseCost        Decimal @db.Decimal(14, 2) // Purchase price × qty
+  shippingCost    Decimal @default(0) @db.Decimal(14, 2)
+  customsDuties   Decimal @default(0) @db.Decimal(14, 2)
+  insurance       Decimal @default(0) @db.Decimal(14, 2)
+  handlingCharges Decimal @default(0) @db.Decimal(14, 2)
+  otherFees       Decimal @default(0) @db.Decimal(14, 2)
+
+  // Total
+  totalLandedCost Decimal @db.Decimal(14, 2)
+  costPerUnit     Decimal @db.Decimal(12, 2)
+
+  // Quantity
+  totalQuantity Decimal @db.Decimal(12, 3)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([grnId])
+}
+
+// Stock Location / Warehouse
+model StockLocation {
+  id   String @id @default(uuid())
+  code String @unique // e.g., WH-A-01-B-03 (Warehouse A, Aisle 01, Bin 03)
+  name String
+
+  // Type
+  type LocationType
+
+  // Hierarchy (for nested locations)
+  parentId String?
+  parent   StockLocation?  @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children StockLocation[] @relation("LocationHierarchy")
+
+  // Capacity
+  capacityLimit      Decimal? @db.Decimal(12, 3)
+  currentUtilization Decimal  @default(0) @db.Decimal(12, 3)
+
+  // Manager
+  managerId String?
+  manager   Employee? @relation(fields: [managerId], references: [id])
+
+  // Status
+  status LocationStatus @default(ACTIVE)
+
+  // Address (for warehouses)
+  address String? @db.Text
+  city    String?
+  country String?
+
+  // Relations
+  grnItems GRNItem[]
+  batches  BatchTracking[]
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([type])
+}
+
+enum LocationType {
+  WAREHOUSE
+  STORE
+  AISLE
+  SHELF
+  BIN
+  ZONE
+}
+
+enum LocationStatus {
+  ACTIVE
+  INACTIVE
+  FULL
+  MAINTENANCE
+}
+
+// Approval Workflow
+model ApprovalWorkflow {
+  id String @id @default(uuid())
+
+  // Document Reference
+  documentType ApprovalDocType
+  documentId   String
+
+  // Purchase Order
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+
+  // GRN
+  grnId String?
+  grn   GoodsReceivingNote? @relation(fields: [grnId], references: [id])
+
+  // Requested By
+  requestedByAdminId    String?
+  requestedByAdmin      Admin?    @relation("ApprovalRequestedByAdmin", fields: [requestedByAdminId], references: [id])
+  requestedByEmployeeId String?
+  requestedByEmployee   Employee? @relation("ApprovalRequestedByEmployee", fields: [requestedByEmployeeId], references: [id])
+
+  // Approval Level
+  approvalLevel     Int     @default(1) // Multi-level approval
+  currentApproverId String? // Current person who needs to approve
+
+  // Status
+  status ApprovalStatus @default(PENDING)
+
+  // Decision
+  approvedAt           DateTime?
+  approvedByAdminId    String?
+  approvedByAdmin      Admin?    @relation("ApprovalApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee   Employee? @relation("ApprovalApprovedByEmployee", fields: [approvedByEmployeeId], references: [id])
+
+  rejectedAt      DateTime?
+  rejectionReason String?   @db.Text
+
+  // Hierarchy (JSON of approval chain)
+  approvalHierarchy Json? // [{level: 1, role: "Manager", approved: true}, ...]
+
+  comments String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([documentType, documentId])
+  @@index([status])
+}
+
+enum ApprovalDocType {
+  PURCHASE_ORDER
+  GRN
+  STOCK_ADJUSTMENT
+  RETURN
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ESCALATED
+}
+
+// Document Attachments
+model DocumentAttachment {
+  id String @id @default(uuid())
+
+  // Reference
+  referenceType DocRefType
+  referenceId   String
+
+  // Purchase Order
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  // GRN
+  grnId String?
+  grn   GoodsReceivingNote? @relation(fields: [grnId], references: [id], onDelete: Cascade)
+
+  // Supplier
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  // Document Info
+  documentType DocumentType
+  fileName     String
+  fileUrl      String // Storage path or URL
+  fileSize     Int // Bytes
+  mimeType     String?
+
+  // Metadata
+  title       String?
+  description String? @db.Text
+
+  // Uploaded By
+  uploadedByAdminId    String?
+  uploadedByAdmin      Admin?    @relation("DocUploadedByAdmin", fields: [uploadedByAdminId], references: [id])
+  uploadedByEmployeeId String?
+  uploadedByEmployee   Employee? @relation("DocUploadedByEmployee", fields: [uploadedByEmployeeId], references: [id])
+
+  uploadedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([referenceType, referenceId])
+}
+
+enum DocRefType {
+  PURCHASE_ORDER
+  GRN
+  SUPPLIER
+  PRODUCT
+}
+
+enum DocumentType {
+  INVOICE
+  DELIVERY_NOTE
+  PACKING_LIST
+  QUALITY_CERTIFICATE
+  PHOTO
+  CONTRACT
+  OTHER
+}
+
+// Alert & Notification System
+model AlertNotification {
+  id String @id @default(uuid())
+
+  // Alert Type
+  alertType AlertType
+  severity  AlertSeverity @default(INFO)
+
+  // Reference
+  referenceType String?
+  referenceId   String?
+
+  // GRN Reference
+  grnId String?
+  grn   GoodsReceivingNote? @relation(fields: [grnId], references: [id])
+
+  // Message
+  title   String
+  message String @db.Text
+
+  // Status
+  isRead                   Boolean   @default(false)
+  acknowledgedAt           DateTime?
+  acknowledgedByAdminId    String?
+  acknowledgedByAdmin      Admin?    @relation("AlertAcknowledgedByAdmin", fields: [acknowledgedByAdminId], references: [id])
+  acknowledgedByEmployeeId String?
+  acknowledgedByEmployee   Employee? @relation("AlertAcknowledgedByEmployee", fields: [acknowledgedByEmployeeId], references: [id])
+
+  actionTaken String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([alertType])
+  @@index([isRead])
+}
+
+enum AlertType {
+  OVER_DELIVERY
+  UNDER_DELIVERY
+  EXPIRED_PRODUCT
+  QUALITY_ISSUE
+  APPROVAL_REQUIRED
+  LOW_STOCK
+  PRICE_VARIANCE
+  MISSING_ITEMS
+  DAMAGED_GOODS
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+  URGENT
 }

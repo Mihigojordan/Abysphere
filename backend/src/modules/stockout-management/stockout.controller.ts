@@ -17,16 +17,22 @@ import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
 
 @Controller('stockout')
 export class StockoutController {
-  constructor(private readonly stockoutService: StockoutService) {}
+  constructor(private readonly stockoutService: StockoutService) { }
+
+  @Get('performance')
+  @UseGuards(AdminJwtAuthGuard)
+  async getProductPerformance(@Req() req: RequestWithAdmin) {
+    return await this.stockoutService.getProductPerformance(req.admin!.id);
+  }
 
   @Post('create')
   @UseGuards(AdminJwtAuthGuard)
-  async register(@Body() body: any,@Req() req: RequestWithAdmin) {
+  async register(@Body() body: any, @Req() req: RequestWithAdmin) {
 
     try {
-        body.adminId = req.admin?.id
+      body.adminId = req.admin?.id
 
-       
+
       return await this.stockoutService.create(body);
     } catch (error) {
       throw new HttpException(
@@ -36,8 +42,24 @@ export class StockoutController {
     }
   }
 
+  @Post('bulk-import')
+  @UseGuards(AdminJwtAuthGuard)
+  async bulkImport(@Body() body: any[], @Req() req: RequestWithAdmin) {
+    try {
+      if (!Array.isArray(body)) {
+        throw new HttpException('Input must be an array', HttpStatus.BAD_REQUEST);
+      }
+      return await this.stockoutService.bulkImport(body, req.admin!.id);
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Get('all')
-    @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(AdminJwtAuthGuard)
   async getAll(@Req() req: RequestWithAdmin) {
     try {
       return await this.stockoutService.getAll(req.admin!.id);
@@ -71,7 +93,7 @@ export class StockoutController {
   }
 
   @Put('update/:id')
-   @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(AdminJwtAuthGuard)
   async update(@Param('id') id: string, @Body() body: any) {
     try {
       return await this.stockoutService.update(id, body);
@@ -84,7 +106,7 @@ export class StockoutController {
   }
 
   @Delete('delete/:id')
-   @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(AdminJwtAuthGuard)
   async delete(@Param('id') id: string, @Body() data) {
     try {
       return await this.stockoutService.delete(id);

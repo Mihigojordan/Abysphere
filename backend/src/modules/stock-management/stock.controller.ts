@@ -25,12 +25,28 @@ export class StockController {
     return await this.stockService.createStock(data, adminId);
   }
 
+  // ✅ Bulk Import Stock
+  @Post('bulk-import')
+  @UseGuards(AdminJwtAuthGuard)
+  async bulkImport(@Req() req: RequestWithAdmin, @Body() data: any[]) {
+    const adminId = req.admin!.id;
+    return await this.stockService.bulkImport(data, adminId);
+  }
+
   // ✅ Get All Stocks
   @Get('all')
   @UseGuards(AdminJwtAuthGuard)
   async getAllStocks(@Req() req: RequestWithAdmin) {
     const adminId = req.admin!.id;
     return await this.stockService.findAll(adminId);
+  }
+
+  // ✅ Get Stock Alerts
+  @Get('alerts')
+  @UseGuards(AdminJwtAuthGuard)
+  async getStockAlerts(@Req() req: RequestWithAdmin) {
+    const adminId = req.admin!.id;
+    return await this.stockService.getStockAlerts(adminId);
   }
 
   // ✅ Get Stock by ID
@@ -66,8 +82,8 @@ export class StockController {
 
   @Get('history/:stockId')
   @UseGuards(AdminJwtAuthGuard)
-  async getStockHistoryByStockId(@Req() req: RequestWithAdmin,@Param('stockId') stockId: string) {
+  async getStockHistoryByStockId(@Req() req: RequestWithAdmin, @Param('stockId') stockId: string) {
     const adminId = req.admin!.id;
-    return await this.stockService.getStockHistoryByStockId(Number(stockId),adminId);
+    return await this.stockService.getStockHistoryByStockId(Number(stockId), adminId);
   }
 }

@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import html2pdf from 'html2pdf.js';
+import { X, Printer, Download, RefreshCw } from 'lucide-react';
 import salesReturnService from '../../../services/salesReturnService';
 import stockOutService from '../../../services/stockoutService';
 import CompanyLogo from '../../../assets/tran.png';
 
-const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
-  const [creditNoteData, setCreditNoteData] = useState(null);
+interface CreditNoteProps {
+  isOpen: boolean;
+  onClose: () => void;
+  salesReturnId: string;
+}
+
+const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, salesReturnId }) => {
+  const [creditNoteData, setCreditNoteData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({
     print: false,
@@ -21,7 +28,7 @@ const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
       setLoading(true);
       try {
         const response = await salesReturnService.getSalesReturnById(salesReturnId);
-        setCreditNoteData(response.data || response);
+        setCreditNoteData(response);
       } catch (error) {
         console.error('Failed to load credit note:', error);
         Swal.fire({
@@ -49,13 +56,13 @@ const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
   // Extract client info
   const clientInfo = creditNoteData?.items?.[0]?.stockout
     ? {
-        clientName: creditNoteData.items[0].stockout.clientName || 'WALK-IN CUSTOMER',
-        clientPhone: creditNoteData.items[0].stockout.clientPhone || null,
-      }
+      clientName: creditNoteData.items[0].stockout.clientName || 'WALK-IN CUSTOMER',
+      clientPhone: creditNoteData.items[0].stockout.clientPhone || null,
+    }
     : { clientName: 'WALK-IN CUSTOMER', clientPhone: null };
 
   const total = creditNoteData?.items?.reduce(
-    (sum, item) => sum + (item.stockout?.soldPrice || 0) * (item.quantity || 0),
+    (sum: number, item: any) => sum + (item.stockout?.soldPrice || 0) * (item.quantity || 0),
     0
   ) || 0;
 
@@ -65,20 +72,20 @@ const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
   const transactionId = creditNoteData?.transactionId || 'N/A';
   const reason = creditNoteData?.reason || 'Not specified';
 
-  const formatCurrency = (amount) =>
+  const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-RW', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
 
-  const formatDate = (dateString) =>
+  const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
 
-  const formatTime = (dateString) =>
+  const formatTime = (dateString: string) =>
     new Date(dateString).toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
@@ -154,7 +161,7 @@ const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @media print {
           body * { visibility: hidden; }
           #credit-note-print-section, #credit-note-print-section * { visibility: visible; }
@@ -165,120 +172,165 @@ const CreditNoteComponent = ({ isOpen, onClose, salesReturnId }) => {
             font-family: monospace;
             font-size: 11px;
             padding: 8px;
+            color: black !important;
+            background: white !important;
           }
           .no-print { display: none !important; }
           .divider { border-top: 1px dashed #000; margin: 8px 0; }
         }
       `}</style>
 
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className="bg-white rounded-lg shadow-2xl w-full max-w-md">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="bg-theme-bg-primary border border-theme-border rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
           {/* Action Bar */}
-          <div className="no-print bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 rounded-t-lg sticky top-0 z-10">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold">Credit Note #{creditNoteId}</h2>
-              <div className="flex gap-2">
+          <div className="no-print bg-theme-bg-secondary border-b border-theme-border p-4 sticky top-0 z-10">
+            <div className="flex justify-between items-center gap-4">
+              <div className="min-w-0">
+                <h2 className="text-sm font-bold text-theme-text-primary truncate">Credit Note</h2>
+                <p className="text-[10px] text-primary-600 font-mono">#{creditNoteId}</p>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={handlePrint}
                   disabled={actionLoading.print}
-                  className="bg-green-600 hover:bg-green-700 disabled:opacity-70 px-4 py-2 rounded text-sm font-medium flex items-center gap-1.5"
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95"
+                  title="Print"
                 >
-                  {actionLoading.print ? 'Printing...' : 'Print'}
+                  {actionLoading.print ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={handleGeneratePDF}
                   disabled={actionLoading.pdf}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-70 px-4 py-2 rounded text-sm font-medium flex items-center gap-1.5"
+                  className="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95"
+                  title="Download PDF"
                 >
-                  {actionLoading.pdf ? 'Saving...' : 'PDF'}
+                  {actionLoading.pdf ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={onClose}
-                  className="bg-gray-700 hover:bg-gray-800 px-4 py-2 rounded text-sm font-medium"
+                  className="bg-theme-bg-tertiary hover:bg-theme-bg-primary text-theme-text-secondary p-2 rounded-lg transition-all border border-theme-border shadow-sm active:scale-95"
+                  title="Close"
                 >
-                  Close
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Printable Content */}
-          <div id="credit-note-print-section" className="p-5 bg-white text-xs leading-tight">
-            <div className="text-center mb-3">
-              <img src={companyInfo.logo} alt="Logo" className="w-16 h-16 mx-auto mb-2 object-contain" />
-              <div className="font-bold text-base">{companyInfo.companyName}</div>
-              <div>{companyInfo.address}</div>
-              <div>TEL: {companyInfo.phone}</div>
-            </div>
-
-            <div className="divider"></div>
-
-            <div className="text-center font-bold text-base text-orange-600 mb-2">
-              CREDIT NOTE
-            </div>
-
-            <div className="divider"></div>
-
-            <div className="space-y-1 mb-2">
-              <div>Client: <strong>{clientInfo.clientName}</strong></div>
-              {clientInfo.clientPhone && <div>Phone: {clientInfo.clientPhone}</div>}
-              <div>Reason: {reason}</div>
-            </div>
-
-            <div className="divider"></div>
-
-            {/* Items */}
-            {creditNoteData.items.map((item, i) => {
-              const productName =
-                item.stockout?.stockin?.product?.productName ||
-                item.stockout?.backorder?.productName ||
-                'Unknown Item';
-              const price = item.stockout?.soldPrice || 0;
-              const qty = item.quantity || 0;
-
-              return (
-                <div key={i} className="mb-2">
-                  <div className="font-medium">{productName}</div>
-                  <div className="flex justify-between">
-                    <span>{qty} × {formatCurrency(price)}</span>
-                    <span className="font-bold text-red-600">
-                      -{formatCurrency(price * qty)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="divider"></div>
-
-            <div className="font-bold text-base">
-              <div className="flex justify-between text-red-600">
-                <span>TOTAL CREDIT</span>
-                <span>-{formatCurrency(total)} RWF</span>
+          {/* Preview Container */}
+          <div className="p-6 bg-theme-bg-tertiary/30">
+            <div id="credit-note-print-section" className="bg-white p-6 shadow-lg rounded-sm text-[11px] text-gray-900 font-mono leading-tight max-w-[80mm] mx-auto border border-gray-100">
+              <div className="text-center mb-4">
+                <img src={companyInfo.logo} alt="Logo" className="w-16 h-16 mx-auto mb-2 object-contain grayscale" />
+                <div className="font-bold text-sm tracking-tighter uppercase">{companyInfo.companyName}</div>
+                <div className="text-[10px] text-gray-600">{companyInfo.address}</div>
+                <div className="text-[10px] text-gray-600 font-bold">TEL: {companyInfo.phone}</div>
               </div>
-            </div>
 
-            <div className="divider"></div>
+              <div className="border-t border-dashed border-gray-300 my-3"></div>
 
-            <div className="text-center text-xs">
-              <div>Items Returned: {itemCount}</div>
-              <div>Date: {formatDate(createdAt)} | {formatTime(createdAt)}</div>
-              <div>Credit Note #: {creditNoteId}</div>
-              <div>Original Sale: {transactionId}</div>
+              <div className="text-center font-bold text-sm text-red-600 mb-3 tracking-widest uppercase">
+                CREDIT NOTE
+              </div>
 
-              {transactionId !== 'N/A' && (
-                <div className="my-3">
-                  <img
-                    src={stockOutService.getBarCodeUrlImage?.(transactionId)}
-                    alt="Barcode"
-                    className="h-10 mx-auto"
-                  />
+              <div className="border-t border-dashed border-gray-300 my-3"></div>
+
+              <div className="space-y-1 mb-3 text-[10px]">
+                <div className="flex justify-between">
+                  <span className="text-gray-500 uppercase">Client:</span>
+                  <span className="font-bold">{clientInfo.clientName}</span>
                 </div>
-              )}
+                {clientInfo.clientPhone && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 uppercase">Phone:</span>
+                    <span className="font-bold">{clientInfo.clientPhone}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-gray-500 uppercase whitespace-nowrap">Reason:</span>
+                  <span className="font-bold text-right leading-none">{reason}</span>
+                </div>
+              </div>
 
-              <div className="divider"></div>
-              <div className="font-bold">Thank You!</div>
-              <div className="text-xs">Goods returned successfully</div>
+              <div className="border-t border-dashed border-gray-300 my-3"></div>
+
+              {/* Items Table Header */}
+              <div className="flex justify-between font-bold text-[9px] text-gray-500 uppercase mb-2">
+                <span>Description</span>
+                <span>Amount</span>
+              </div>
+
+              {/* Items */}
+              <div className="space-y-3">
+                {creditNoteData.items.map((item: any, i: number) => {
+                  const productName =
+                    item.stockout?.stockin?.product?.productName ||
+                    item.stockout?.backorder?.productName ||
+                    'Unknown Item';
+                  const price = item.stockout?.soldPrice || 0;
+                  const qty = item.quantity || 0;
+
+                  return (
+                    <div key={i} className="group">
+                      <div className="font-bold uppercase leading-tight mb-0.5">{productName}</div>
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-gray-500">{qty} × {formatCurrency(price)}</span>
+                        <span className="font-bold text-red-600">
+                          -{formatCurrency(price * qty)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-dashed border-gray-300 my-4"></div>
+
+              <div className="font-black text-xs">
+                <div className="flex justify-between text-red-600 items-baseline">
+                  <span className="uppercase tracking-tighter">TOTAL CREDIT</span>
+                  <span className="text-sm">-{formatCurrency(total)} RWF</span>
+                </div>
+              </div>
+
+              <div className="border-t border-dashed border-gray-300 my-4"></div>
+
+              <div className="text-center text-[9px] space-y-1 text-gray-600">
+                <div className="flex justify-between px-2">
+                  <span>Return Qty:</span>
+                  <span className="font-bold">{itemCount} items</span>
+                </div>
+                <div className="flex justify-between px-2">
+                  <span>Date:</span>
+                  <span className="font-bold">{formatDate(createdAt)}</span>
+                </div>
+                <div className="flex justify-between px-2">
+                  <span>Time:</span>
+                  <span className="font-bold">{formatTime(createdAt)}</span>
+                </div>
+                <div className="flex justify-between px-2">
+                  <span>Credit Note:</span>
+                  <span className="font-bold">#{creditNoteId}</span>
+                </div>
+                <div className="flex justify-between px-2">
+                  <span>Sale ID:</span>
+                  <span className="font-bold">{transactionId}</span>
+                </div>
+
+                {transactionId !== 'N/A' && (
+                  <div className="my-4 p-2 bg-gray-50 rounded">
+                    <img
+                      src={stockOutService.getBarCodeUrlImage?.(transactionId) || undefined}
+                      alt="Barcode"
+                      className="h-10 mx-auto mix-blend-multiply"
+                    />
+                  </div>
+                )}
+
+                <div className="border-t border-dashed border-gray-300 my-4"></div>
+                <div className="font-black text-gray-900 uppercase tracking-widest text-[10px]">Thank You!</div>
+                <div className="text-[9px] italic">Goods returned successfully</div>
+              </div>
             </div>
           </div>
         </div>
