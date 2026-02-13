@@ -243,7 +243,7 @@ export class StockoutService {
         stockin: true, // includes all stock details
         admin: true,
         employee: true,
-        Debit: true, // includes debit if exists
+        debits: true, // includes debit if exists
       },
     });
   }
@@ -255,7 +255,7 @@ export class StockoutService {
         stockin: true,
         admin: true,
         employee: true,
-        Debit: true,
+        debits: true,
       },
     });
 
@@ -277,7 +277,7 @@ export class StockoutService {
         stockin: true,
         admin: true,
         employee: true,
-        Debit: true,
+        debits: true,
       },
     });
   }

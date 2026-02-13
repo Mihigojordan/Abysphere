@@ -93,7 +93,7 @@ import { ExpenseManagementModule } from './modules/expense-management/expense-ma
     StockoutModule,
     SalesReturnModule,
     MembershipPlanModule,
-    DebitModule
+    DebitModule,
     ExpenseManagementModule
   ],
   controllers: [AppController],
