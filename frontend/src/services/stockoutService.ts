@@ -11,9 +11,14 @@ export const PaymentMethod = {
 export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 
 export interface SaleItem {
-  stockinId: number;
+  stockinId?: number;
+  externalItemName?: string;
+  externalSku?: string;
   quantity: number;
   soldPrice?: number;
+  hasDebit?: boolean;
+  debitAmount?: number;
+  debitDescription?: string;
 }
 
 export interface ClientInfo {
@@ -105,6 +110,7 @@ class StockOutService {
         {
           stockinId: data.stockinId,
           quantity: Number(data.quantity),
+          soldPrice: data.soldPrice ? Number(data.soldPrice) : undefined,
         },
       ],
       clientName: data.clientName?.trim() || undefined,
@@ -146,8 +152,13 @@ class StockOutService {
     const payload = {
       sales: salesArray.map((sale) => ({
         stockinId: sale.stockinId,
+        externalItemName: sale.externalItemName,
+        externalSku: sale.externalSku,
         quantity: Number(sale.quantity),
         soldPrice: sale.soldPrice ? Number(sale.soldPrice) : undefined,
+        hasDebit: sale.hasDebit || false,
+        debitAmount: sale.debitAmount ? Number(sale.debitAmount) : undefined,
+        debitDescription: sale.debitDescription,
       })),
       clientName: clientInfo.clientName?.trim() || undefined,
       clientEmail: clientInfo.clientEmail?.trim() || undefined,

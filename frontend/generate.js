@@ -8,7 +8,7 @@ import sharp from 'sharp'
 import path from 'path'
 
 // Your source image path
-const sourceImage = './public/zuba.png';
+const sourceImage = './public/mysystem.jpeg';
 
 // Complete icon specifications for all platforms
 const iconSpecs = {

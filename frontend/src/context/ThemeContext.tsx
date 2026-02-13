@@ -29,6 +29,45 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     return savedTheme && themes[savedTheme] ? savedTheme : 'default';
   });
 
+  // Update PWA meta theme-color tags
+  const updateMetaThemeColor = useCallback((themeName: string) => {
+    const theme = themes[themeName];
+    if (!theme) return;
+
+    // Get the primary color for PWA theme (using primary-700 for better contrast)
+    const themeColor = theme.colors['--color-primary-700'];
+    
+    // Update or create meta theme-color tag
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.setAttribute('name', 'theme-color');
+      document.head.appendChild(metaThemeColor);
+    }
+    metaThemeColor.setAttribute('content', themeColor);
+    
+    // Update or create msapplication-TileColor tag (for Windows tiles)
+    let metaTileColor = document.querySelector('meta[name="msapplication-TileColor"]');
+    if (!metaTileColor) {
+      metaTileColor = document.createElement('meta');
+      metaTileColor.setAttribute('name', 'msapplication-TileColor');
+      document.head.appendChild(metaTileColor);
+    }
+    metaTileColor.setAttribute('content', themeColor);
+    
+    // Update or create msapplication-navbutton-color tag (for Windows Phone)
+    let metaNavButton = document.querySelector('meta[name="msapplication-navbutton-color"]');
+    if (!metaNavButton) {
+      metaNavButton = document.createElement('meta');
+      metaNavButton.setAttribute('name', 'msapplication-navbutton-color');
+      document.head.appendChild(metaNavButton);
+    }
+    metaNavButton.setAttribute('content', themeColor);
+    
+    // Save theme color to localStorage for PWA
+    localStorage.setItem('pwa-theme-color', themeColor);
+  }, []);
+
   // Apply theme CSS variables to :root
   const applyTheme = useCallback((themeName: string) => {
     const theme = themes[themeName];
@@ -52,7 +91,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     // Set theme name as data attribute for CSS selectors
     document.body.setAttribute('data-theme', themeName);
-  }, []);
+
+    // Update PWA theme-color meta tags
+    updateMetaThemeColor(themeName);
+  }, [updateMetaThemeColor]);
 
   // Apply theme on mount and when theme changes
   useEffect(() => {

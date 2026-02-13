@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { X, AlertCircle, Plus, Search, ChevronDown, Check, Package, ShoppingCart } from "lucide-react";
+import { X, AlertCircle, Plus, Search, ChevronDown, Check, Package, ShoppingCart, CreditCard } from "lucide-react";
 
 interface StockIn {
   id: number;

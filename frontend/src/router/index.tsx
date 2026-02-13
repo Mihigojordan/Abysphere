@@ -7,7 +7,7 @@ import DashboardLayout from "../layout/DashboardLayout";
 import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdminRoute";
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
-import logo from "../assets/tran.png";
+import logo from "../assets/tran.jpeg";
 import StockAnalyticsPage from "../pages/dashboard/StockAnalyticsPage";
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
