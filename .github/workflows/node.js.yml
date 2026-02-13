@@ -1,4 +1,4 @@
-name: Deploy izuba backend  App
+name: Deploy izuba backend App
 
 on:
   push:
@@ -35,16 +35,34 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=2048
         run: npm run build
 
-      # Prepare a clean deploy folder
+      # Prepare a clean deploy folder (NOW INCLUDES src/Templates)
       - name: 📦 Prepare backend artifact
         run: |
           rm -rf backend_deploy
           mkdir -p backend_deploy
+
+          # dist
           cp -R backend/dist backend_deploy/dist
+
+          # package files
           cp backend/package.json backend_deploy/package.json
           if [ -f backend/package-lock.json ]; then cp backend/package-lock.json backend_deploy/package-lock.json; fi
+
+          # prisma folder
           if [ -d backend/prisma ]; then cp -R backend/prisma backend_deploy/prisma; fi
+
+          # env (only if you really want to ship it from repo)
           if [ -f backend/.env ]; then cp backend/.env backend_deploy/.env; fi
+
+          # ✅ templates (your code expects /src/Templates)
+          mkdir -p backend_deploy/src
+          if [ -d backend/src/Templates ]; then cp -R backend/src/Templates backend_deploy/src/Templates; fi
+
+          # optional: show what will be deployed
+          echo "=== DEPLOY TREE ==="
+          ls -la backend_deploy
+          ls -la backend_deploy/src || true
+          ls -la backend_deploy/src/Templates || true
 
       # === BACKEND DEPLOYMENT ===
       - name: 📂 Upload backend to VPS via SCP
