@@ -2,11 +2,20 @@ import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import CompanyLogo from '../../../../assets/tran.png';
 import stockOutService from '../../../../services/stockoutService';
+import useAdminAuth from '../../../../context/AdminAuthContext';
+import { API_URL } from '../../../../api/api';
 
-const InvoiceComponent = ({ isOpen, onClose, transactionId }) => {
-  const [invoiceData, setInvoiceData] = useState(null);
+interface InvoiceComponentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  transactionId: string | null;
+}
+
+const InvoiceComponent: React.FC<InvoiceComponentProps> = ({ isOpen, onClose, transactionId }) => {
+  const [invoiceData, setInvoiceData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({ print: false });
+  const { user: adminUser } = useAdminAuth();
 
   // Fetch invoice data from API only
   useEffect(() => {
@@ -34,19 +43,21 @@ const InvoiceComponent = ({ isOpen, onClose, transactionId }) => {
   }, [transactionId, isOpen]);
 
   const companyInfo = {
-    logo: CompanyLogo,
-    companyName: 'Izuba Systems Ltd',
-    // address: 'NYAMATA, BUGESERA',
-    phone: '+250 787 487 953',
-    // email: 'umusingihardware7@gmail.com',
+    logo: adminUser?.profileImage
+      ? (adminUser.profileImage.startsWith('http') ? adminUser.profileImage : `${API_URL}/uploads/profiles/${adminUser.profileImage}`)
+      : CompanyLogo,
+    companyName: adminUser?.adminName || 'Izuba Systems Ltd',
+    address: 'KIGALI, RWANDA',
+    phone: adminUser?.phone || '+250 787 487 953',
+    email: adminUser?.adminEmail || 'support@izubagen.rw',
   };
 
   // Extract client from first item
   const clientInfo = invoiceData?.[0]
     ? {
-        clientName: invoiceData[0].clientName || 'WALK-IN CUSTOMER',
-        clientPhone: invoiceData[0].clientPhone || null,
-      }
+      clientName: invoiceData[0].clientName || 'WALK-IN CUSTOMER',
+      clientPhone: invoiceData[0].clientPhone || null,
+    }
     : { clientName: 'WALK-IN CUSTOMER', clientPhone: null };
 
   const total = invoiceData?.reduce((sum, item) => sum + item.soldPrice * item.quantity, 0) || 0;
@@ -54,20 +65,20 @@ const InvoiceComponent = ({ isOpen, onClose, transactionId }) => {
   const createdAt = invoiceData?.[0]?.createdAt || new Date().toISOString();
   const itemCount = invoiceData?.length || 0;
 
-  const formatCurrency = (amount) =>
+  const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-RW', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
 
-  const formatDate = (dateString) =>
+  const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
 
-  const formatTime = (dateString) =>
+  const formatTime = (dateString: string) =>
     new Date(dateString).toLocaleTimeString('en-GB', {
       hour12: false,
       hour: '2-digit',
@@ -113,7 +124,7 @@ const InvoiceComponent = ({ isOpen, onClose, transactionId }) => {
   return (
     <>
       {/* Print-only Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           body * { visibility: hidden; }
           #print-area, #print-area * { visibility: visible; }
@@ -219,7 +230,7 @@ const InvoiceComponent = ({ isOpen, onClose, transactionId }) => {
                 />
               </div>
               <div className="font-bold text-sm mt-2">THANK YOU!</div>
-              <div className="text-xs mt-1">Powered by Umusingi POS</div>
+              <div className="text-xs mt-1">Powered by My system</div>
             </div>
           </div>
         </div>

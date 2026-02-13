@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
 import stockService, { type Stock } from '../../services/stockService';
 import DeleteStockModal from '../../components/dashboard/stock/DeleteStockInModal';
 import QuickUpdateStockModal from '../../components/dashboard/stock/QuickUpdateStockModal';
@@ -61,6 +62,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
     const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
+    const [isExportOpen, setIsExportOpen] = useState(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
     const [isQuickUpdateModalOpen, setIsQuickUpdateModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -260,6 +262,76 @@ const StockInManagement = ({ role }: { role: string }) => {
 
         setStocks(filtered);
         setCurrentPage(1);
+    };
+
+    const handleExportExcel = () => {
+        try {
+            setOperationLoading(true);
+            const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
+            const filename = `stockin_export_${date}.xlsx`;
+
+            const data = stocks.map((stock, index) => ({
+                '#': index + 1,
+                'SKU': stock.sku,
+                'Item Name': stock.itemName,
+                'Quantity': `${stock.receivedQuantity} ${stock.unitOfMeasure}`,
+                'Unit Cost': stock.unitCost,
+                'Total Value': stock.totalValue,
+                'Location': stock.warehouseLocation || 'N/A',
+                'Received Date': new Date(stock.receivedDate).toLocaleDateString()
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Stock In Report");
+            XLSX.writeFile(wb, filename);
+
+            showOperationStatus('success', 'Excel exported successfully');
+        } catch (err: any) {
+            console.error('Error exporting Excel:', err);
+            showOperationStatus('error', 'Failed to export Excel');
+        } finally {
+            setOperationLoading(false);
+        }
+    };
+
+    const handleExportCSV = () => {
+        try {
+            setOperationLoading(true);
+            const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
+            const filename = `stockin_export_${date}.csv`;
+
+            const data = stocks.map((stock, index) => ({
+                '#': index + 1,
+                'SKU': stock.sku,
+                'Item Name': stock.itemName,
+                'Quantity': stock.receivedQuantity,
+                'Unit': stock.unitOfMeasure,
+                'Unit Cost': stock.unitCost,
+                'Total Value': stock.totalValue,
+                'Location': stock.warehouseLocation || 'N/A',
+                'Received Date': new Date(stock.receivedDate).toLocaleDateString()
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const csv = XLSX.utils.sheet_to_csv(ws);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showOperationStatus('success', 'CSV exported successfully');
+        } catch (err: any) {
+            console.error('Error exporting CSV:', err);
+            showOperationStatus('error', 'Failed to export CSV');
+        } finally {
+            setOperationLoading(false);
+        }
     };
 
     const handleExportPDF = async () => {
@@ -795,11 +867,40 @@ const StockInManagement = ({ role }: { role: string }) => {
                                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                                 <span className="text-xs font-medium">{t('stockIn.refresh')}</span>
                             </button>
-                            <button onClick={handleExportPDF} disabled={operationLoading || filteredStocks.length === 0}
-                                className="flex items-center gap-2 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-lg hover:bg-theme-bg-tertiary disabled:opacity-50 transition-all" title={t('stockIn.export')}>
-                                <Download className="w-4 h-4" />
-                                <span className="text-xs font-medium">{t('stockIn.export')}</span>
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsExportOpen(!isExportOpen)}
+                                    className="flex items-center gap-2 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-lg hover:bg-theme-bg-tertiary disabled:opacity-50 transition-all font-semibold"
+                                    title={t('stockIn.export')}
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span className="text-xs font-medium">{t('stockIn.export')}</span>
+                                    <ChevronDown className={`w-3 h-3 transition-transform ${isExportOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {isExportOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-[60]" onClick={() => setIsExportOpen(false)} />
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 10 }}
+                                                className="absolute right-0 top-full mt-2 w-40 bg-theme-bg-primary border border-theme-border rounded-lg shadow-xl py-2 z-[70]"
+                                            >
+                                                <button onClick={() => { handleExportPDF(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 text-theme-text-primary">
+                                                    <div className="w-2 h-2 rounded-full bg-red-500" /> {t('stockIn.pdf') || 'PDF'}
+                                                </button>
+                                                <button onClick={() => { handleExportExcel(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 text-theme-text-primary">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500" /> {t('stockIn.excel') || 'Excel'}
+                                                </button>
+                                                <button onClick={() => { handleExportCSV(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 text-theme-text-primary">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500" /> {t('stockIn.csv') || 'CSV'}
+                                                </button>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                             <button onClick={handleAddStock} disabled={operationLoading}
                                 className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md shadow-primary-600/20 transition-all disabled:opacity-50">
                                 <Plus className="w-4 h-4" />

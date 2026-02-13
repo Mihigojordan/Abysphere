@@ -5,6 +5,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return "backend is running on server of port 8000";
+    return " this backend is running on port 8000 on ip address of namecheap vps also on api.izubagen.rw";
   }
 }

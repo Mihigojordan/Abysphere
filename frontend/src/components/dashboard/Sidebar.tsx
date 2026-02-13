@@ -3,10 +3,8 @@
     ───────────────────────────────────────────────────────────────────────────── */
 import React, { useState, useEffect } from "react";
 import {
-  Users,
   TrendingUp,
   X,
-  Building,
   User2,
   FolderTree,
   ChevronDown,
@@ -15,11 +13,12 @@ import {
   Loader,
   PanelLeftClose,
   PanelLeft,
-  ShoppingCart,
-  ClipboardCheck,
   Tags,
   Truck,
-  AlertTriangle
+  AlertTriangle,
+  CreditCard,
+  Building,
+  Users
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -137,8 +136,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     return [
       { id: "dashboard", label: t('sidebar.dashboard'), icon: TrendingUp, path: base },
 
-      
 
+
+      {
+        id: "departments",
+        label: t('sidebar.departments'),
+        icon: Building,
+        path: `${base}/department-management`,
+        feature: "DEPARTMENTS_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
       {
         id: "employees",
         label: t('sidebar.employees'),
@@ -161,6 +168,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Tags,
         path: `${base}/category-management`,
         feature: "CATEGORY_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "expense",
+        label: t('sidebar.expenseManagement'),
+        icon: CreditCard,
+        path: `${base}/expense-management`,
         allowedRoles: ["admin"],
       },
 
@@ -196,7 +210,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         feature: "SALES_RETURN_MANAGEMENT",
         allowedRoles: ["admin"],
       },
-    
+
+
 
       /* ------------------------------------------------------------------ */
       /*  Example of a dropdown that is guarded by a single feature        */
@@ -226,14 +241,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             icon: ArrowUp,
             path: `${base}/stock-history`,
           },
-              {
-        id: "stock-alerts",
-        label: t('sidebar.stockAlerts'),
-        icon: AlertTriangle,
-        path: `${base}/stock-alerts`,
-        // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
-        allowedRoles: ["admin"],
-      },
+          {
+            id: "stock-alerts",
+            label: t('sidebar.stockAlerts'),
+            icon: AlertTriangle,
+            path: `${base}/stock-alerts`,
+            // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
+            allowedRoles: ["admin"],
+          },
         ],
       },
     ];
