@@ -120,7 +120,7 @@ model Admin {
   approvalsApproved      ApprovalWorkflow[]   @relation("ApprovalApprovedByAdmin")
   documentsUploaded      DocumentAttachment[] @relation("DocUploadedByAdmin")
   alertsAcknowledged     AlertNotification[]  @relation("AlertAcknowledgedByAdmin")
-  expenses               Expense[]            @relation("AdminExpenses")
+
 }
 
 enum AdminStatus {
