@@ -274,3 +274,4 @@ async assignFeaturesToCompany(adminId: string, featureIds: string[]) {
         return feature.admins;
     }
 }
+
