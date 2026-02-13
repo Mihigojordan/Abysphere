@@ -9,7 +9,7 @@ import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivate
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/tran.png";
 import StockAnalyticsPage from "../pages/dashboard/StockAnalyticsPage";
-import ExpenseManagement from "../pages/dashboard/ExpenseManagement";
+
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
