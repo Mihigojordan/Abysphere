@@ -17,6 +17,7 @@ import {
   Grid3X3,
   Table as TableIcon,
   Trash2,
+  FileUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,6 +25,7 @@ import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
 import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
 import ViewStockOutModal from '../../components/dashboard/stock/out/ViewStockOutModal';
+import ImportStockOutModal from '../../components/dashboard/stock/out/ImportStockOutModal';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import InvoiceComponent from '../../components/dashboard/stock/out/InvoiceComponent';
@@ -42,7 +44,7 @@ interface StockIn {
 
 interface StockOut {
   id: string;
-  stockinId: number;
+  stockinId: number | null; // Changed to allow null for external sales
   quantity: number;
   soldPrice: number;
   clientName?: string;
@@ -55,7 +57,9 @@ interface StockOut {
     itemName: string;
     sku: string;
     product?: { productName: string; brand?: string };
-  };
+  } | null;
+  externalItemName?: string; // Add external fields
+  externalSku?: string;
 }
 
 interface Filters {
@@ -72,6 +76,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedStockOut, setSelectedStockOut] = useState<StockOut | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -85,8 +90,9 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     startDate: '',
     endDate: '',
   });
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'quantity' | 'revenue'>('date');
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,24 +101,26 @@ const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
 
-const [stats, setStats] = useState({
-  totalSales: 0,
-  totalRevenue: 0,
-  totalTransactions: 0,
-  averageOrderValue: 0,
-  todaySales: 0,
-  todayRevenue: 0,
-  totalProfit: 0,  // ADD THIS LINE
-});
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalRevenue: 0,
+    totalTransactions: 0,
+    averageOrderValue: 0,
+    todaySales: 0,
+    todayRevenue: 0,
+    totalProfit: 0,
+    filteredSales: 0,
+    filteredRevenue: 0,
+  });
 
   // ── Fetch Data ───────────────────────────────────────────────
   useEffect(() => {
     fetchData();
   }, []);
 
- useEffect(() => {
-  applyFiltersAndSearch();
-}, [searchTerm, stockOuts, filters, stockIns, sortBy, sortOrder]);
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [searchTerm, stockOuts, filters, stockIns, sortBy, sortOrder]);
 
 
   useEffect(() => {
@@ -136,9 +144,11 @@ const [stats, setStats] = useState({
       setStockOuts(outs);
       setFilteredStockOuts(outs);
       setStockIns(Array.isArray(ins) ? ins : []);
-     ;
-      
-      calculateStats(outs,Array.isArray(ins) ? ins : []);
+      ;
+
+      setStockIns(Array.isArray(ins) ? ins : []);
+
+      calculateStats(outs, outs, Array.isArray(ins) ? ins : []);
     } catch (err: any) {
       showNotification(`Failed to load data: ${err.message}`, 'error');
     } finally {
@@ -147,134 +157,125 @@ const [stats, setStats] = useState({
   };
 
   // ── Stats & Filters ──────────────────────────────────────────
- const calculateStats = (data: StockOut[],stockIns:StockIn[]) => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const calculateStats = (allData: StockOut[], filteredData: StockOut[], stockIns: StockIn[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const totalSales = data.reduce((sum, item) => sum + item.quantity, 0);
-  const totalRevenue = data.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
-  const totalTransactions = data.length;
-  const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+    // Total Stats (All Data)
+    const totalSales = allData.reduce((sum, item) => sum + item.quantity, 0);
+    const totalRevenue = allData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+    const totalTransactions = allData.length;
+    const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-  console.log('stock out data',data,stockIns);
-  // Calculate total cost and profit
-  const totalCost = data.reduce((sum, item) => {
-    
-    const stockIn = item.stockin;
-    
-    
-    return sum + (Number(stockIn?.unitCost) || 0) * item.quantity;
-  }, 0);
+    // Calculate total cost and profit (All Data)
+    const totalCost = allData.reduce((sum, item) => {
+      // Find unit cost from stockIns if stockin relation not populated or incomplete
+      const stockIn = stockIns.find(s => s.id === item.stockinId) || item.stockin;
+      // Use unitCost from stockIn, default to 0 if not found
+      // Note: item.stockin might be partial, so we check stockIns array too
+      const cost = (stockIn as any)?.unitCost || 0;
+      return sum + Number(cost) * item.quantity;
+    }, 0);
 
-  console.log('total cost',totalCost);
-  
-  
-  const totalProfit = totalRevenue - totalCost;
-  console.log('total profit',totalProfit);
+    const totalProfit = totalRevenue - totalCost;
 
-  const todayData = data.filter((item) => {
-    const itemDate = new Date(item.createdAt);
-    itemDate.setHours(0, 0, 0, 0);
-    return itemDate.getTime() === today.getTime();
-  });
 
-  const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
-  const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
+    // Filtered Stats (Dynamic)
+    const filteredSales = filteredData.reduce((sum, item) => sum + item.quantity, 0);
+    const filteredRevenue = filteredData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
 
-  setStats({
-    totalSales,
-    totalRevenue,
-    totalTransactions,
-    averageOrderValue,
-    todaySales,
-    todayRevenue,
-    totalProfit,  // ADD THIS LINE
-  });
-};
+    // Today's Stats (Static - kept for reference if needed, but UI will use filtered)
+    const todayData = allData.filter((item) => {
+      const itemDate = new Date(item.createdAt);
+      itemDate.setHours(0, 0, 0, 0);
+      return itemDate.getTime() === today.getTime();
+    });
+    const todaySales = todayData.reduce((sum, item) => sum + item.quantity, 0);
+    const todayRevenue = todayData.reduce((sum, item) => sum + item.quantity * item.soldPrice, 0);
 
-  const getDateRange = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    switch (filters.dateRange) {
-      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
-      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
-      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
-      case 'custom':
-        return {
-          start: filters.startDate ? new Date(filters.startDate) : null,
-          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
-        };
-      default: return { start: null, end: null };
-    }
-  };
-const applyFiltersAndSearch = useCallback(() => {
-  // Move getDateRange logic inline
-  const getDateRange = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    switch (filters.dateRange) {
-      case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
-      case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
-      case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
-      case 'custom':
-        return {
-          start: filters.startDate ? new Date(filters.startDate) : null,
-          end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
-        };
-      default: return { start: null, end: null };
-    }
+    setStats({
+      totalSales,
+      totalRevenue,
+      totalTransactions,
+      averageOrderValue,
+      todaySales,
+      todayRevenue,
+      totalProfit,
+      filteredSales,
+      filteredRevenue,
+    });
   };
 
-  const { start, end } = getDateRange();
 
-  let filtered = stockOuts.filter(item => {
-    const searchMatch =
-      !searchTerm ||
-      item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.clientPhone?.includes(searchTerm) ||
-      item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
+  const applyFiltersAndSearch = useCallback(() => {
+    // Move getDateRange logic inline
+    const getDateRange = () => {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    let dateMatch = true;
-    if (filters.dateRange !== 'all' && start && end) {
-      const itemDate = new Date(item.createdAt).getTime();
-      dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
-    }
+      switch (filters.dateRange) {
+        case 'today': return { start: today, end: new Date(today.getTime() + 86400000 - 1) };
+        case 'week': return { start: startOfWeek, end: new Date(startOfWeek.getTime() + 7 * 86400000 - 1) };
+        case 'month': return { start: startOfMonth, end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59) };
+        case 'custom':
+          return {
+            start: filters.startDate ? new Date(filters.startDate) : null,
+            end: filters.endDate ? new Date(filters.endDate + 'T23:59:59') : null,
+          };
+        default: return { start: null, end: null };
+      }
+    };
 
-    return searchMatch && dateMatch;
-  });
+    const { start, end } = getDateRange();
 
-  // Apply sorting
-  filtered.sort((a, b) => {
-    let compareValue = 0;
-    
-    if (sortBy === 'quantity') {
-      compareValue = a.quantity - b.quantity;
-    } else if (sortBy === 'revenue') {
-      compareValue = (a.soldPrice * a.quantity) - (b.soldPrice * b.quantity);
-    } else {
-      compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    }
-    
-    return sortOrder === 'asc' ? compareValue : -compareValue;
-  });
+    let filtered = stockOuts.filter(item => {
+      const searchMatch =
+        !searchTerm ||
+        item.stockin?.product?.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.stockin?.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clientPhone?.includes(searchTerm) ||
+        item.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  setFilteredStockOuts(filtered);
-  setCurrentPage(1);
-}, [searchTerm, stockOuts, filters, sortBy, sortOrder]);
+      let dateMatch = true;
+      if (filters.dateRange !== 'all' && start && end) {
+        const itemDate = new Date(item.createdAt).getTime();
+        dateMatch = itemDate >= start.getTime() && itemDate <= end.getTime();
+      }
+
+      let paymentMatch = true;
+      if (paymentMethodFilter) {
+        paymentMatch = item.paymentMethod === paymentMethodFilter;
+      }
+
+      return searchMatch && dateMatch && paymentMatch;
+    });
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let compareValue = 0;
+
+      if (sortBy === 'quantity') {
+        compareValue = a.quantity - b.quantity;
+      } else if (sortBy === 'revenue') {
+        compareValue = (a.soldPrice * a.quantity) - (b.soldPrice * b.quantity);
+      } else {
+        compareValue = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      return sortOrder === 'asc' ? compareValue : -compareValue;
+    });
+
+    setFilteredStockOuts(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, stockOuts, filters, sortBy, sortOrder, paymentMethodFilter]);
   // ── Helpers ──────────────────────────────────────────────────
   const showNotification = (message: string, type: 'success' | 'error') => {
-    // setNotification({ message, type });
-    // setTimeout(() => setNotification(null), 4000);
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
   };
 
   const updateSearchParam = (key: string, value?: string) => {
@@ -429,8 +430,12 @@ const applyFiltersAndSearch = useCallback(() => {
                   <span className="font-mono text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{item.transactionId || '—'}</span>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="font-medium text-theme-text-primary">{item.stockin?.product?.productName || item.stockin?.itemName}</div>
-                  <div className="text-xs text-theme-text-secondary">{item.stockin?.sku}</div>
+                  <div className="font-medium text-theme-text-primary">
+                    {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+                  </div>
+                  <div className="text-xs text-theme-text-secondary">
+                    {item.stockin?.sku || item.externalSku}
+                  </div>
                 </td>
                 <td className="px-5 py-4 text-theme-text-secondary">{item.clientName || 'Walk-in'}</td>
                 <td className="px-5 py-4 text-right font-medium text-theme-text-primary">{item.quantity}</td>
@@ -463,7 +468,9 @@ const applyFiltersAndSearch = useCallback(() => {
                 <ShoppingCart size={18} className="text-primary-600" />
               </div>
               <div>
-                <p className="font-semibold text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+                <p className="font-semibold text-theme-text-primary truncate">
+                  {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+                </p>
                 <p className="text-xs text-theme-text-secondary">{item.transactionId || '—'}</p>
               </div>
             </div>
@@ -507,7 +514,9 @@ const applyFiltersAndSearch = useCallback(() => {
               <ShoppingCart size={18} className="text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-theme-text-primary truncate">{item.stockin?.product?.productName || item.stockin?.itemName}</p>
+              <p className="font-medium text-theme-text-primary truncate">
+                {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
+              </p>
               <p className="text-sm text-theme-text-secondary truncate">
                 <span className="font-mono text-xs text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded mr-2">{item.transactionId || '—'}</span>
                 {item.clientName || 'Walk-in'} • {formatDate(item.createdAt)}
@@ -583,7 +592,31 @@ const applyFiltersAndSearch = useCallback(() => {
               <h1 className="text-lg font-semibold text-theme-text-primary">Stock Out Management</h1>
               <p className="text-xs text-theme-text-secondary mt-0.5">Record sales & track inventory movement</p>
             </div>
-            <ViewModeSwitcher />
+            <div className="flex gap-2">
+              <button
+                onClick={fetchData}
+                disabled={isLoading}
+                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+              <button
+                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
+              >
+                <Plus className="w-3 h-3" />
+                <span>Record Sale</span>
+              </button>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
+              >
+                <FileUp className="w-3 h-3" />
+                <span>Import Sales</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -592,36 +625,36 @@ const applyFiltersAndSearch = useCallback(() => {
       <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
         {/* Stats Cards */}
-<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-  {[
-    { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
-    { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
-    { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
-    { title: 'Total Profit', value: formatPrice(stats.totalProfit), icon: TrendingUp, color: 'orange' },  // CHANGED THIS LINE
-  ].map((stat, i) => (
-    <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
-      <div className="flex items-center space-x-3">
-        <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
-          <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[
+            { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'green' },
+            { title: 'Units Sold', value: stats.totalSales, icon: Package, color: 'blue' },
+            { title: 'Transactions', value: stats.totalTransactions, icon: CreditCard, color: 'purple' },
+            { title: 'Total Profit', value: formatPrice(stats.totalProfit), icon: TrendingUp, color: 'orange' },  // CHANGED THIS LINE
+          ].map((stat, i) => (
+            <div key={i} className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-3 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
+                  <stat.icon className={`w-5 h-5 text-${stat.color}-600`} />
+                </div>
+                <div>
+                  <p className="text-xs text-theme-text-secondary">{stat.title}</p>
+                  <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <div>
-          <p className="text-xs text-theme-text-secondary">{stat.title}</p>
-          <p className="text-lg font-semibold text-theme-text-primary">{stat.value}</p>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
 
         {/* Today's Summary */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-blue-50 rounded p-3 border border-blue-200">
-            <p className="text-xs font-medium text-blue-900">Today's Sales</p>
-            <p className="text-base font-bold text-blue-700 mt-1">{stats.todaySales} units</p>
+            <p className="text-xs font-medium text-blue-900">Period Sales</p>
+            <p className="text-base font-bold text-blue-700 mt-1">{stats.filteredSales} units</p>
           </div>
           <div className="bg-green-50 rounded p-3 border border-green-200">
-            <p className="text-xs font-medium text-green-900">Today's Revenue</p>
-            <p className="text-base font-bold text-green-700 mt-1">{formatPrice(stats.todayRevenue)}</p>
+            <p className="text-xs font-medium text-green-900">Period Revenue</p>
+            <p className="text-base font-bold text-green-700 mt-1">{formatPrice(stats.filteredRevenue)}</p>
           </div>
         </div>
 
@@ -686,42 +719,36 @@ const applyFiltersAndSearch = useCallback(() => {
               )}
             </div>
 
-            {/* Add this right before the Refresh button */}
-<select
-  value={`${sortBy}-${sortOrder}`}
-  onChange={(e) => {
-    const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
-    setSortBy(newSortBy);
-    setSortOrder(newSortOrder);
-  }}
-  className="px-3 py-2 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
->
-  <option value="date-desc">Latest First</option>
-  <option value="date-asc">Oldest First</option>
-  <option value="quantity-desc">Highest Quantity</option>
-  <option value="quantity-asc">Lowest Quantity</option>
-  <option value="revenue-desc">Highest Revenue</option>
-  <option value="revenue-asc">Lowest Revenue</option>
-</select>
+            <select
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              <option value="">All Payment Methods</option>
+              <option value="CASH">Cash</option>
+              <option value="MOMO">Mobile Money</option>
+              <option value="CARD">Card</option>
+            </select>
 
-            <div className="flex gap-2">
-              <button
-                onClick={fetchData}
-                disabled={isLoading}
-                className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
-                title="Refresh"
-              >
-                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
-              <button
-                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Record Sale</span>
-              </button>
-            </div>
+            {/* Add this right before the Refresh button */}
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [newSortBy, newSortOrder] = e.target.value.split('-') as [typeof sortBy, typeof sortOrder];
+                setSortBy(newSortBy);
+                setSortOrder(newSortOrder);
+              }}
+              className="px-3 py-2 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
+            >
+              <option value="date-desc">Latest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="quantity-desc">Highest Quantity</option>
+              <option value="quantity-asc">Lowest Quantity</option>
+              <option value="revenue-desc">Highest Revenue</option>
+              <option value="revenue-asc">Lowest Revenue</option>
+            </select>
+
+            <ViewModeSwitcher />
           </div>
         </div>
 
@@ -761,7 +788,7 @@ const applyFiltersAndSearch = useCallback(() => {
           setSelectedStockOut(null);
         }}
         onSubmit={handleSubmit}
-        stockOut={selectedStockOut}
+        stockOut={selectedStockOut as any}
         stockIns={stockIns}
         isLoading={isLoading}
         title={selectedStockOut ? 'Edit Sale' : 'New Sale'}
@@ -774,6 +801,15 @@ const applyFiltersAndSearch = useCallback(() => {
           setSelectedStockOutForView(null);
         }}
         stockOut={selectedStockOutForView}
+      />
+
+      <ImportStockOutModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          fetchData();
+          showNotification('Sales imported successfully!', 'success');
+        }}
       />
     </div>
   );

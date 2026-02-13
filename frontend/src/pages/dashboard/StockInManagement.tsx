@@ -20,13 +20,15 @@ import {
     RefreshCw,
     Eye,
     ChevronDown,
-    MoreHorizontal
+    MoreHorizontal,
+    Upload
 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import stockService, { type Stock } from '../../services/stockService';
 import DeleteStockModal from '../../components/dashboard/stock/DeleteStockInModal';
 import QuickUpdateStockModal from '../../components/dashboard/stock/QuickUpdateStockModal';
 import ViewStockModal from '../../components/dashboard/stock/ViewStockModal';
+import ImportStockModal from '../../components/dashboard/stock/ImportStockModal';
 import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
@@ -53,12 +55,16 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [viewMode, setViewMode] = useState<ViewMode>('table');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
     const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
     const [operationLoading, setOperationLoading] = useState<boolean>(false);
     const [showFilters, setShowFilters] = useState<boolean>(false);
     const [isQuickUpdateModalOpen, setIsQuickUpdateModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+    // New Filters
+    const [productNameFilter, setProductNameFilter] = useState('');
 
     // === DATE FILTER STATES ===
     const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
@@ -192,7 +198,7 @@ const StockInManagement = ({ role }: { role: string }) => {
     const handleFilterAndSort = () => {
         let filtered = [...allStocks];
 
-        // Search
+        // Search (General)
         if (searchTerm.trim()) {
             filtered = filtered.filter(
                 (stock) =>
@@ -202,6 +208,15 @@ const StockInManagement = ({ role }: { role: string }) => {
                     stock.warehouseLocation?.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
+
+        // Product Name Filter
+        if (productNameFilter.trim()) {
+            filtered = filtered.filter((stock) =>
+                stock.itemName.toLowerCase().includes(productNameFilter.toLowerCase())
+            );
+        }
+
+
 
         // Category
         if (categoryFilter !== 'all') {
@@ -217,30 +232,29 @@ const StockInManagement = ({ role }: { role: string }) => {
         }
 
         // Sort
-     // Sort
-filtered.sort((a, b) => {
-    let aValue = a[sortBy] ?? '';
-    let bValue = b[sortBy] ?? '';
-    
-    // Date fields
-    if (sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'receivedDate') {
-        const dateA = new Date(aValue as string).getTime();
-        const dateB = new Date(bValue as string).getTime();
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    } 
-    // Numeric fields
-    else if (sortBy === 'receivedQuantity' || sortBy === 'totalValue' || sortBy === 'unitCost' || sortBy === 'reorderLevel') {
-        const numA = toNumber(aValue);
-        const numB = toNumber(bValue);
-        return sortOrder === 'asc' ? numA - numB : numB - numA;
-    } 
-    // String fields
-    else {
-        const strA = aValue.toString().toLowerCase();
-        const strB = bValue.toString().toLowerCase();
-        return sortOrder === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
-    }
-});
+        filtered.sort((a, b) => {
+            let aValue = a[sortBy] ?? '';
+            let bValue = b[sortBy] ?? '';
+
+            // Date fields
+            if (sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'receivedDate') {
+                const dateA = new Date(aValue as string).getTime();
+                const dateB = new Date(bValue as string).getTime();
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            }
+            // Numeric fields
+            else if (sortBy === 'receivedQuantity' || sortBy === 'totalValue' || sortBy === 'unitCost' || sortBy === 'reorderLevel') {
+                const numA = toNumber(aValue);
+                const numB = toNumber(bValue);
+                return sortOrder === 'asc' ? numA - numB : numB - numA;
+            }
+            // String fields
+            else {
+                const strA = aValue.toString().toLowerCase();
+                const strB = bValue.toString().toLowerCase();
+                return sortOrder === 'asc' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+            }
+        });
 
         setStocks(filtered);
         setCurrentPage(1);
@@ -344,7 +358,7 @@ filtered.sort((a, b) => {
     const handleDelete = async (stock: Stock) => {
         try {
             setOperationLoading(true);
-          const stockresult = await stockService.deleteStock(stock.id)
+            await stockService.deleteStock(stock.id.toString());
             setAllStocks((prev) => prev.filter((s) => s.id !== stock.id));
             showOperationStatus('success', `Stock item "${stock.itemName}" deleted`);
         } catch (err: any) {
@@ -585,7 +599,7 @@ filtered.sort((a, b) => {
     const renderListView = () => (
         <div className="bg-white rounded border border-gray-200 divide-y divide-gray-100">
             {currentStocks.map((stock) => {
-                const isLowStock = stock.receivedQuantity <= stock.reorderLevel;
+
                 return (
                     <div key={stock.id} className="px-4 py-3 hover:bg-gray-25">
                         <div className="flex items-center justify-between">
@@ -678,6 +692,28 @@ filtered.sort((a, b) => {
                 stock={selectedStock}
                 onClose={() => { setIsViewModalOpen(false); setSelectedStock(null); }}
             />
+            <ImportStockModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onSuccess={() => {
+                    // Trigger refresh
+                    handleFilterAndSort(); // Or trigger re-fetch?
+                    // Ideally re-fetch from server
+                    // But I need access to fetchStocks which is inside useEffect.
+                    // For now, I'll just rely on socket update or user refresh, or I can copy fetch logic here.
+                    // Or better, I'll trigger a reload of window or just use the same logic as the refresh button.
+                    stockService.getAllStocks().then(data => {
+                        const normalizedData = (Array.isArray(data) ? data : [data]).map(stock => ({
+                            ...stock,
+                            unitCost: toNumber(stock.unitCost),
+                            receivedQuantity: parseInt(stock.receivedQuantity as any) || 0,
+                            totalValue: toNumber(stock.totalValue),
+                            reorderLevel: parseInt(stock.reorderLevel as any) || 0,
+                        }));
+                        setAllStocks(normalizedData);
+                    });
+                }}
+            />
             {operationStatus && (
                 <div className="fixed top-4 right-4 z-50">
                     <div className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
@@ -737,8 +773,37 @@ filtered.sort((a, b) => {
                                 <Plus className="w-3 h-3" />
                                 <span>Receive Stock</span>
                             </button>
+                            <button onClick={() => setIsImportModalOpen(true)} disabled={operationLoading}
+                                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50">
+                                <Upload className="w-3 h-3" />
+                                <span>Import Stock</span>
+                            </button>
                         </div>
                     </div>
+
+                    {/* Filters Section */}
+                    <div className="mt-4 flex flex-wrap gap-2 items-center text-xs">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search all fields..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-primary-500 focus:border-primary-500 w-48"
+                            />
+                            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
+                        </div>
+
+
+
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`flex items-center px-3 py-1.5 border rounded ${showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                        >
+                            <Filter className="w-3.5 h-3.5 mr-1" /> Filters
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
@@ -851,24 +916,24 @@ filtered.sort((a, b) => {
 
                         {/* Sort & View Mode */}
                         <div className="flex items-center space-x-2">
-                     <select
-    value={`${sortBy}-${sortOrder}`}
-    onChange={(e) => {
-        const [field, order] = e.target.value.split('-') as [keyof Stock, 'asc' | 'desc'];
-        setSortBy(field);
-        setSortOrder(order);
-    }}
-    className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
->
-    <option value="itemName-asc">Name (A-Z)</option>
-    <option value="itemName-desc">Name (Z-A)</option>
-    <option value="receivedDate-desc">Newest First</option>
-    <option value="receivedDate-asc">Oldest First</option>
-    <option value="receivedQuantity-desc">Highest Quantity</option>
-    <option value="receivedQuantity-asc">Lowest Quantity</option>
-    <option value="totalValue-desc">Highest Value</option>
-    <option value="totalValue-asc">Lowest Value</option>
-</select>
+                            <select
+                                value={`${sortBy}-${sortOrder}`}
+                                onChange={(e) => {
+                                    const [field, order] = e.target.value.split('-') as [keyof Stock, 'asc' | 'desc'];
+                                    setSortBy(field);
+                                    setSortOrder(order);
+                                }}
+                                className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            >
+                                <option value="itemName-asc">Name (A-Z)</option>
+                                <option value="itemName-desc">Name (Z-A)</option>
+                                <option value="receivedDate-desc">Newest First</option>
+                                <option value="receivedDate-asc">Oldest First</option>
+                                <option value="receivedQuantity-desc">Highest Quantity</option>
+                                <option value="receivedQuantity-asc">Lowest Quantity</option>
+                                <option value="totalValue-desc">Highest Value</option>
+                                <option value="totalValue-asc">Lowest Value</option>
+                            </select>
                             <div className="flex items-center border border-gray-200 rounded">
                                 <button onClick={() => setViewMode('table')} className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`} title="Table View">
                                     <List className="w-3 h-3" />

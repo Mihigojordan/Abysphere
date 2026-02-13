@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { SupplierManagementService } from './supplier.service';
-import { SupplierManagementController } from './supplier.controller';
+import { SupplierService } from './supplier.service';
+import { SupplierController } from './supplier.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
 
 @Module({
   imports: [],
-  controllers: [SupplierManagementController],
-  providers: [SupplierManagementService, PrismaService, AdminJwtAuthGuard],
-  exports: [SupplierManagementService],
+  controllers: [SupplierController],
+  providers: [SupplierService, PrismaService, AdminJwtAuthGuard],
+  exports: [SupplierService],
 })
-export class SupplierManagementModule {}
+export class SupplierManagementModule { }

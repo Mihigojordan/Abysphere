@@ -13,6 +13,7 @@ export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 export interface SaleItem {
   stockinId: number;
   quantity: number;
+  soldPrice?: number;
 }
 
 export interface ClientInfo {
@@ -58,6 +59,15 @@ export interface StockOutResponse {
 
 class StockOutService {
   private readonly baseUrl = '/stockout';
+
+  async getProductPerformance() {
+    try {
+      const response = await api.get(`${this.baseUrl}/performance`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   /**
    * Create a single stock-out (converted to bulk format for backend)
@@ -276,6 +286,19 @@ class StockOutService {
   calculateTotalQuantity(sales: Array<{ quantity?: number | string }>): number {
     if (!Array.isArray(sales)) return 0;
     return sales.reduce((total, sale) => total + (Number(sale.quantity) || 0), 0);
+  }
+
+  /**
+   * Bulk import sales
+   */
+  async bulkImport(data: any[]): Promise<any> {
+    try {
+      const response = await api.post(`${this.baseUrl}/bulk-import`, data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error importing stock-outs:', error);
+      throw new Error(error.response?.data?.message || 'Failed to import sales');
+    }
   }
 }
 

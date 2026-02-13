@@ -15,6 +15,12 @@ import {
   Loader,
   PanelLeftClose,
   PanelLeft,
+  ShoppingCart,
+  ClipboardCheck,
+  Package,
+  Tags,
+  Truck,
+  AlertTriangle
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -156,11 +162,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         feature: "CLIENTS_MANAGEMENT",
       },
 
-
+      {
+        id: "stock-alerts",
+        label: "Stock Alerts",
+        icon: AlertTriangle,
+        path: `${base}/stock-alerts`,
+        // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
+        allowedRoles: ["admin"],
+      },
       {
         id: "category",
         label: "Category Management",
-        icon: FolderTree,
+        icon: Tags,
         path: `${base}/category-management`,
         feature: "CATEGORY_MANAGEMENT",
         allowedRoles: ["admin"],
@@ -169,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       {
         id: "supplier",
         label: "Supplier Management",
-        icon: FolderTree,
+        icon: Truck,
         path: `${base}/supplier-management`,
         feature: "SUPPLIER_MANAGEMENT",
         allowedRoles: ["admin"],
@@ -196,6 +209,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Loader,
         path: `${base}/sales-return-management`,
         feature: "SALES_RETURN_MANAGEMENT",
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "purchase-orders",
+        label: "Purchase Orders",
+        icon: ShoppingCart,
+        path: `${base}/purchase-order-management`,
+        // feature: "PURCHASE_ORDER_MANAGEMENT", // Removed feature guard as per request
+        allowedRoles: ["admin"],
+      },
+      {
+        id: "grn",
+        label: "GRN Management",
+        icon: ClipboardCheck,
+        path: `${base}/grn-management`,
+        // feature: "GRN_MANAGEMENT", // Removed feature guard as per request
         allowedRoles: ["admin"],
       },
 
@@ -230,7 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       },
     ];
   };
-  
+
 
   /* ---------------------------------------------------------------------- */
   /*  Filter by role **and** by feature                                    */
@@ -319,10 +348,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         end
         title={isCollapsed ? item.label : undefined}
         className={({ isActive }) =>
-          `w-full flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} px-2 py-2 rounded-lg transition-all duration-200 group ${isCollapsed ? '' : 'border-l-4'} ${
-            isActive
-              ? `bg-primary-500/10 text-primary-700 ${isCollapsed ? '' : 'border-primary-500'}`
-              : `text-theme-text-primary hover:bg-theme-bg-tertiary ${isCollapsed ? '' : 'border-transparent'}`
+          `w-full flex items-center ${isCollapsed ? 'justify-center' : 'space-x-2'} px-2 py-2 rounded-lg transition-all duration-200 group ${isCollapsed ? '' : 'border-l-4'} ${isActive
+            ? `bg-primary-500/10 text-primary-700 ${isCollapsed ? '' : 'border-primary-500'}`
+            : `text-theme-text-primary hover:bg-theme-bg-tertiary ${isCollapsed ? '' : 'border-transparent'}`
           }`
         }
         onClick={() => window.innerWidth < 1024 && onToggle()}
@@ -330,9 +358,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         {({ isActive }) => (
           <>
             <div
-              className={`p-1.5 rounded-md ${
-                isActive ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
-              }`}
+              className={`p-1.5 rounded-md ${isActive ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
+                }`}
             >
               <Icon className={`${isCollapsed ? 'w-5 h-5' : 'w-4 h-4'}`} />
             </div>
@@ -358,16 +385,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
               setOpenDropdown(dropdown.id);
             }}
             title={dropdown.label}
-            className={`w-full flex items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 ${
-              active
-                ? "bg-primary-500/10 text-primary-700"
-                : "text-theme-text-primary hover:bg-theme-bg-tertiary"
-            }`}
+            className={`w-full flex items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 ${active
+              ? "bg-primary-500/10 text-primary-700"
+              : "text-theme-text-primary hover:bg-theme-bg-tertiary"
+              }`}
           >
             <div
-              className={`p-1.5 rounded-md ${
-                active ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
-              }`}
+              className={`p-1.5 rounded-md ${active ? "bg-primary-500 text-white" : "bg-theme-bg-tertiary text-theme-text-secondary"
+                }`}
             >
               <Icon className="w-5 h-5" />
             </div>
@@ -381,8 +406,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         <button
           onClick={() => toggleDropdown(dropdown.id)}
           className={`w-full flex items-center justify-between px-2 py-2 rounded-lg transition-all duration-200 ${active
-              ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
-              : "text-theme-text-primary hover:bg-theme-bg-tertiary border-l-4 border-transparent"
+            ? "bg-primary-500/10 text-primary-700 border-l-4 border-primary-500"
+            : "text-theme-text-primary hover:bg-theme-bg-tertiary border-l-4 border-transparent"
             }`}
         >
           <div className="flex items-center space-x-2">
@@ -395,16 +420,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             <span className="text-sm font-medium">{dropdown.label}</span>
           </div>
           <ChevronDown
-            className={`w-4 h-4 transition-transform duration-300 ${
-              isOpenDropdown ? "rotate-180" : ""
-            } ${active ? "text-primary-600" : "text-theme-text-secondary"}`}
+            className={`w-4 h-4 transition-transform duration-300 ${isOpenDropdown ? "rotate-180" : ""
+              } ${active ? "text-primary-600" : "text-theme-text-secondary"}`}
           />
         </button>
 
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isOpenDropdown ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpenDropdown ? "max-h-96 opacity-100 mt-1" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="ml-4 space-y-0.5 border-l-2 border-primary-100 pl-3 py-0.5">
             {dropdown.items.map((sub) => {
@@ -455,9 +478,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 min-h-screen bg-sidebar-bg text-sidebar-text flex flex-col border-r border-theme-border shadow-lg transform transition-all duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${isCollapsed ? "w-[68px]" : "w-72"}`}
+        className={`fixed left-0 top-0 min-h-screen bg-sidebar-bg text-sidebar-text flex flex-col border-r border-theme-border shadow-lg transform transition-all duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } ${isCollapsed ? "w-[68px]" : "w-72"}`}
       >
         {/* Header */}
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3 border-b border-theme-border`}>

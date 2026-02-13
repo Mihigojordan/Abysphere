@@ -66,6 +66,15 @@ class StockService {
     return res.data;
   }
 
+  async getStockAlerts() {
+    try {
+      const response = await api.get('/stock/alerts');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllStocks(): Promise<Stock> {
     const res: AxiosResponse<Stock> = await api.get(`/stock/all`);
     return res.data;
@@ -92,6 +101,11 @@ class StockService {
 
   async getStockHistoryByStockId(stockId: number): Promise<StockHistoryRecord[]> {
     const res: AxiosResponse<StockHistoryRecord[]> = await api.get(`/stock/history/${stockId}`);
+    return res.data;
+  }
+
+  async bulkImport(data: any[]): Promise<{ success: number; failed: number; errors: string[] }> {
+    const res = await api.post('/stock/bulk-import', data);
     return res.data;
   }
 }

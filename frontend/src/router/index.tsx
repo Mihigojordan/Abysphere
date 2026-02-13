@@ -92,6 +92,9 @@ const StockInViewPage = lazy(() => import("../components/dashboard/stock/StockIn
 const StockRequestManagement = lazy(() => import("../pages/dashboard/StockRequestManagement"));
 const StockRequestManagementDetails = lazy(() => import("../pages/dashboard/StockRequestManagementDetails"));
 const StockHistory = lazy(() => import("../pages/dashboard/StockHistory"));
+const StockAlertsPage = lazy(() => import("../pages/dashboard/StockAlertsPage"));
+const PurchaseOrderManagement = lazy(() => import('../pages/dashboard/PurchaseOrderManagement'));
+const GRNManagement = lazy(() => import('../pages/dashboard/GRNManagement'));
 const PrivacyPolicy = lazy(() => import("../pages/landing/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("../pages/landing/TermsOfService"));
 const ServiceAgreement = lazy(() => import("../pages/landing/ServiceAgreement"));
@@ -139,11 +142,11 @@ const routes = createBrowserRouter([
     path: '/',
     element: <Outlet />,
     children: [
-     {
-      path:'',
-      element: <Navigate to={'/auth/admin/login'} />
+      {
+        path: '',
+        element: <Navigate to={'/auth/admin/login'} />
 
-     },
+      },
       {
         path: 'super-admin',
         element: (
@@ -933,6 +936,22 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StockManagement role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'purchase-order-management',
+                element: (
+                  <SuspenseWrapper>
+                    <PurchaseOrderManagement />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'grn-management',
+                element: (
+                  <SuspenseWrapper>
+                    <GRNManagement />
                   </SuspenseWrapper>
                 ),
               },

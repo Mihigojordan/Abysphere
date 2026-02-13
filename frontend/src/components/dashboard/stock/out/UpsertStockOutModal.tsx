@@ -27,12 +27,16 @@ interface SalesEntry {
   stockinId: string;
   quantity: string;
   soldPrice: string;
+  isExternal: boolean;
+  externalItemName?: string;
+  externalSku?: string;
 }
 
 interface ValidationError {
   stockinId: string;
   quantity: string;
   soldPrice: string;
+  externalItemName?: string;
 }
 
 interface UpsertStockOutModalProps {
@@ -44,6 +48,117 @@ interface UpsertStockOutModalProps {
   isLoading: boolean;
   title: string;
 }
+
+const SearchableSelect = ({
+  options,
+  value,
+  onChange,
+  placeholder = "Select item...",
+  className = "",
+  error = ""
+}: {
+  options: { value: string; label: string; subLabel?: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  error?: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const selectedOption = options.find(o => o.value === value);
+
+  const filteredOptions = options.filter(option =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (option.subLabel && option.subLabel.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  return (
+    <div className={`relative ${className}`} ref={containerRef}>
+      <div
+        className={`w-full px-3 py-2 border rounded-lg flex justify-between items-center cursor-pointer bg-white ${error ? "border-red-500 bg-red-50" : "border-gray-300"
+          } ${isOpen ? "ring-2 ring-blue-500 border-transparent" : ""}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={`block truncate ${!selectedOption ? "text-gray-500" : "text-gray-900"}`}>
+          {selectedOption ? (
+            <span className="flex flex-col text-left">
+              <span className="font-medium text-sm">{selectedOption.label}</span>
+              {selectedOption.subLabel && <span className="text-gray-500 text-xs">{selectedOption.subLabel}</span>}
+            </span>
+          ) : (
+            placeholder
+          )}
+        </span>
+        <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-gray-100 bg-gray-50 sticky top-0">
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="overflow-y-auto flex-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <div
+                  key={option.value}
+                  className={`px-3 py-2 cursor-pointer text-sm hover:bg-blue-50 border-b border-gray-50 last:border-0 ${option.value === value ? "bg-blue-50 text-blue-600" : "text-gray-700"
+                    }`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  <div className="font-medium">{option.label}</div>
+                  {option.subLabel && <div className="text-xs text-gray-500">{option.subLabel}</div>}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500 text-center">No results found</div>
+            )}
+          </div>
+        </div>
+      )}
+      {error && (
+        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+          <AlertCircle size={12} />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+};
 
 const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
   isOpen,
@@ -64,11 +179,15 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
     clientEmail: "",
     clientPhone: "",
     paymentMethod: "" as PaymentMethod | "",
+    isExternal: false,
+    externalItemName: "",
+    externalSku: "",
     salesEntries: [{ stockinId: "", quantity: "", soldPrice: "" }] as SalesEntry[],
   });
 
   const [validationErrors, setValidationErrors] = useState({
     stockinId: "",
+    externalItemName: "",
     quantity: "",
     soldPrice: "",
     clientName: "",
@@ -80,6 +199,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
   const [touched, setTouched] = useState({
     stockinId: false,
+    externalItemName: false,
     quantity: false,
     soldPrice: false,
     clientEmail: false,
@@ -99,23 +219,30 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
         clientEmail: stockOut.clientEmail || "",
         clientPhone: stockOut.clientPhone || "",
         paymentMethod: stockOut.paymentMethod || "",
-        salesEntries: [],
+        isExternal: false, // Default for update mode, or derived if we had field
+        externalItemName: "",
+        externalSku: "",
+        salesEntries: [], // Update mode specific logic might populate this if we fetched items
       });
     } else {
       setFormData({
         stockinId: "",
         quantity: "",
         soldPrice: "",
+        isExternal: false,
+        externalItemName: "",
+        externalSku: "",
         clientName: "",
         clientEmail: "",
         clientPhone: "",
         paymentMethod: "",
-        salesEntries: [{ stockinId: "", quantity: "", soldPrice: "" }],
+        salesEntries: [{ stockinId: "", quantity: "", soldPrice: "", isExternal: false }],
       });
     }
 
     setValidationErrors({
       stockinId: "",
+      externalItemName: "",
       quantity: "",
       soldPrice: "",
       clientName: "",
@@ -127,6 +254,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
     setTouched({
       stockinId: false,
+      externalItemName: false,
       quantity: false,
       soldPrice: false,
       clientEmail: false,
@@ -233,12 +361,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
     return available > 0 ? Math.max(1, Math.floor(available / 2)) : 1;
   };
 
-  const calculateSuggestedPrice = (stockinId: string): string => {
-    const stock = stockIns.find(s => s.id === Number(stockinId));
-    if (!stock || !stock.unitCost) return "";
-    // Suggest 30% markup
-    return (Number(stock.unitCost) * 1.3).toFixed(2);
-  };
+
 
   const getStockInfo = (id: string): StockIn | undefined => {
     return stockIns.find(s => s.id === Number(id));
@@ -247,11 +370,11 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
   const addSalesEntry = () => {
     setFormData(prev => ({
       ...prev,
-      salesEntries: [...prev.salesEntries, { stockinId: "", quantity: "", soldPrice: "" }],
+      salesEntries: [...prev.salesEntries, { stockinId: "", quantity: "", soldPrice: "", isExternal: false, externalItemName: "", externalSku: "" }],
     }));
     setValidationErrors(prev => ({
       ...prev,
-      salesEntries: [...prev.salesEntries, { stockinId: "", quantity: "", soldPrice: "" }],
+      salesEntries: [...prev.salesEntries, { stockinId: "", quantity: "", soldPrice: "", externalItemName: "" }],
     }));
     setTouched(prev => ({
       ...prev,
@@ -278,19 +401,27 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
   const handleSalesEntryChange = (
     index: number,
-    field: "stockinId" | "quantity" | "soldPrice",
-    value: string
+    field: "stockinId" | "quantity" | "soldPrice" | "isExternal" | "externalItemName" | "externalSku",
+    value: any
   ) => {
     const updated = [...formData.salesEntries];
+    // @ts-ignore
     updated[index][field] = value;
 
-    if (field === "stockinId" && value) {
+    // Reset certain fields if toggling type
+    if (field === "isExternal") {
+      updated[index].stockinId = "";
+      updated[index].externalItemName = "";
+      updated[index].externalSku = "";
+      updated[index].quantity = "";
+    }
+
+    if (field === "stockinId" && value && !updated[index].isExternal) {
       const stock = getStockInfo(value);
       if (stock) {
         if (!updated[index].quantity) {
           updated[index].quantity = calculateSuggestedQuantity(stock.receivedQuantity).toString();
         }
-        // Price is NOT auto-filled — user enters it manually
       }
     }
 
@@ -307,18 +438,30 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
       errors[index] = { stockinId: "", quantity: "", soldPrice: "" };
     }
 
-    if (field === "stockinId") {
-      errors[index].stockinId = validateStockInId(value);
-      if (updated[index].quantity) {
-        errors[index].quantity = validateQuantity(updated[index].quantity, value);
+    const entry = updated[index];
+
+    if (field === "stockinId" || field === "externalItemName" || field === "isExternal") {
+      if (entry.isExternal) {
+        errors[index].externalItemName = entry.externalItemName?.trim() ? "" : "Required";
+        errors[index].stockinId = "";
+      } else {
+        errors[index].stockinId = validateStockInId(entry.stockinId);
+        errors[index].externalItemName = "";
       }
-      if (updated[index].soldPrice) {
-        errors[index].soldPrice = validateSoldPrice(updated[index].soldPrice, value);
-      }
+
+      if (entry.quantity) errors[index].quantity = validateQuantity(entry.quantity, entry.isExternal ? undefined : entry.stockinId);
+      if (entry.soldPrice) errors[index].soldPrice = entry.isExternal
+        ? (entry.soldPrice ? validateSoldPrice(entry.soldPrice) : "Price is required")
+        : validateSoldPrice(entry.soldPrice, entry.stockinId);
+
     } else if (field === "quantity") {
-      errors[index].quantity = validateQuantity(value, updated[index].stockinId);
+      errors[index].quantity = validateQuantity(String(value), entry.isExternal ? undefined : entry.stockinId);
     } else if (field === "soldPrice") {
-      errors[index].soldPrice = validateSoldPrice(value, updated[index].stockinId);
+      if (entry.isExternal && !value) {
+        errors[index].soldPrice = "Price is required";
+      } else {
+        errors[index].soldPrice = validateSoldPrice(String(value), entry.isExternal ? undefined : entry.stockinId);
+      }
     }
 
     setValidationErrors(prev => ({ ...prev, salesEntries: errors }));
@@ -343,6 +486,7 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
       setValidationErrors(prev => ({ ...prev, ...errors }));
       setTouched({
         stockinId: true,
+        externalItemName: true,
         quantity: true,
         soldPrice: true,
         clientEmail: true,
@@ -352,18 +496,18 @@ const UpsertStockOutModal: React.FC<UpsertStockOutModalProps> = ({
 
       if (Object.values(errors).some(e => e !== "")) return;
 
-// For UPDATE mode (around line 340):
-const submitData = {
-  stockinId: Number(formData.stockinId),
-  quantity: Number(formData.quantity),
-  soldPrice: formData.soldPrice ? Number(formData.soldPrice) : undefined,
-  clientName: formData.clientName.trim() || undefined,
-  clientEmail: formData.clientEmail.trim() || undefined,
-  clientPhone: formData.clientPhone.trim() || undefined,
-  paymentMethod: formData.paymentMethod || undefined,
-};
-console.log('UPDATE MODE - Submitting:', submitData);
-onSubmit(submitData);
+      // For UPDATE mode (around line 340):
+      const submitData = {
+        stockinId: Number(formData.stockinId),
+        quantity: Number(formData.quantity),
+        soldPrice: formData.soldPrice ? Number(formData.soldPrice) : undefined,
+        clientName: formData.clientName.trim() || undefined,
+        clientEmail: formData.clientEmail.trim() || undefined,
+        clientPhone: formData.clientPhone.trim() || undefined,
+        paymentMethod: formData.paymentMethod || undefined,
+      };
+      console.log('UPDATE MODE - Submitting:', submitData);
+      onSubmit(submitData);
     } else {
       // Create mode - validate all entries
       const clientErrors = {
@@ -387,6 +531,7 @@ onSubmit(submitData);
 
       setTouched({
         stockinId: false,
+        externalItemName: false,
         quantity: false,
         soldPrice: false,
         clientEmail: true,
@@ -407,22 +552,24 @@ onSubmit(submitData);
         return;
       }
 
-// For CREATE mode (around line 370):
-const submitData = {
-  salesArray: formData.salesEntries.map(e => ({
-    stockinId: Number(e.stockinId),
-    quantity: Number(e.quantity),
-    soldPrice: e.soldPrice ? Number(e.soldPrice) : undefined,
-  })),
-  clientInfo: {
-    clientName: formData.clientName.trim() || undefined,
-    clientEmail: formData.clientEmail.trim() || undefined,
-    clientPhone: formData.clientPhone.trim() || undefined,
-    paymentMethod: formData.paymentMethod || undefined,
-  },
-};
-console.log('CREATE MODE - Submitting:', submitData);
-onSubmit(submitData);
+      // For CREATE mode (around line 370):
+      const submitData = {
+        salesArray: formData.salesEntries.map(e => ({
+          stockinId: e.isExternal ? undefined : Number(e.stockinId),
+          externalItemName: e.isExternal ? e.externalItemName : undefined,
+          externalSku: e.isExternal ? e.externalSku : undefined,
+          quantity: Number(e.quantity),
+          soldPrice: e.soldPrice ? Number(e.soldPrice) : undefined,
+        })),
+        clientInfo: {
+          clientName: formData.clientName.trim() || undefined,
+          clientEmail: formData.clientEmail.trim() || undefined,
+          clientPhone: formData.clientPhone.trim() || undefined,
+          paymentMethod: formData.paymentMethod || undefined,
+        },
+      };
+      console.log('CREATE MODE - Submitting:', submitData);
+      onSubmit(submitData);
     }
 
     onClose();
@@ -430,22 +577,30 @@ onSubmit(submitData);
 
   const isFormValid = (): boolean => {
     if (isUpdateMode) {
-      return (
-        formData.stockinId !== "" &&
-        formData.quantity !== "" &&
-        !validationErrors.stockinId &&
-        !validationErrors.quantity &&
-        !validationErrors.soldPrice &&
-        !validationErrors.clientName &&
-        !validationErrors.clientEmail &&
-        !validationErrors.clientPhone &&
-        !validationErrors.paymentMethod
-      );
+      // ... update mode logic (simplification: we are focusing on create mode for hybrid, but let's keep update mode safe)
+      if (formData.salesEntries.length === 0) {
+        // Fallback for single item update mode which uses top level fields
+        // Actually update mode uses top level fields in this component currently
+        return (
+          formData.stockinId !== "" &&
+          formData.quantity !== "" &&
+          !validationErrors.stockinId &&
+          !validationErrors.quantity &&
+          !validationErrors.soldPrice
+        );
+      }
+      return true;
     }
 
+    // Create Mode
     return (
-      formData.salesEntries.every(e => e.stockinId && e.quantity) &&
-      validationErrors.salesEntries.every(e => !e.stockinId && !e.quantity && !e.soldPrice) &&
+      formData.salesEntries.every(e => {
+        if (e.isExternal) {
+          return !!e.externalItemName && !!e.quantity && !!e.soldPrice;
+        }
+        return !!e.stockinId && !!e.quantity;
+      }) &&
+      validationErrors.salesEntries.every(e => !e.stockinId && !e.quantity && !e.soldPrice && !e.externalItemName) &&
       !validationErrors.clientName &&
       !validationErrors.clientEmail &&
       !validationErrors.clientPhone &&
@@ -473,127 +628,204 @@ onSubmit(submitData);
           {/* Update Mode: Single Entry */}
           {isUpdateMode ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-3 mb-2 flex items-center">
+                <input
+                  type="checkbox"
+                  id="isExternal"
+                  checked={formData.isExternal}
+                  onChange={(e) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      isExternal: e.target.checked,
+                      stockinId: "", // Reset stock selection
+                      externalItemName: "",
+                      externalSku: ""
+                    }));
+                    setValidationErrors(prev => ({ ...prev, stockinId: "", externalItemName: "" }));
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="isExternal" className="ml-2 block text-sm text-gray-900 font-medium">
+                  Non-Stock Item (External Sale)
+                </label>
+              </div>
+
+              {!formData.isExternal ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Stock Item <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <SearchableSelect
+                    options={stockIns.map(s => ({
+                      value: s.id.toString(),
+                      label: s.itemName,
+                      subLabel: `SKU: ${s.sku} • Available: ${s.receivedQuantity}`
+                    }))}
                     value={formData.stockinId}
-                    onChange={e => {
-                      setFormData(prev => ({ ...prev, stockinId: e.target.value }));
+                    onChange={(val) => {
+                      setFormData(prev => ({ ...prev, stockinId: val }));
                       setTouched(prev => ({ ...prev, stockinId: true }));
                       setValidationErrors(prev => ({
                         ...prev,
-                        stockinId: validateStockInId(e.target.value),
+                        stockinId: validateStockInId(val),
                       }));
                     }}
-                    onBlur={() => setTouched(prev => ({ ...prev, stockinId: true }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.stockinId && validationErrors.stockinId
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                      }`}
-                  >
-                    <option value="">Select stock item</option>
-                    {stockIns.map(s => (
-                      <option key={s.id} value={s.id}>
-                        {s.sku} - {s.itemName} (Available: {s.receivedQuantity})
-                      </option>
-                    ))}
-                  </select>
-                  {touched.stockinId && validationErrors.stockinId && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      {validationErrors.stockinId}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.quantity}
-                    onChange={e => {
-                      setFormData(prev => ({ ...prev, quantity: e.target.value }));
-                      setTouched(prev => ({ ...prev, quantity: true }));
-                      setValidationErrors(prev => ({
-                        ...prev,
-                        quantity: validateQuantity(e.target.value, formData.stockinId),
-                      }));
-                    }}
-                    onBlur={() => setTouched(prev => ({ ...prev, quantity: true }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.quantity && validationErrors.quantity
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300"
-                      }`}
+                    placeholder="Select stock item"
+                    error={touched.stockinId && validationErrors.stockinId ? validationErrors.stockinId : ""}
                   />
-                  {touched.quantity && validationErrors.quantity && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      {validationErrors.quantity}
-                    </p>
-                  )}
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Selling Price (RWF)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.soldPrice}
-                    onChange={e => {
-                      setFormData(prev => ({ ...prev, soldPrice: e.target.value }));
-                      setTouched(prev => ({ ...prev, soldPrice: true }));
-                      setValidationErrors(prev => ({
-                        ...prev,
-                        soldPrice: validateSoldPrice(e.target.value, formData.stockinId),
-                      }));
-                    }}
-                    onBlur={() => setTouched(prev => ({ ...prev, soldPrice: true }))}
-                    placeholder="Optional"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.soldPrice && validationErrors.soldPrice
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Item Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.externalItemName}
+                      onChange={e => {
+                        setFormData(prev => ({ ...prev, externalItemName: e.target.value }));
+                        setTouched(prev => ({ ...prev, externalItemName: true }));
+                        // Simple validation inline or add helper
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          externalItemName: e.target.value.trim() ? "" : "Item name is required",
+                        }));
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.externalItemName && validationErrors.externalItemName
                         ? "border-red-500 bg-red-50"
                         : "border-gray-300"
-                      }`}
-                  />
-                  {touched.soldPrice && validationErrors.soldPrice && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                      <AlertCircle size={12} />
-                      {validationErrors.soldPrice}
-                    </p>
-                  )}
-                  {showWarnings &&
-                    formData.soldPrice &&
-                    !validationErrors.soldPrice &&
-                    isSellingBelowCost(formData.soldPrice, formData.stockinId) && (
-                      <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
+                        }`}
+                    />
+                    {touched.externalItemName && validationErrors.externalItemName && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                         <AlertCircle size={12} />
-                        Warning: Selling below unit cost
+                        {validationErrors.externalItemName}
                       </p>
                     )}
-                </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      SKU (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.externalSku}
+                      onChange={e => setFormData(prev => ({ ...prev, externalSku: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.quantity}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, quantity: e.target.value }));
+                    setTouched(prev => ({ ...prev, quantity: true }));
+                    // Validate quantity (skip stock check if external)
+                    const qtyError = (!e.target.value || Number(e.target.value) <= 0)
+                      ? "Quantity must be > 0"
+                      : (!formData.isExternal && formData.stockinId
+                        ? validateQuantity(e.target.value, formData.stockinId)
+                        : "");
+                    setValidationErrors(prev => ({ ...prev, quantity: qtyError }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, quantity: true }))}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.quantity && validationErrors.quantity
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                    }`}
+                />
+                {touched.quantity && validationErrors.quantity && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {validationErrors.quantity}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Selling Price (RWF) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.soldPrice}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, soldPrice: e.target.value }));
+                    setTouched(prev => ({ ...prev, soldPrice: true }));
+                    const priceError = (!e.target.value && formData.isExternal) ? "Price is required for non-stock items" : "";
+                    setValidationErrors(prev => ({
+                      ...prev,
+                      soldPrice: priceError || validateSoldPrice(e.target.value, formData.stockinId),
+                    }));
+                  }}
+                  onBlur={() => setTouched(prev => ({ ...prev, soldPrice: true }))}
+                  placeholder={formData.isExternal ? "Required" : "Optional"}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.soldPrice && validationErrors.soldPrice
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                    }`}
+                />
+                {touched.soldPrice && validationErrors.soldPrice && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {validationErrors.soldPrice}
+                  </p>
+                )}
+                {showWarnings &&
+                  !formData.isExternal &&
+                  formData.soldPrice &&
+                  !validationErrors.soldPrice &&
+                  isSellingBelowCost(formData.soldPrice, formData.stockinId) && (
+                    <p className="text-amber-600 text-xs mt-1 flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      Warning: Selling below unit cost
+                    </p>
+                  )}
               </div>
             </div>
           ) : (
             /* Create Mode: Multiple Entries */
             <div className="border rounded-lg p-4 bg-gray-50">
-              <h3 className="font-semibold text-lg mb-4 text-gray-800">Sale Items</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-lg text-gray-800">Sale Items</h3>
+              </div>
+
               {formData.salesEntries.map((entry, i) => {
                 const stock = getStockInfo(entry.stockinId);
-                const entryErrors = validationErrors.salesEntries[i] || { stockinId: "", quantity: "", soldPrice: "" };
+                const entryErrors = validationErrors.salesEntries[i] || { stockinId: "", quantity: "", soldPrice: "", externalItemName: "" };
                 const isTouched = touched.salesEntries[i];
 
                 return (
                   <div key={i} className="bg-white border rounded-lg p-4 mb-4 shadow-sm">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="font-medium text-gray-700">Item {i + 1}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium text-gray-700">Item {i + 1}</span>
+                        {/* Per-row Toggle */}
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`isExternal-${i}`}
+                            checked={entry.isExternal}
+                            onChange={(e) => handleSalesEntryChange(i, "isExternal", e.target.checked)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor={`isExternal-${i}`} className="ml-2 text-xs text-gray-600 font-medium">
+                            Non-Stock
+                          </label>
+                        </div>
+                      </div>
+
                       {formData.salesEntries.length > 1 && (
                         <button
                           type="button"
@@ -606,29 +838,49 @@ onSubmit(submitData);
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      {/* Stock Selection */}
+                      {/* Stock Selection OR External Item Name */}
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-gray-700">
-                          Stock Item <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          value={entry.stockinId}
-                          onChange={e => handleSalesEntryChange(i, "stockinId", e.target.value)}
-                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.stockinId ? "border-red-500 bg-red-50" : "border-gray-300"
-                            }`}
-                        >
-                          <option value="">Select item...</option>
-                          {stockIns.map(s => (
-                            <option key={s.id} value={s.id}>
-                              {s.sku} - {s.itemName} (Available: {s.receivedQuantity})
-                            </option>
-                          ))}
-                        </select>
-                        {isTouched && entryErrors.stockinId && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                            <AlertCircle size={12} />
-                            {entryErrors.stockinId}
-                          </p>
+                        {!entry.isExternal ? (
+                          <>
+                            <label className="text-sm font-medium text-gray-700 mb-1 block">
+                              Stock Item <span className="text-red-500">*</span>
+                            </label>
+
+                            <SearchableSelect
+                              options={stockIns.map(s => ({
+                                value: s.id.toString(),
+                                label: s.itemName,
+                                subLabel: `SKU: ${s.sku} • Available: ${s.receivedQuantity}`
+                              }))}
+                              value={entry.stockinId}
+                              onChange={(val) => handleSalesEntryChange(i, "stockinId", val)}
+                              placeholder="Select a stock-in entry"
+                              error={isTouched && entryErrors.stockinId ? entryErrors.stockinId : ""}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <div className="mb-2">
+                              <label className="text-sm font-medium text-gray-700">
+                                Item Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={entry.externalItemName || ""}
+                                onChange={e => handleSalesEntryChange(i, "externalItemName", e.target.value)}
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.externalItemName
+                                  ? "border-red-500 bg-red-50"
+                                  : "border-gray-300"
+                                  }`}
+                              />
+                              {isTouched && entryErrors.externalItemName && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                  <AlertCircle size={12} />
+                                  {entryErrors.externalItemName}
+                                </p>
+                              )}
+                            </div>
+                          </>
                         )}
                       </div>
 
@@ -655,14 +907,14 @@ onSubmit(submitData);
 
                       {/* Selling Price */}
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Price (RWF)</label>
+                        <label className="text-sm font-medium text-gray-700">Price (RWF) {entry.isExternal && <span className="text-red-500">*</span>}</label>
                         <input
                           type="number"
                           step="0.01"
                           min="0"
                           value={entry.soldPrice}
                           onChange={e => handleSalesEntryChange(i, "soldPrice", e.target.value)}
-                          placeholder="Optional"
+                          placeholder={entry.isExternal ? "Required" : "Optional"}
                           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isTouched && entryErrors.soldPrice ? "border-red-500 bg-red-50" : "border-gray-300"
                             }`}
                         />
@@ -683,32 +935,34 @@ onSubmit(submitData);
                           )}
                       </div>
 
-                      {/* Stock Info */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Stock Info</label>
-                        {stock ? (
-                          <div className="bg-blue-50 p-2 rounded-lg text-xs space-y-1">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Available:</span>
-                              <span className="font-semibold">{stock.receivedQuantity}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Location:</span>
-                              <span className="font-medium">{stock.warehouseLocation}</span>
-                            </div>
-                            {stock.unitCost && (
+                      {/* Stock Info (Only for internal) */}
+                      {!entry.isExternal && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-700">Stock Info</label>
+                          {stock ? (
+                            <div className="bg-blue-50 p-2 rounded-lg text-xs space-y-1">
                               <div className="flex justify-between">
-                                <span className="text-gray-600">Cost:</span>
-                                <span className="font-medium">{stock.unitCost} RWF</span>
+                                <span className="text-gray-600">Available:</span>
+                                <span className="font-semibold">{stock.receivedQuantity}</span>
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="bg-gray-100 p-2 rounded-lg text-xs text-gray-400 text-center">
-                            No item selected
-                          </div>
-                        )}
-                      </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Location:</span>
+                                <span className="font-medium">{stock.warehouseLocation}</span>
+                              </div>
+                              {stock.unitCost && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Cost:</span>
+                                  <span className="font-medium">{stock.unitCost} RWF</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="bg-gray-100 p-2 rounded-lg text-xs text-gray-400 text-center">
+                              No item selected
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -717,7 +971,7 @@ onSubmit(submitData);
               <button
                 type="button"
                 onClick={addSalesEntry}
-                className="w-full py-3 border-2 border-dashed border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                className="w-full py-3 border-2 border-dashed border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium mt-4"
               >
                 + Add Another Item
               </button>
@@ -769,8 +1023,8 @@ onSubmit(submitData);
                   }}
                   onBlur={() => setTouched(prev => ({ ...prev, clientEmail: true }))}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.clientEmail && validationErrors.clientEmail
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
                     }`}
                   maxLength={255}
                 />
@@ -798,8 +1052,8 @@ onSubmit(submitData);
                   }}
                   onBlur={() => setTouched(prev => ({ ...prev, clientPhone: true }))}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${touched.clientPhone && validationErrors.clientPhone
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300"
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
                     }`}
                 />
                 {touched.clientPhone && validationErrors.clientPhone && (
@@ -914,8 +1168,8 @@ onSubmit(submitData);
             <li>Client information is optional but useful for records</li>
           </ul>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

@@ -3,7 +3,7 @@ import { X, Package, DollarSign, Hash, User, Mail, Phone, Calendar, Eye, CreditC
 
 interface StockOut {
     id: string;
-    stockinId: number;
+    stockinId: number | null;
     quantity: number;
     soldPrice: number;
     clientName?: string;

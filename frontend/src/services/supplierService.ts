@@ -33,8 +33,9 @@ class SupplierService {
   // 🟡 Get all suppliers
   async getAllSuppliers(): Promise<Supplier[]> {
     try {
-      const response: AxiosResponse<Supplier[]> = await api.get('/supplier/all');
-      return response.data;
+      // The backend returns { data: Supplier[], meta: ... }
+      const response: AxiosResponse<{ data: Supplier[] }> = await api.get('/supplier?limit=1000');
+      return response.data.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to fetch suppliers');
     }
