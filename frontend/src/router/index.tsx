@@ -114,6 +114,7 @@ const EggFishMedicationManagement = lazy(() => import('../pages/dashboard/EggFis
 const BoxWaterChangingManagement = lazy(() => import('../pages/dashboard/BoxWaterChangingManagement'))
 const PondWaterChangingManagement = lazy(() => import('../pages/dashboard/PondWaterChangingManagment'))
 const PondMedicationManagement = lazy(() => import('../pages/dashboard/PondMedicationManagement'))
+const ExpenseManagement = lazy(() => import('../pages/dashboard/ExpenseManagement'))
 /**
  * Loading spinner component for Suspense fallback
  */
@@ -648,6 +649,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <CategoryDashboard role="admin" />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'expense-management',
+                element: (
+                  <SuspenseWrapper>
+                    <ExpenseManagement />
                   </SuspenseWrapper>
                 ),
               },

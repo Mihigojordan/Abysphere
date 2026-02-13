@@ -120,6 +120,7 @@ model Admin {
   approvalsApproved      ApprovalWorkflow[]   @relation("ApprovalApprovedByAdmin")
   documentsUploaded      DocumentAttachment[] @relation("DocUploadedByAdmin")
   alertsAcknowledged     AlertNotification[]  @relation("AlertAcknowledgedByAdmin")
+  expenses               Expense[]            @relation("AdminExpenses")
 }
 
 enum AdminStatus {
@@ -1778,18 +1779,38 @@ enum ExpenseType {
 }
 
 model Expense {
+<<<<<<< HEAD
   id            String      @id @unique @default(uuid())
   title         String
   description   String?     @db.Text
   amount        Decimal     @db.Decimal(10, 2)
   category      String?
   date          DateTime
+=======
+  id            String      @id @default(uuid())
+  title         String
+  description   String?     @db.Text
+  amount        Decimal     @db.Decimal(12, 2)
+  category      String?
+  date          DateTime    @default(now())
+>>>>>>> 5d576cb (hello)
   paymentMethod String?
   type          ExpenseType @default(DEBIT)
   
   adminId       String
+<<<<<<< HEAD
   admin         Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+=======
+  admin         Admin       @relation("AdminExpenses", fields: [adminId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([adminId])
+  @@index([type])
+  @@index([date])
+>>>>>>> 5d576cb (hello)
 }
