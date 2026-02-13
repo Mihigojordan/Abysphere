@@ -137,14 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     return [
       { id: "dashboard", label: t('sidebar.dashboard'), icon: TrendingUp, path: base },
 
-      {
-        id: "departments",
-        label: t('sidebar.departments'),
-        icon: Building,
-        path: `${base}/department-management`,
-        feature: "DEPARTMENTS_MANAGEMENT",   // <-- feature name in DB
-        allowedRoles: ["admin"],
-      },
+      
 
       {
         id: "employees",

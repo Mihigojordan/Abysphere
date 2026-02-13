@@ -306,14 +306,23 @@ export class AdminService {
       const updatedAdmin = await this.prisma.admin.update({
         where: { id },
         data,
-          include:{
-          features:true,
+        include:{
+          features:{
+            include:{
+              feature:true,
+            } 
+          },
         }
       });
 
+       const features = updatedAdmin?.features.map((f) => ({
+    ...f.feature,
+    adminId: f.adminId,
+  }));
+
       return {
         message: 'Admin updated successfully',
-        admin: updatedAdmin,
+        admin: {...updatedAdmin,features},
       };
     } catch (error) {
       console.error('Error updating admin:', error);

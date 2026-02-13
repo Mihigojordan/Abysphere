@@ -3,10 +3,11 @@ import { ClientService } from './client.service';
 import { ClientController } from './client.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClientGateway } from './client.gateway';
+import { EmailService } from 'src/global/email/email.service';
 
 @Module({
   controllers: [ClientController],
-  providers: [ClientService, PrismaService, ClientGateway],
+  providers: [ClientService, PrismaService, ClientGateway, EmailService],
   exports: [ClientService],
 })
 export class ClientModule {}

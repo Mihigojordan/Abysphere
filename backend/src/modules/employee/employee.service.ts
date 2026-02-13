@@ -61,16 +61,24 @@ export class EmployeeService {
       },
     });
 
+    // Get admin (company) info for the email
+    const admin = await this.prisma.admin.findUnique({
+      where: { id: data.adminId },
+    });
+
     const currentYear = new Date().getFullYear();
+    const loginUrl = process.env.FRONTEND_URL || 'https://app.mysystem.rw';
+
     await this.email.sendEmail(
       String(createdEmployee.email),
-      'Welcome to the Company',
-      'Employee-registration-success',
+      'MySystem Access – Staff Account Created',
+      'Staff-Account-Created',
       {
-        firstname: createdEmployee.first_name,
-        lastname: createdEmployee.last_name,
-        password: password,
+        staffName: `${createdEmployee.first_name || ''} ${createdEmployee.last_name || ''}`.trim() || 'Staff Member',
+        businessName: admin?.adminName || 'Your Company',
+        loginUrl: loginUrl,
         email: createdEmployee.email,
+        password: password,
         year: currentYear,
       },
     );

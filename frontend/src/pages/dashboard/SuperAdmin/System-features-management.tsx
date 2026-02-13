@@ -44,6 +44,20 @@ interface OperationStatus {
 
 type ViewMode = "table" | "grid" | "list";
 
+// Available system features for selection
+const AVAILABLE_FEATURES = [
+  { value: "DEPARTMENTS_MANAGEMENT", label: "Department Management" },
+  { value: "EMPLOYEES_MANAGEMENT", label: "Employee Management" },
+  { value: "CLIENTS_MANAGEMENT", label: "Client Management" },
+  { value: "CATEGORY_MANAGEMENT", label: "Category Management" },
+  { value: "SUPPLIER_MANAGEMENT", label: "Supplier Management" },
+  { value: "STOCKIN_MANAGEMENT", label: "StockIn Management" },
+  { value: "STOCKOUT_MANAGEMENT", label: "StockOut Management" },
+  { value: "SALES_RETURN_MANAGEMENT", label: "Sales Return Management" },
+  { value: "VIEW_SALES_REPORTS", label: "Reports - Sales" },
+  { value: "VIEW_INVENTORY_REPORTS", label: "Reports - Inventory" },
+];
+
 const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
   const [systemFeatures, setSystemFeatures] = useState<SystemFeature[]>([]);
   const [allSystemFeatures, setAllSystemFeatures] = useState<SystemFeature[]>([]);
@@ -60,7 +74,8 @@ const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
   const [operationLoading, setOperationLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage] = useState<number>(8);
-  const [newSystemFeature, setNewSystemFeature] = useState<SystemFeatureData>({ name: "", description: "" });
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [featureDescription, setFeatureDescription] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
@@ -120,23 +135,53 @@ const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
 
   const handleAddSystemFeature = async () => {
     try {
-      setOperationLoading(true);
-      const validation = systemFeaturesService.validateSystemFeatureData(newSystemFeature);
-      if (!validation.isValid) {
-        showOperationStatus("error", validation.errors.join(", "));
+      if (selectedFeatures.length === 0) {
+        showOperationStatus("error", "Please select at least one feature");
         return;
       }
-      await systemFeaturesService.createSystemFeature(newSystemFeature);
-      setNewSystemFeature({ name: "", description: "" });
+
+      setOperationLoading(true);
+
+      // Create all selected features
+      const createPromises = selectedFeatures.map(featureName => {
+        const featureLabel = AVAILABLE_FEATURES.find(f => f.value === featureName)?.label || featureName;
+        return systemFeaturesService.createSystemFeature({
+          name: featureName,
+          description: featureDescription || `${featureLabel} feature`
+        });
+      });
+
+      await Promise.all(createPromises);
+
+      setSelectedFeatures([]);
+      setFeatureDescription("");
       setShowAddModal(false);
       loadSystemFeatures();
-      showOperationStatus("success", "System feature created successfully!");
+      showOperationStatus("success", `${selectedFeatures.length} system feature(s) created successfully!`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      showOperationStatus("error", err.message || "Failed to create system feature");
+      showOperationStatus("error", err.message || "Failed to create system features");
     } finally {
       setOperationLoading(false);
     }
+  };
+
+  const toggleFeatureSelection = (featureValue: string) => {
+    setSelectedFeatures(prev =>
+      prev.includes(featureValue)
+        ? prev.filter(f => f !== featureValue)
+        : [...prev, featureValue]
+    );
+  };
+
+  const selectAllFeatures = () => {
+    const existingFeatureNames = allSystemFeatures.map(f => f.name);
+    const availableToAdd = AVAILABLE_FEATURES.filter(f => !existingFeatureNames.includes(f.value));
+    setSelectedFeatures(availableToAdd.map(f => f.value));
+  };
+
+  const deselectAllFeatures = () => {
+    setSelectedFeatures([]);
   };
 
   const handleEditSystemFeature = async () => {
@@ -747,73 +792,135 @@ const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
 
         {showAddModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded p-4 w-full max-w-sm max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold">Add New System Feature</h3>
+            <div className="bg-white rounded-lg p-5 w-full max-w-md max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Add System Features</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Select one or more features to add</p>
+                </div>
                 <button
-                  onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedFeatures([]);
+                    setFeatureDescription("");
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1"
                   aria-label="Close add modal"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="space-y-3">
-                <div>
-  <label className="block text-xs font-medium text-gray-700 mb-1">
-    System Feature Name
-  </label>
-  <select
-    value={newSystemFeature.name}
-    onChange={(e) =>
-      setNewSystemFeature({ ...newSystemFeature, name: e.target.value })
-    }
-    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
-    aria-label="System feature name"
-  >
-    <option value="">Select a system feature</option>
-    <option value="DEPARTMENTS_MANAGEMENT">Department Management</option>
-    <option value="EMPLOYEES_MANAGEMENT">Employee Management</option>
-    <option value="CLIENTS_MANAGEMENT">Client Management</option>
-    
-    <option value="CATEGORY_MANAGEMENT">Category Management</option>
-    <option value="SUPPLIER_MANAGEMENT">Supplier Management</option>
-    <option value="STOCKIN_MANAGEMENT">StockIn Mangement</option>
-    <option value="STOCKOUT_MANAGEMENT">StockOut Management</option>
-    <option value="SALES_RETURN_MANAGEMENT">Sales Return Management</option>
-    <option value="VIEW_REPORTS">Reports - Sales</option>
-    <option value="VIEW_REPORTS">Reports - Inventory</option>
-  </select>
-</div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={newSystemFeature.description ? newSystemFeature.description : ""}
-                    onChange={(e) => setNewSystemFeature({ ...newSystemFeature, description: e.target.value })}
-                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 h-20 resize-none"
-                    placeholder="Enter system feature description (optional)"
-                    aria-label="System feature description"
-                  />
+              {/* Select All / Deselect All */}
+              <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+                <span className="text-xs font-medium text-gray-700">
+                  {selectedFeatures.length} feature(s) selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={selectAllFeatures}
+                    className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    type="button"
+                    onClick={deselectAllFeatures}
+                    className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                  >
+                    Deselect All
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center justify-end space-x-2 mt-4">
+
+              {/* Feature Checkboxes */}
+              <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                {AVAILABLE_FEATURES.map((feature) => {
+                  const isExisting = allSystemFeatures.some(f => f.name === feature.value);
+                  const isSelected = selectedFeatures.includes(feature.value);
+
+                  return (
+                    <label
+                      key={feature.value}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        isExisting
+                          ? "bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed"
+                          : isSelected
+                          ? "bg-primary-50 border-primary-300"
+                          : "bg-white border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={isExisting}
+                        onChange={() => !isExisting && toggleFeatureSelection(feature.value)}
+                        className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
+                      />
+                      <div className="flex-1">
+                        <span className={`text-xs font-medium ${isExisting ? "text-gray-400" : "text-gray-900"}`}>
+                          {feature.label}
+                        </span>
+                        {isExisting && (
+                          <span className="ml-2 text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                            Already added
+                          </span>
+                        )}
+                      </div>
+                      {isSelected && !isExisting && (
+                        <CheckCircle className="w-4 h-4 text-primary-600" />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Description */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={featureDescription}
+                  onChange={(e) => setFeatureDescription(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 h-16 resize-none"
+                  placeholder="Enter a description for selected features..."
+                  aria-label="System feature description"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
                 <button
-                  onClick={() => setShowAddModal(false)}
-                  className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:bg-gray-50"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedFeatures([]);
+                    setFeatureDescription("");
+                  }}
+                  className="px-4 py-2 text-xs text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 font-medium"
                   aria-label="Cancel add"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAddSystemFeature}
-                  disabled={operationLoading}
-                  className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
-                  aria-label="Add system feature"
+                  disabled={operationLoading || selectedFeatures.length === 0}
+                  className="px-4 py-2 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2"
+                  aria-label="Add system features"
                 >
-                  Add System Feature
+                  {operationLoading ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-3 h-3" />
+                      Add {selectedFeatures.length > 0 ? `${selectedFeatures.length} Feature(s)` : "Features"}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
