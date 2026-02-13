@@ -356,7 +356,7 @@ model Client {
   status       ClientStatus    @default(ACTIVE)
   profileImage String? // store URL or file path
 
-    adminId  String?
+  adminId  String?
   admin       Admin?      @relation(fields: [adminId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

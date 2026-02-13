@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MySystem Subscription Expiring Soon</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f9; margin:0; padding:0; -webkit-text-size-adjust:100%; }
+    .container { max-width:600px; margin:20px auto; background:#fff; border-radius:8px; padding:0; box-shadow:0 2px 8px rgba(0,0,0,0.06); overflow:hidden; }
+    .header { background:#2563eb; padding:24px; text-align:center; }
+    .header h1 { color:#fff; font-size:24px; margin:0; }
+    .content { padding:24px; }
+    h2 { color:#2563eb; font-size:20px; margin:0 0 16px; }
+    p { font-size:15px; color:#333; line-height:1.6; margin:10px 0; }
+    .warning-banner { background:#fef3c7; border:1px solid #f59e0b; color:#92400e; padding:16px; border-radius:6px; text-align:center; margin:20px 0; }
+    .warning-banner p { color:#92400e; margin:0; }
+    .expiry-date { background:#fee2e2; color:#dc2626; padding:12px 20px; border-radius:6px; text-align:center; margin:20px 0; font-weight:600; font-size:18px; }
+    .cta { display:inline-block; text-decoration:none; padding:14px 28px; border-radius:6px; background:#2563eb; color:#fff; font-weight:600; text-align:center; margin:16px 0; }
+    .cta:hover { background:#1d4ed8; }
+    .small { font-size:13px; color:#6b7280; }
+    .footer { text-align:center; font-size:13px; color:#9ca3af; padding:20px; background:#f9fafb; border-top:1px solid #e5e7eb; }
+    .logo { font-weight:bold; color:#2563eb; }
+    @media only screen and (max-width:480px) {
+      .content { padding:16px; }
+      h2 { font-size:18px; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:none; max-height:0; overflow:hidden; font-size:1px; line-height:1px; color:#fff; opacity:0;">Your MySystem subscription is expiring soon - renew now to avoid interruption.</div>
+
+  <div class="container">
+    <div class="header">
+      <h1>MySystem</h1>
+    </div>
+
+    <div class="content">
+      <h2>Hello, {{clientName}}</h2>
+
+      <div class="warning-banner">
+        <p><strong>Subscription Expiring Soon</strong></p>
+      </div>
+
+      <p>This is a reminder that your MySystem subscription will expire on:</p>
+
+      <div class="expiry-date">
+        {{expiryDate}}
+      </div>
+
+      <p>To avoid service interruption, please renew before the expiry date.</p>
+
+      <a href="{{renewUrl}}" class="cta">Renew Subscription</a>
+
+      <p class="small">If you need assistance with renewal, contact us.</p>
+      <p>Thank you for your continued trust.</p>
+    </div>
+
+    <div class="footer">
+      <p>Best regards,<br><span class="logo">MySystem Team</span></p>
+      <p>&copy; {{year}} MySystem | All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users, Package, DollarSign, TrendingUp, AlertCircle,
   Truck, RefreshCw,
-  ShoppingCart, TrendingDown, Activity, Layers, ArrowUpRight, ArrowDownRight
+  ShoppingCart, TrendingDown, Activity, Layers, ArrowUpRight, ArrowDownRight,
+  Calendar, ChevronDown, X
 } from 'lucide-react';
 
 import clientService from '../../services/clientService';
@@ -21,6 +22,162 @@ function formatCurrency(amount: number | bigint, currency = "RWF", locale = "en-
     maximumFractionDigits: 0
   }).format(amount);
 }
+
+// Date Filter Types
+type DateFilterOption = 'all' | 'today' | 'week' | 'month' | '3month' | 'year' | 'custom';
+
+interface DateRange {
+  start: Date | null;
+  end: Date | null;
+}
+
+const dateFilterOptions: { value: DateFilterOption; label: string }[] = [
+  { value: 'all', label: 'All Time' },
+  { value: 'today', label: 'Today' },
+  { value: 'week', label: 'This Week' },
+  { value: 'month', label: 'This Month' },
+  { value: '3month', label: 'Last 3 Months' },
+  { value: 'year', label: 'This Year' },
+  { value: 'custom', label: 'Custom Range' },
+];
+
+const getDateRange = (filter: DateFilterOption, customRange?: DateRange): DateRange => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (filter) {
+    case 'today':
+      return { start: today, end: now };
+    case 'week': {
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return { start: weekAgo, end: now };
+    }
+    case 'month': {
+      const monthAgo = new Date(today);
+      monthAgo.setDate(monthAgo.getDate() - 30);
+      return { start: monthAgo, end: now };
+    }
+    case '3month': {
+      const threeMonthsAgo = new Date(today);
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      return { start: threeMonthsAgo, end: now };
+    }
+    case 'year': {
+      const yearAgo = new Date(today);
+      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      return { start: yearAgo, end: now };
+    }
+    case 'custom':
+      return customRange || { start: null, end: null };
+    case 'all':
+    default:
+      return { start: null, end: null };
+  }
+};
+
+// Date Filter Component
+const DateFilter: React.FC<{
+  selectedFilter: DateFilterOption;
+  onFilterChange: (filter: DateFilterOption) => void;
+  customRange: DateRange;
+  onCustomRangeChange: (range: DateRange) => void;
+}> = ({ selectedFilter, onFilterChange, customRange, onCustomRangeChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+
+  const selectedLabel = dateFilterOptions.find(opt => opt.value === selectedFilter)?.label || 'All Time';
+
+  const handleFilterSelect = (filter: DateFilterOption) => {
+    onFilterChange(filter);
+    if (filter === 'custom') {
+      setShowCustomPicker(true);
+    } else {
+      setShowCustomPicker(false);
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-theme-bg-primary border border-theme-border rounded-lg hover:bg-theme-bg-tertiary transition-colors text-sm"
+      >
+        <Calendar className="w-4 h-4 text-primary-500" />
+        <span className="text-theme-text-primary font-medium">{selectedLabel}</span>
+        <ChevronDown className={`w-4 h-4 text-theme-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-theme-bg-primary border border-theme-border rounded-lg shadow-lg z-20 py-1">
+          {dateFilterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleFilterSelect(option.value)}
+              className={`w-full px-4 py-2 text-left text-sm hover:bg-theme-bg-tertiary transition-colors ${
+                selectedFilter === option.value
+                  ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20 font-medium'
+                  : 'text-theme-text-primary'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Custom Date Range Picker */}
+      {showCustomPicker && selectedFilter === 'custom' && (
+        <div className="absolute right-0 mt-2 p-4 bg-theme-bg-primary border border-theme-border rounded-lg shadow-lg z-20 w-72">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-theme-text-primary">Custom Range</span>
+            <button
+              onClick={() => setShowCustomPicker(false)}
+              className="p-1 hover:bg-theme-bg-tertiary rounded"
+            >
+              <X className="w-4 h-4 text-theme-text-secondary" />
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-theme-text-secondary mb-1">Start Date</label>
+              <input
+                type="date"
+                value={customRange.start ? customRange.start.toISOString().split('T')[0] : ''}
+                onChange={(e) => onCustomRangeChange({
+                  ...customRange,
+                  start: e.target.value ? new Date(e.target.value) : null
+                })}
+                className="w-full px-3 py-2 text-sm border border-theme-border rounded-lg bg-theme-bg-secondary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-theme-text-secondary mb-1">End Date</label>
+              <input
+                type="date"
+                value={customRange.end ? customRange.end.toISOString().split('T')[0] : ''}
+                onChange={(e) => onCustomRangeChange({
+                  ...customRange,
+                  end: e.target.value ? new Date(e.target.value) : null
+                })}
+                className="w-full px-3 py-2 text-sm border border-theme-border rounded-lg bg-theme-bg-secondary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for closing dropdown */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
 
 
 
@@ -59,6 +216,25 @@ const StatCard = ({ title, value, change, trend, icon: Icon, color, subtitle, li
 };
 const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  const [customDateRange, setCustomDateRange] = useState<DateRange>({ start: null, end: null });
+  const [rawData, setRawData] = useState<{
+    clients: any[];
+    employees: any[];
+    assets: any[];
+    stockIns: any[];
+    stockOuts: any[];
+    returns: any[];
+    suppliers: any[];
+  }>({
+    clients: [],
+    employees: [],
+    assets: [],
+    stockIns: [],
+    stockOuts: [],
+    returns: [],
+    suppliers: [],
+  });
   const [stats, setStats] = useState({
     totalClients: 0,
     totalEmployees: 0,
@@ -94,8 +270,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
         setLoading(true);
 
         const [
-          rawClients, rawEmployees, rawAssets,
-          rawStockIns, rawStockOuts, rawReturns, rawSuppliers
+          rawClientsData, rawEmployeesData, rawAssetsData,
+          rawStockInsData, rawStockOutsData, rawReturnsData, rawSuppliersData
         ] = await Promise.all([
           clientService.getAllClients(),
           employeeService.getAllEmployees(),
@@ -106,78 +282,14 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
           supplierService.getAllSuppliers(),
         ]);
 
-        const clients = safeArray(rawClients);
-        const employees = safeArray(rawEmployees);
-        const assets = safeArray(rawAssets);
-        const stockIns = safeArray(rawStockIns);
-        const stockOuts = safeArray(rawStockOuts);
-        const returns = safeArray(rawReturns);
-        const suppliers = safeArray(rawSuppliers);
-
-        const today = new Date();
-        const todayStr = today.toISOString().slice(0, 10);
-        const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
-        const monthAgo = new Date(today); monthAgo.setDate(monthAgo.getDate() - 30);
-
-        // REVENUE
-        const todayRevenue = stockOuts
-          .filter((s: any) => s.createdAt?.startsWith(todayStr))
-          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
-
-        const weekRevenue = stockOuts
-          .filter((s: any) => new Date(s.createdAt) >= weekAgo)
-          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
-
-        const monthRevenue = stockOuts
-          .filter((s: any) => new Date(s.createdAt) >= monthAgo)
-          .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
-
-        const totalCost = stockOuts.reduce((sum: number, s: any) => {
-          const stockIn = s.stockin;
-          console.log('one ', stockIn, sum);
-
-          return sum + (Number(stockIn?.unitCost) || 0) * (Number(s.quantity) || 0);
-        }, 0);
-
-        const totalRevenue = stockOuts.reduce((sum: number, s: any) =>
-          sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
-
-        const totalProfit = totalRevenue - totalCost;  // ADD THIS LINE
-        console.log('total profit :', totalProfit);
-        console.log('total revenue :', totalRevenue);
-        console.log('total cost: ', stockOuts);
-
-        const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
-        const avgOrder = stockOuts.length > 0 ? totalRevenue / stockOuts.length : 0;
-
-        const lowStockItems = stockIns.filter((s: any) =>
-          s.reorderLevel && s.quantity > 0 && s.quantity <= s.reorderLevel);
-        const outOfStockItems = stockIns.filter((s: any) => s.quantity === 0);
-
-        const returnsValue = returns.reduce((sum: number, r: any) => sum + (Number(r.refundAmount) || 0), 0);
-        const totalStockValue = stockIns.reduce((s: number, i: any) =>
-          s + (Number(i.unitPrice) || 0) * (Number(i.quantity) || 0), 0);
-        const totalStockItems = stockIns.reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
-        const totalAssetsValue = assets.reduce((s: number, a: any) => s + (Number(a.value) || 0), 0);
-
-        // UPDATE ALL STATE
-        setStats({
-          totalClients: clients.length,
-          totalEmployees: employees.length,
-          totalSuppliers: suppliers.length,
-          totalStockValue: Math.round(totalStockValue),
-          totalStockItems: Math.round(totalStockItems),
-          todaySales: Math.round(todayRevenue),
-          weekSales: Math.round(weekRevenue),
-          monthSales: Math.round(monthRevenue),
-          avgOrderValue: Math.round(avgOrder),
-          lowStock: lowStockItems.length,
-          outOfStock: outOfStockItems.length,
-          pendingReturns: returns.length,
-          totalReturnsValue: Math.round(returnsValue),
-          profitMargin: Math.round(profitMargin * 10) / 10,
-          totalAssets: Math.round(totalAssetsValue),
-          totalProfit: Math.round(totalProfit)
+        setRawData({
+          clients: safeArray(rawClientsData),
+          employees: safeArray(rawEmployeesData),
+          assets: safeArray(rawAssetsData),
+          stockIns: safeArray(rawStockInsData),
+          stockOuts: safeArray(rawStockOutsData),
+          returns: safeArray(rawReturnsData),
+          suppliers: safeArray(rawSuppliersData),
         });
 
       } catch (err) {
@@ -191,6 +303,92 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
     const id = setInterval(loadData, 30000);
     return () => clearInterval(id);
   }, []);
+
+  // Filter data based on date range
+  const filterByDate = (items: any[], dateField: string = 'createdAt') => {
+    const range = getDateRange(dateFilter, customDateRange);
+    if (!range.start && !range.end) return items;
+
+    return items.filter((item: any) => {
+      const itemDate = new Date(item[dateField]);
+      if (range.start && itemDate < range.start) return false;
+      if (range.end && itemDate > range.end) return false;
+      return true;
+    });
+  };
+
+  // Calculate filtered stats
+  useEffect(() => {
+    const { clients, employees, assets, stockIns, stockOuts, returns, suppliers } = rawData;
+
+    // Apply date filter
+    const filteredClients = filterByDate(clients);
+    const filteredEmployees = filterByDate(employees);
+    const filteredStockIns = filterByDate(stockIns);
+    const filteredStockOuts = filterByDate(stockOuts);
+    const filteredReturns = filterByDate(returns);
+    const filteredSuppliers = filterByDate(suppliers);
+    const filteredAssets = filterByDate(assets);
+
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthAgo = new Date(today); monthAgo.setDate(monthAgo.getDate() - 30);
+
+    // REVENUE (from filtered stock outs)
+    const todayRevenue = filteredStockOuts
+      .filter((s: any) => s.createdAt?.startsWith(todayStr))
+      .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+    const weekRevenue = filteredStockOuts
+      .filter((s: any) => new Date(s.createdAt) >= weekAgo)
+      .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+    const monthRevenue = filteredStockOuts
+      .filter((s: any) => new Date(s.createdAt) >= monthAgo)
+      .reduce((sum: number, s: any) => sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+    const totalCost = filteredStockOuts.reduce((sum: number, s: any) => {
+      const stockIn = s.stockin;
+      return sum + (Number(stockIn?.unitCost) || 0) * (Number(s.quantity) || 0);
+    }, 0);
+
+    const totalRevenue = filteredStockOuts.reduce((sum: number, s: any) =>
+      sum + (Number(s.soldPrice) || 0) * (Number(s.quantity) || 0), 0);
+
+    const totalProfit = totalRevenue - totalCost;
+    const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+    const avgOrder = filteredStockOuts.length > 0 ? totalRevenue / filteredStockOuts.length : 0;
+
+    const lowStockItems = filteredStockIns.filter((s: any) =>
+      s.reorderLevel && s.quantity > 0 && s.quantity <= s.reorderLevel);
+    const outOfStockItems = filteredStockIns.filter((s: any) => s.quantity === 0);
+
+    const returnsValue = filteredReturns.reduce((sum: number, r: any) => sum + (Number(r.refundAmount) || 0), 0);
+    const totalStockValue = filteredStockIns.reduce((s: number, i: any) =>
+      s + (Number(i.unitPrice) || 0) * (Number(i.quantity) || 0), 0);
+    const totalStockItems = filteredStockIns.reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
+    const totalAssetsValue = filteredAssets.reduce((s: number, a: any) => s + (Number(a.value) || 0), 0);
+
+    setStats({
+      totalClients: filteredClients.length,
+      totalEmployees: filteredEmployees.length,
+      totalSuppliers: filteredSuppliers.length,
+      totalStockValue: Math.round(totalStockValue),
+      totalStockItems: Math.round(totalStockItems),
+      todaySales: Math.round(todayRevenue),
+      weekSales: Math.round(weekRevenue),
+      monthSales: Math.round(monthRevenue),
+      avgOrderValue: Math.round(avgOrder),
+      lowStock: lowStockItems.length,
+      outOfStock: outOfStockItems.length,
+      pendingReturns: filteredReturns.length,
+      totalReturnsValue: Math.round(returnsValue),
+      profitMargin: Math.round(profitMargin * 10) / 10,
+      totalAssets: Math.round(totalAssetsValue),
+      totalProfit: Math.round(totalProfit)
+    });
+  }, [rawData, dateFilter, customDateRange]);
 
   if (loading) {
     return (
@@ -212,10 +410,13 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
               {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex gap-2">
-            {/* <button className="px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-1.5 text-xs">
-              <Download className="w-3.5 h-3.5" /> Export
-            </button> */}
+          <div className="flex items-center gap-3">
+            <DateFilter
+              selectedFilter={dateFilter}
+              onFilterChange={setDateFilter}
+              customRange={customDateRange}
+              onCustomRangeChange={setCustomDateRange}
+            />
             <button onClick={() => window.location.reload()} className="p-1.5 hover:bg-theme-bg-tertiary rounded-lg text-theme-text-primary">
               <RefreshCw className="w-4 h-4" />
             </button>
