@@ -30,6 +30,7 @@ import { useSupplierOfflineSync } from '../../hooks/useSupplierOfflineSync';
 import { useNetworkStatusContext } from '../../context/useNetworkContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -73,6 +74,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const { triggerSync, syncError } = useSupplierOfflineSync();
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
+  const { t } = useLanguage();
 
   /* --------------------------------------------------------------------- */
   /* Summary Stats (Memoized) */
@@ -386,18 +388,18 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Render Views */
   /* --------------------------------------------------------------------- */
   const renderTableView = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-theme-bg-primary rounded-xl shadow-lg border border-theme-border overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-[11px] text-left">
-          <thead className="bg-gray-50/50 border-b border-gray-100 text-gray-500 uppercase tracking-wider font-medium">
+        <table className="w-full text-xs text-left">
+          <thead className="bg-theme-bg-tertiary border-b border-theme-border text-theme-text-secondary uppercase tracking-widest font-black">
             <tr>
-              <th className="px-4 py-2.5">Supplier Info</th>
-              <th className="px-4 py-2.5">Contact Detail</th>
-              <th className="px-4 py-2.5">Location</th>
-              <th className="px-4 py-2.5 text-right">Actions</th>
+              <th className="px-6 py-4">{t('supplier.name')}</th>
+              <th className="px-6 py-4">{t('supplier.contact')}</th>
+              <th className="px-6 py-4">{t('supplier.address')}</th>
+              <th className="px-6 py-4 text-right">{t('supplier.actions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-theme-border">
             {currentItems.map((sup) => (
               <tr key={sup.id || sup.localId} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-4 py-2.5">
@@ -468,7 +470,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             ))}
             {currentItems.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-10 text-center text-gray-400 italic">No suppliers found</td>
+                <td colSpan={4} className="py-10 text-center text-gray-400 italic">{t('supplier.noSuppliers')}</td>
               </tr>
             )}
           </tbody>
@@ -484,19 +486,18 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           key={sup.localId || sup.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded shadow-sm border border-gray-100 p-3 hover:shadow transition-shadow"
+          className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-4 hover:shadow-lg transition-all hover:border-primary-500/30 group"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 shrink-0 border border-primary-100 font-bold text-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-600 shrink-0 border border-primary-500/20 font-black text-sm uppercase group-hover:scale-110 transition-transform">
                 {sup.name.substring(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <div className="font-semibold text-gray-900 text-xs truncate">{sup.name}</div>
-                <div className="text-[10px] text-gray-400 truncate">ID: {sup.id?.substring(0, 8) || 'LOCAL'}</div>
+                <div className="font-bold text-theme-text-primary text-sm truncate">{sup.name}</div>
+                <div className="text-[10px] text-theme-text-secondary font-medium tracking-wide truncate">ID: {sup.id?.substring(0, 8) || 'LOCAL'}</div>
               </div>
             </div>
-
           </div>
 
           <div className="space-y-1.5 mb-3">
@@ -551,31 +552,31 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   );
 
   const renderListView = () => (
-    <div className="bg-white rounded shadow-sm border border-gray-100 divide-y divide-gray-50">
+    <div className="bg-theme-bg-primary rounded-xl shadow-lg border border-theme-border divide-y divide-theme-border overflow-hidden">
       {currentItems.map((sup) => (
         <motion.div
           key={sup.localId || sup.id}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-between group"
+          className="px-6 py-4 hover:bg-theme-bg-tertiary transition-all flex items-center justify-between group"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 bg-gray-50 group-hover:bg-white rounded-lg flex items-center justify-center text-gray-400 shrink-0 border border-transparent group-hover:border-gray-100 transition-all font-bold text-xs uppercase">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-10 h-10 bg-theme-bg-tertiary group-hover:bg-primary-500/10 rounded-xl flex items-center justify-center text-theme-text-secondary group-hover:text-primary-600 shrink-0 border border-theme-border group-hover:border-primary-500/20 transition-all font-black text-sm uppercase">
               {sup.name.substring(0, 2)}
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-gray-900 text-xs">{sup.name}</div>
-              <div className="flex items-center gap-3 text-[10px] text-gray-400 italic">
+              <div className="font-bold text-theme-text-primary text-sm group-hover:text-primary-600 transition-colors uppercase tracking-tight">{sup.name}</div>
+              <div className="flex items-center gap-3 text-[10px] text-theme-text-secondary font-medium tracking-wide">
                 <span>{sup.email || 'no-email'}</span>
-                <span>•</span>
+                <span className="text-theme-text-secondary/30">•</span>
                 <span>{sup.phone || 'no-phone'}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-gray-500 max-w-[200px] truncate">
-              <MapPin className="w-3 h-3 shrink-0" />
+          <div className="flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-2 text-[10px] text-theme-text-secondary font-medium max-w-[250px] truncate bg-theme-bg-secondary px-3 py-1 rounded-full border border-theme-border">
+              <MapPin className="w-3 h-3 shrink-0 text-primary-500" />
               {sup.address || 'No address specified'}
             </div>
 
@@ -617,7 +618,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Render */
   /* --------------------------------------------------------------------- */
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-theme-bg-secondary font-sans text-theme-text-primary transition-colors duration-200">
       {/* Toast */}
       <AnimatePresence>
         {notification && (
@@ -650,25 +651,25 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 bg-white shadow-sm z-10 border-b border-gray-100">
+      <div className="sticky top-0 bg-theme-bg-primary shadow-md z-10 border-b border-theme-border">
         <div className="mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-primary-600 rounded-lg">
+              <div className="p-2 bg-primary-600 rounded-lg shadow-lg shadow-primary-600/20">
                 <SupplierIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Supplier Management</h1>
-                <p className="text-[10px] text-gray-500">Manage your product suppliers</p>
+                <h1 className="text-lg font-bold text-theme-text-primary uppercase tracking-tight">{t('supplier.title')}</h1>
+                <p className="text-[10px] text-theme-text-secondary font-medium tracking-wide">{t('supplier.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
+                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg shadow-primary-600/20 transition-all active:scale-95"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Add Supplier
+                <Plus className="w-4 h-4" />
+                {t('supplier.addSupplier')}
               </button>
             </div>
           </div>
@@ -677,25 +678,25 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
       <div className="mx-auto px-4 py-4 space-y-4">
         {/* Compact Statistics */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {[
-            { title: 'Active', value: stats.active, icon: CheckCircle, color: 'green' },
-            { title: 'Total Suppliers', value: stats.total, icon: SupplierIcon, color: 'primary' },
+            { title: t('supplier.activeStatus'), value: stats.active, icon: CheckCircle, color: 'green' },
+            { title: t('supplier.totalSuppliers'), value: stats.total, icon: SupplierIcon, color: 'primary' },
           ].map((stat, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded shadow-sm border border-gray-100 p-3"
+              className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-4 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 bg-${stat.color}-50 rounded-full`}>
-                  <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-xl ${stat.color === 'green' ? 'bg-green-500/10 text-green-600' : 'bg-primary-500/10 text-primary-600'}`}>
+                  <stat.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{stat.title}</p>
-                  <p className="text-base font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-[10px] text-theme-text-secondary uppercase tracking-widest font-black leading-none mb-1">{stat.title}</p>
+                  <p className="text-xl font-black text-theme-text-primary leading-none">{stat.value}</p>
                 </div>
               </div>
             </motion.div>
@@ -703,40 +704,40 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         </div>
 
         {/* Search + View Mode */}
-        <div className="bg-white rounded shadow-sm border border-gray-100 p-2 px-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-secondary" />
               <input
                 type="text"
-                placeholder="Search suppliers..."
+                placeholder={t('supplier.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                className="w-full pl-10 pr-4 py-2 text-xs bg-theme-bg-secondary border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-theme-text-primary transition-all placeholder:text-theme-text-secondary/50"
               />
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-1 bg-theme-bg-tertiary/30 p-1.5 rounded-xl border border-theme-border">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Table View"
+                  className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-theme-bg-primary shadow-md text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`}
+                  title={t('supplier.tableView')}
                 >
-                  <List className="w-3.5 h-3.5" />
+                  <List className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Grid View"
+                  className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-theme-bg-primary shadow-md text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`}
+                  title={t('supplier.gridView')}
                 >
-                  <Grid3X3 className="w-3.5 h-3.5" />
+                  <Grid3X3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="List View"
+                  className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-theme-bg-primary shadow-md text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`}
+                  title={t('supplier.listView')}
                 >
-                  <Layout className="w-3.5 h-3.5" />
+                  <Layout className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -747,16 +748,16 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         {isLoading && !isRefreshing ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
-            <p>Loading suppliers...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : filteredSuppliers.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow">
             <SupplierIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-lg font-semibold">
-              {searchTerm ? 'No suppliers found' : 'No suppliers available'}
+              {searchTerm ? t('supplier.noSuppliers') : t('supplier.noSuppliers')}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              {searchTerm ? 'Try adjusting your search.' : 'Add your first supplier!'}
+              {searchTerm ? t('supplier.noSuppliersSub') : t('supplier.noSuppliersSub')}
             </p>
             {!searchTerm && (
               <button
@@ -764,7 +765,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 className="mt-4 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg"
               >
                 <Plus className="w-5 h-5" />
-                Add Supplier
+                {t('supplier.addSupplier')}
               </button>
             )}
           </div>
@@ -776,32 +777,34 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             {viewMode === 'list' && renderListView()}
 
             {/* Pagination */}
-            <div className="flex items-center justify-between bg-white px-4 py-3 border-t rounded-b-lg shadow">
-              <div className="text-sm text-gray-600">
+            <div className="flex items-center justify-between bg-theme-bg-primary px-6 py-4 border-t border-theme-border rounded-b-xl shadow-lg mt-4">
+              <div className="text-xs font-bold text-theme-text-secondary uppercase tracking-widest">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredSuppliers.length)} of {filteredSuppliers.length}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-sm border rounded disabled:opacity-50"
+                  className="p-2 text-theme-text-secondary bg-theme-bg-secondary border border-theme-border rounded-lg disabled:opacity-30 transition-all hover:bg-theme-bg-tertiary"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                {getPageNumbers().map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={`px-3 py-1.5 text-sm rounded ${currentPage === p ? 'bg-primary-600 text-white' : 'border'
-                      }`}
-                  >
-                    {p}
-                  </button>
-                ))}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`min-w-[32px] h-8 text-[11px] font-bold rounded-lg border transition-all ${currentPage === p ? 'bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-600/20' : 'bg-theme-bg-secondary border-theme-border text-theme-text-secondary hover:bg-theme-bg-tertiary'
+                        }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-sm border rounded disabled:opacity-50"
+                  className="p-2 text-theme-text-secondary bg-theme-bg-secondary border border-theme-border rounded-lg disabled:opacity-30 transition-all hover:bg-theme-bg-tertiary"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -821,10 +824,16 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 className="text-lg font-semibold mb-4">Add New Supplier</h3>
+            <div className="bg-theme-bg-primary rounded-2xl p-8 w-full max-w-md shadow-2xl border border-theme-border">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-600 border border-primary-500/20">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-bold text-theme-text-primary tracking-tight">Add New Supplier</h3>
+              </div>
+
               {formError && (
-                <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-sm mb-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-500 text-xs font-bold uppercase tracking-wider mb-6 animate-in shake-1">
                   {formError}
                 </div>
               )}
@@ -833,49 +842,61 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   e.preventDefault();
                   handleSupplierSubmit(formData);
                 }}
-                className="space-y-4"
+                className="space-y-5"
               >
-                <input
-                  type="text"
-                  placeholder="Supplier name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email (optional)"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone (optional)"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <textarea
-                  placeholder="Address (optional)"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={2}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <div className="flex justify-end gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Supplier Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Acme Corp"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Email (optional)</label>
+                  <input
+                    type="email"
+                    placeholder="contact@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Phone (optional)</label>
+                  <input
+                    type="tel"
+                    placeholder="+250 000 000 000"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Address (optional)</label>
+                  <textarea
+                    placeholder="Street, City, Country"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
                     onClick={closeAllModals}
-                    className="px-4 py-2 border rounded text-sm"
+                    className="px-6 py-2.5 bg-theme-bg-tertiary text-theme-text-secondary rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-theme-bg-secondary transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-primary-600 text-white rounded text-sm disabled:opacity-50"
+                    className="px-8 py-2.5 bg-primary-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest disabled:opacity-50 shadow-lg shadow-primary-500/20 transition-all active:scale-95"
                   >
                     {isLoading ? 'Creating...' : 'Create'}
                   </button>
@@ -895,10 +916,16 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 className="text-lg font-semibold mb-4">Edit Supplier</h3>
+            <div className="bg-theme-bg-primary rounded-2xl p-8 w-full max-w-md shadow-2xl border border-theme-border">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-600 border border-primary-500/20">
+                  <Edit className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-bold text-theme-text-primary tracking-tight">Edit Supplier</h3>
+              </div>
+
               {formError && (
-                <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-sm mb-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-500 text-xs font-bold uppercase tracking-wider mb-6 animate-in shake-1">
                   {formError}
                 </div>
               )}
@@ -907,45 +934,57 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   e.preventDefault();
                   handleUpdateSupplier(formData);
                 }}
-                className="space-y-4"
+                className="space-y-5"
               >
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                  required
-                />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  rows={2}
-                  className="w-full px-4 py-2 border rounded text-sm"
-                />
-                <div className="flex justify-end gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Supplier Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Email (optional)</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Phone (optional)</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest ml-1">Address (optional)</label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-theme-bg-secondary border border-theme-border rounded-xl text-sm text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
                   <button
                     type="button"
                     onClick={closeAllModals}
-                    className="px-4 py-2 border rounded text-sm"
+                    className="px-6 py-2.5 bg-theme-bg-tertiary text-theme-text-secondary rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-theme-bg-secondary transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-primary-600 text-white rounded text-sm disabled:opacity-50"
+                    className="px-8 py-2.5 bg-primary-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest disabled:opacity-50 shadow-lg shadow-primary-500/20 transition-all active:scale-95"
                   >
                     {isLoading ? 'Updating...' : 'Update'}
                   </button>
@@ -965,32 +1004,37 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="bg-theme-bg-primary rounded-2xl p-8 w-full max-w-md shadow-2xl border border-theme-border overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-red-600" />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center shrink-0 border border-red-500/20">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Delete Supplier</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-xl font-bold text-theme-text-primary tracking-tight">Delete Supplier</h3>
+                  <p className="text-xs font-bold text-red-500 uppercase tracking-widest mt-0.5">Critical Action</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-700 mb-4">
-                Are you sure you want to delete <strong>{selectedSupplier.name}</strong>?
-              </p>
+
+              <div className="p-4 bg-red-500/5 rounded-xl border border-red-500/10 mb-6 font-medium">
+                <p className="text-sm text-theme-text-primary leading-relaxed">
+                  Are you sure you want to delete <span className="font-black text-red-600 px-1.5 py-0.5 bg-red-500/10 rounded-md tracking-tight uppercase">{selectedSupplier.name}</span>? This process cannot be undone.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={closeAllModals}
-                  className="px-4 py-2 border rounded text-sm"
+                  className="px-6 py-2.5 bg-theme-bg-tertiary text-theme-text-secondary rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-theme-bg-secondary transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDelete}
                   disabled={isLoading}
-                  className="px-4 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-50"
+                  className="px-10 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
                 >
-                  {isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading ? 'Deleting...' : 'Confirm Delete'}
                 </button>
               </div>
             </div>

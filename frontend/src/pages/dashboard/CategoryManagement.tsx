@@ -27,6 +27,7 @@ import { useCategoryOfflineSync } from '../../hooks/useCategoryOfflineSync';
 import { useNetworkStatusContext } from '../../context/useNetworkContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -62,6 +63,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const { triggerSync, syncError } = useCategoryOfflineSync();
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
+  const { t } = useLanguage();
 
   /* --------------------------------------------------------------------- */
   /* Summary Stats (Memoized) */
@@ -374,46 +376,46 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Render Views */
   /* --------------------------------------------------------------------- */
   const renderTableView = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-[11px]">
-          <thead className="bg-gray-50/50 border-b border-gray-100">
+          <thead className="bg-theme-bg-tertiary border-b border-theme-border">
             <tr>
-              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">#</th>
-              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Category Name</th>
-              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Description</th>
-              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Status</th>
-              <th className="text-left py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Created Date</th>
-              <th className="text-right py-2 px-4 font-semibold text-gray-500 uppercase tracking-tight">Actions</th>
+              <th className="text-left py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">#</th>
+              <th className="text-left py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">{t('category.name')}</th>
+              <th className="text-left py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">{t('category.description')}</th>
+              <th className="text-left py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">{t('category.status')}</th>
+              <th className="text-left py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">{t('common.date')}</th>
+              <th className="text-right py-2 px-4 font-semibold text-theme-text-secondary uppercase tracking-tight">{t('category.actions')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-theme-border">
             {currentItems.map((cat, i) => (
-              <tr key={cat.localId || cat.id} className="hover:bg-gray-50/50 transition-colors">
+              <tr key={cat.localId || cat.id} className="hover:bg-theme-bg-tertiary/50 transition-colors">
                 <td className="py-2 px-4">
-                  <span className="font-medium text-gray-400">
+                  <span className="font-medium text-theme-text-secondary">
                     {startIndex + i + 1}
                   </span>
                 </td>
-                <td className="py-2 px-4 font-medium text-gray-800">
+                <td className="py-2 px-4 font-medium text-theme-text-primary">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-100 rounded-lg flex items-center justify-center text-primary-700 text-[10px] font-bold">
+                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center text-primary-700 dark:text-primary-400 text-[10px] font-bold">
                       {cat.name?.[0] || 'C'}
                     </div>
                     <span>{cat.name}</span>
                   </div>
                 </td>
-                <td className="py-2 px-4 text-gray-500 max-w-xs truncate italic">
+                <td className="py-2 px-4 text-theme-text-secondary max-w-xs truncate italic">
                   {cat.description || 'No description provided'}
                 </td>
                 <td className="py-2 px-4">
-                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+                  <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                     }`}>
                     <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
                     {cat.synced ? 'Synced' : 'Offline'}
                   </div>
                 </td>
-                <td className="py-2 px-4 text-gray-500">
+                <td className="py-2 px-4 text-theme-text-secondary">
                   {formatDate(cat.createdAt || cat.lastModified)}
                 </td>
                 <td className="py-2 px-4 text-right">
@@ -424,7 +426,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                         setFormData({ name: cat.name, description: cat.description || '' });
                         setIsEditModalOpen(true);
                       }}
-                      className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                      className="p-1.5 text-amber-600 hover:bg-amber-500/10 rounded-md transition-colors"
                       title="Edit Category"
                     >
                       <Edit className="w-3.5 h-3.5" />
@@ -434,7 +436,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                         setSelectedCategory(cat);
                         setIsDeleteModalOpen(true);
                       }}
-                      className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                      className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
                       title="Delete Category"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -456,19 +458,19 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           key={cat.localId || cat.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 hover:shadow-md transition-all group"
+          className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border p-3 hover:shadow-md transition-all group"
         >
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+            <div className="w-9 h-9 bg-primary-500/10 rounded-lg flex items-center justify-center group-hover:bg-primary-500/20 transition-colors">
               <FolderIcon className="w-4.5 h-4.5 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-gray-900 text-xs truncate">{cat.name}</div>
-              <div className="text-gray-400 text-[10px] truncate">{cat.description || 'No description'}</div>
+              <div className="font-bold text-theme-text-primary text-xs truncate">{cat.name}</div>
+              <div className="text-theme-text-secondary text-[10px] truncate">{cat.description || 'No description'}</div>
             </div>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-50 pt-2 transition-colors">
-            <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${cat.synced ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+          <div className="flex items-center justify-between border-t border-theme-border pt-2 transition-colors">
+            <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${cat.synced ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
               }`}>
               <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
               {cat.synced ? 'Synced' : 'Offline'}
@@ -503,25 +505,25 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   );
 
   const renderListView = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+    <div className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border divide-y divide-theme-border overflow-hidden">
       {currentItems.map((cat) => (
         <motion.div
           key={cat.localId || cat.id}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="px-4 py-3 hover:bg-gray-50/50 flex items-center justify-between transition-colors"
+          className="px-4 py-3 hover:bg-theme-bg-tertiary/50 flex items-center justify-between transition-colors"
         >
           <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="w-8 h-8 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-primary-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <FolderIcon className="w-4 h-4 text-primary-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-gray-900 text-xs truncate">{cat.name}</div>
-              <div className="text-gray-400 text-[10px] truncate max-w-md">{cat.description || 'No description provided'}</div>
+              <div className="font-bold text-theme-text-primary text-xs truncate">{cat.name}</div>
+              <div className="text-theme-text-secondary text-[10px] truncate max-w-md">{cat.description || 'No description provided'}</div>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${cat.synced ? 'bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
               }`}>
               <div className={`w-1 h-1 rounded-full ${cat.synced ? 'bg-green-500' : 'bg-amber-500'}`} />
               {cat.synced ? 'Synced' : 'Offline'}
@@ -559,7 +561,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Render */
   /* --------------------------------------------------------------------- */
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-theme-bg-secondary font-sans text-xs transition-colors duration-200">
       {/* Toast */}
       <AnimatePresence>
         {notification && (
@@ -592,7 +594,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 bg-white shadow-sm z-10 border-b border-gray-100">
+      <div className="sticky top-0 bg-theme-bg-primary shadow-sm z-10 border-b border-theme-border">
         <div className="mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -600,8 +602,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <FolderIcon className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Category Management</h1>
-                <p className="text-[10px] text-gray-500">Manage your product categories</p>
+                <h1 className="text-lg font-semibold text-theme-text-primary">{t('category.title')}</h1>
+                <p className="text-[10px] text-theme-text-secondary">{t('category.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -610,7 +612,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add Category
+                {t('category.addCategory')}
               </button>
             </div>
           </div>
@@ -621,23 +623,23 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         {/* Compact Statistics */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { title: 'Active', value: stats.active, icon: CheckCircle, color: 'green' },
-            { title: 'Total Categories', value: stats.total, icon: FolderIcon, color: 'primary' },
+            { title: t('category.active'), value: stats.active, icon: CheckCircle, color: 'green' },
+            { title: t('category.totalCategories'), value: stats.total, icon: FolderIcon, color: 'primary' },
           ].map((stat, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="bg-white rounded shadow-sm border border-gray-100 p-3"
+              className="bg-theme-bg-primary rounded shadow-sm border border-theme-border p-3"
             >
               <div className="flex items-center space-x-3">
-                <div className={`p-2 bg-${stat.color}-50 rounded-full`}>
-                  <stat.icon className={`w-4 h-4 text-${stat.color}-600`} />
+                <div className={`p-2 bg-${stat.color === 'primary' ? 'primary' : 'green'}-500/10 rounded-full`}>
+                  <stat.icon className={`w-4 h-4 text-${stat.color === 'primary' ? 'primary' : 'green'}-600`} />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{stat.title}</p>
-                  <p className="text-base font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-[10px] text-theme-text-secondary uppercase tracking-wider font-semibold">{stat.title}</p>
+                  <p className="text-base font-bold text-theme-text-primary">{stat.value}</p>
                 </div>
               </div>
             </motion.div>
@@ -645,38 +647,38 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         </div>
 
         {/* Search + View Mode */}
-        <div className="bg-white rounded shadow-sm border border-gray-100 p-2 px-3">
+        <div className="bg-theme-bg-primary rounded shadow-sm border border-theme-border p-2 px-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-theme-text-secondary" />
               <input
                 type="text"
-                placeholder="Search categories..."
+                placeholder={t('category.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-4 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                className="w-full pl-8 pr-4 py-1.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-1 bg-theme-bg-tertiary p-1 rounded-lg border border-theme-border">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Table View"
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary'}`}
+                  title={t('supplier.tableView')}
                 >
                   <List className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="Grid View"
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary'}`}
+                  title={t('supplier.gridView')}
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-primary-600 border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
-                  title="List View"
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary'}`}
+                  title={t('supplier.listView')}
                 >
                   <Layout className="w-3.5 h-3.5" />
                 </button>
@@ -689,16 +691,16 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         {isLoading && !isRefreshing ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
-            <p>Loading categories...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : filteredCategories.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <FolderIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg font-semibold">
-              {searchTerm ? 'No categories found' : 'No categories available'}
+          <div className="text-center py-12 bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border">
+            <FolderIcon className="w-16 h-16 text-theme-text-secondary opacity-30 mx-auto mb-4" />
+            <p className="text-lg font-semibold text-theme-text-primary">
+              {searchTerm ? t('category.noCategories') : t('category.noCategories')}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
-              {searchTerm ? 'Try adjusting your search.' : 'Add your first category!'}
+            <p className="text-sm text-theme-text-secondary mt-1">
+              {searchTerm ? t('category.noCategoriesSub') : t('category.noCategoriesSub')}
             </p>
             {!searchTerm && (
               <button
@@ -706,7 +708,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 className="mt-4 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg"
               >
                 <Plus className="w-5 h-5" />
-                Add Category
+                {t('category.addCategory')}
               </button>
             )}
           </div>
@@ -718,15 +720,15 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             {viewMode === 'list' && renderListView()}
 
             {/* Pagination */}
-            <div className="flex items-center justify-between bg-white px-4 py-3 border-t rounded-b-lg shadow">
-              <div className="text-sm text-gray-600">
+            <div className="flex items-center justify-between bg-theme-bg-primary px-4 py-3 border-t border-theme-border rounded-b-lg shadow-sm">
+              <div className="text-xs text-theme-text-secondary">
                 Showing {startIndex + 1} to {Math.min(endIndex, filteredCategories.length)} of {filteredCategories.length}
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1.5 text-sm border rounded disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-secondary hover:text-theme-text-primary disabled:opacity-50"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -734,7 +736,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   <button
                     key={p}
                     onClick={() => setCurrentPage(p)}
-                    className={`px-3 py-1.5 text-sm rounded ${currentPage === p ? 'bg-primary-600 text-white' : 'border'
+                    className={`px-3 py-1.5 text-xs rounded transition-colors ${currentPage === p ? 'bg-primary-600 text-white' : 'border border-theme-border text-theme-text-primary hover:bg-theme-bg-tertiary'
                       }`}
                   >
                     {p}
@@ -743,7 +745,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 text-sm border rounded disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-secondary hover:text-theme-text-primary disabled:opacity-50"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -761,12 +763,12 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
+            <div className="bg-theme-bg-primary rounded-lg p-6 w-full max-w-md shadow-xl border border-theme-border">
+              <h3 className="text-lg font-semibold mb-4 text-theme-text-primary">{t('category.addCategory')}</h3>
               {formError && (
-                <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-sm mb-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded p-3 text-red-600 text-xs mb-4">
                   {formError}
                 </div>
               )}
@@ -782,7 +784,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   placeholder="Category name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
+                  className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                   required
                 />
                 <textarea
@@ -790,22 +792,22 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border rounded text-sm"
+                  className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={closeAllModals}
-                    className="px-4 py-2 border rounded text-sm"
+                    className="px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary hover:bg-theme-bg-tertiary transition-colors"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-primary-600 text-white rounded text-sm disabled:opacity-50"
+                    className="px-4 py-2 bg-primary-600 text-white rounded text-xs disabled:opacity-50 hover:bg-primary-700 transition-colors"
                   >
-                    {isLoading ? 'Creating...' : 'Create'}
+                    {isLoading ? t('common.loading') : t('common.save')}
                   </button>
                 </div>
               </form>
@@ -821,12 +823,12 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-              <h3 className="text-lg font-semibold mb-4">Edit Category</h3>
+            <div className="bg-theme-bg-primary rounded-lg p-6 w-full max-w-md shadow-xl border border-theme-border">
+              <h3 className="text-lg font-semibold mb-4 text-theme-text-primary">{t('category.editCategory')}</h3>
               {formError && (
-                <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-sm mb-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded p-3 text-red-600 text-[10px] mb-4">
                   {formError}
                 </div>
               )}
@@ -841,29 +843,29 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded text-sm"
+                  className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                   required
                 />
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border rounded text-sm"
+                  className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={closeAllModals}
-                    className="px-4 py-2 border rounded text-sm"
+                    className="px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary hover:bg-theme-bg-tertiary transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-primary-600 text-white rounded text-sm disabled:opacity-50"
+                    className="px-4 py-2 bg-primary-600 text-white rounded text-xs disabled:opacity-50 hover:bg-primary-700 transition-colors"
                   >
-                    {isLoading ? 'Updating...' : 'Update'}
+                    {isLoading ? t('common.loading') : t('common.save')}
                   </button>
                 </div>
               </form>
@@ -879,34 +881,34 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <div className="bg-theme-bg-primary rounded-lg p-6 w-full max-w-md shadow-xl border border-theme-border">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">Delete Category</h3>
-                  <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  <h3 className="text-lg font-semibold text-theme-text-primary">Delete Category</h3>
+                  <p className="text-xs text-theme-text-secondary">This action cannot be undone</p>
                 </div>
               </div>
-              <p className="text-sm text-gray-700 mb-4">
-                Are you sure you want to delete <strong>{selectedCategory.name}</strong>?
+              <p className="text-xs text-theme-text-primary mb-4">
+                Are you sure you want to delete <strong className="font-semibold">{selectedCategory.name}</strong>?
               </p>
               <div className="flex justify-end gap-3">
                 <button
                   onClick={closeAllModals}
-                  className="px-4 py-2 border rounded text-sm"
+                  className="px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary hover:bg-theme-bg-tertiary transition-colors"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleConfirmDelete}
                   disabled={isLoading}
-                  className="px-4 py-2 bg-red-600 text-white rounded text-sm disabled:opacity-50"
+                  className="px-4 py-2 bg-red-600 text-white rounded text-xs disabled:opacity-50 hover:bg-red-700 transition-colors"
                 >
-                  {isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading ? t('common.loading') : t('common.delete')}
                 </button>
               </div>
             </div>

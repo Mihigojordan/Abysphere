@@ -83,29 +83,29 @@ const SearchableCategorySelect: React.FC<{
     <div className="relative" ref={dropdownRef}>
       <div
         onClick={toggle}
-        className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-gray-200'
-          } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
+        className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-theme-border'
+          } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-theme-border'} bg-theme-bg-primary`}
       >
         <div className="flex items-center justify-between">
-          <span className={selected ? 'text-gray-900' : 'text-gray-500'}>
+          <span className={selected ? 'text-theme-text-primary' : 'text-theme-text-secondary'}>
             {selected ? selected.name : 'Select category'}
           </span>
-          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 text-theme-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-hidden">
-          <div className="p-2 border-b">
+        <div className="absolute z-50 w-full mt-1 bg-theme-bg-primary border border-theme-border rounded-lg shadow-lg max-h-60 overflow-hidden">
+          <div className="p-2 border-b border-theme-border">
             <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-theme-text-secondary" />
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Search category..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-7 pr-3 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className="w-full pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-secondary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
             </div>
           </div>
@@ -121,7 +121,7 @@ const SearchableCategorySelect: React.FC<{
                     setIsOpen(false);
                     setSearchTerm('');
                   }}
-                  className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${cat.id === selectedId ? 'bg-primary-50 text-primary-900' : ''
+                  className={`px-3 py-2 hover:bg-theme-bg-tertiary cursor-pointer text-xs ${cat.id === selectedId ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-primary'
                     }`}
                 >
                   <div className="flex items-center justify-between">
@@ -187,8 +187,8 @@ const SearchableSupplierSelect: React.FC<{
           type="button"
           onClick={() => onToggleManual(false)}
           className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${!isManual
-            ? 'bg-primary-100 text-primary-700 border border-primary-300'
-            : 'bg-white text-gray-600 border border-gray-300'
+            ? 'bg-primary-500/10 text-primary-600 border border-primary-500/20'
+            : 'bg-theme-bg-primary text-theme-text-secondary border border-theme-border hover:bg-theme-bg-tertiary'
             }`}
         >
           Select Existing
@@ -197,8 +197,8 @@ const SearchableSupplierSelect: React.FC<{
           type="button"
           onClick={() => onToggleManual(true)}
           className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-1 ${isManual
-            ? 'bg-primary-100 text-primary-700 border border-primary-300'
-            : 'bg-white text-gray-600 border border-gray-300'
+            ? 'bg-primary-500/10 text-primary-600 border border-primary-500/20'
+            : 'bg-theme-bg-primary text-theme-text-secondary border border-theme-border hover:bg-theme-bg-tertiary'
             }`}
         >
           <Plus className="h-3 w-3" />
@@ -212,36 +212,36 @@ const SearchableSupplierSelect: React.FC<{
           value={selectedName}
           onChange={(e) => onChange(null, e.target.value)}
           placeholder="Enter supplier name"
-          className={`w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${error ? 'border-red-300' : 'border-gray-200'
+          className={`w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-theme-bg-primary text-theme-text-primary ${error ? 'border-red-300' : 'border-theme-border'
             }`}
         />
       ) : (
         <div className="relative" ref={dropdownRef}>
           <div
             onClick={toggle}
-            className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-gray-200'
-              } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-gray-300'} bg-white`}
+            className={`w-full px-3 py-2.5 text-xs border rounded-lg cursor-pointer transition-colors ${error ? 'border-red-300' : 'border-theme-border'
+              } ${isOpen ? 'ring-2 ring-primary-500 border-transparent' : 'hover:border-theme-border'} bg-theme-bg-primary text-theme-text-primary`}
           >
             <div className="flex items-center justify-between">
-              <span className={selected ? 'text-gray-900' : 'text-gray-500'}>
+              <span className={selected ? 'text-theme-text-primary' : 'text-theme-text-secondary'}>
                 {selected ? selected.name : 'Select supplier'}
               </span>
-              <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-theme-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
           </div>
 
           {isOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-hidden">
-              <div className="p-2 border-b">
+            <div className="absolute z-50 w-full mt-1 bg-theme-bg-primary border border-theme-border rounded-lg shadow-lg max-h-60 overflow-hidden">
+              <div className="p-2 border-b border-theme-border">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-theme-text-secondary" />
                   <input
                     ref={inputRef}
                     type="text"
                     placeholder="Search supplier..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-7 pr-3 py-1.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    className="w-full pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-secondary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -257,7 +257,7 @@ const SearchableSupplierSelect: React.FC<{
                         setIsOpen(false);
                         setSearchTerm('');
                       }}
-                      className={`px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs ${sup.id?.toString() === selectedId ? 'bg-primary-50 text-primary-900' : ''
+                      className={`px-3 py-2 hover:bg-theme-bg-tertiary cursor-pointer text-xs ${sup.id?.toString() === selectedId ? 'bg-primary-500/10 text-primary-600' : 'text-theme-text-primary'
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -392,9 +392,8 @@ const StockInForm: React.FC<{
 
       let result: Stock;
       if (stockId) {
-        const data =payload;
-        delete data.categoryId;
-        result = await stockService.updateStock(stockId, data);
+        const { categoryId, ...updateData } = payload;
+        result = await stockService.updateStock(stockId, updateData as any);
       } else {
         result = await stockService.createStock(payload);
       }
@@ -409,19 +408,19 @@ const StockInForm: React.FC<{
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl p-8 shadow-lg text-center">
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+        <div className="bg-theme-bg-primary rounded-xl p-8 shadow-lg text-center border border-theme-border">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">{stockId ? 'Loading...' : 'Preparing form...'}</p>
+          <p className="text-theme-text-secondary">{stockId ? 'Loading...' : 'Preparing form...'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 py-6">
+    <div className="bg-theme-bg-secondary py-6 min-h-screen">
       <div className="mx-auto px-4 max-w-5xl">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+        <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border mb-6 overflow-hidden">
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
             <h1 className="text-2xl font-bold text-white">
               {stockId ? 'Update Stock-In' : 'Record New Stock-In'}
@@ -432,13 +431,13 @@ const StockInForm: React.FC<{
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-          <div className="p-4 border-b border-gray-100">
+        <div className="bg-theme-bg-primary rounded-xl border border-theme-border shadow-sm">
+          <div className="p-4 border-b border-theme-border">
             <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-primary-50 rounded-lg">
+              <div className="p-2 bg-primary-500/10 rounded-lg">
                 <Package className="h-5 w-5 text-primary-600" />
               </div>
-              <h2 className="text-sm font-semibold text-gray-900">Stock-In Details</h2>
+              <h2 className="text-sm font-semibold text-theme-text-primary">Stock-In Details</h2>
             </div>
           </div>
 
@@ -446,31 +445,31 @@ const StockInForm: React.FC<{
             {/* Row 1 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   SKU <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.sku}
                   disabled
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg bg-gray-100 cursor-not-allowed"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-secondary text-theme-text-secondary cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Item Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.itemName}
                   onChange={(e) => handleChange('itemName', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., Wireless Mouse"
                 />
                 {errors.itemName && <ErrorMsg msg={errors.itemName} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <SearchableCategorySelect
@@ -485,7 +484,7 @@ const StockInForm: React.FC<{
 
             {/* Supplier Dual Mode */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                 Supplier <span className="text-red-500">*</span>
               </label>
               <SearchableSupplierSelect
@@ -506,13 +505,13 @@ const StockInForm: React.FC<{
             {/* Row 2 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Unit of Measure <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.unitOfMeasure}
                   onChange={(e) => handleChange('unitOfMeasure', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Select unit</option>
                   <option value="PCS">Pieces (PCS)</option>
@@ -525,20 +524,20 @@ const StockInForm: React.FC<{
                 {errors.unitOfMeasure && <ErrorMsg msg={errors.unitOfMeasure} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Received Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   value={formData.receivedQuantity}
                   onChange={(e) => handleChange('receivedQuantity', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., 100"
                 />
                 {errors.receivedQuantity && <ErrorMsg msg={errors.receivedQuantity} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Unit Cost (Rwf)
                 </label>
                 <input
@@ -546,7 +545,7 @@ const StockInForm: React.FC<{
                   step="0.01"
                   value={formData.unitCost}
                   onChange={(e) => handleChange('unitCost', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., 12.50"
                 />
                 {errors.unitCost && <ErrorMsg msg={errors.unitCost} />}
@@ -554,9 +553,9 @@ const StockInForm: React.FC<{
             </div>
 
             {/* Total Value */}
-            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+            <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-primary-900">Total Value</span>
+                <span className="text-sm font-medium text-primary-600">Total Value</span>
                 <span className="text-lg font-bold text-primary-700">Rwf {Number(calculateTotal()).toLocaleString()}</span>
               </div>
             </div>
@@ -564,59 +563,59 @@ const StockInForm: React.FC<{
             {/* Row 3 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Warehouse Location
                 </label>
                 <input
                   type="text"
                   value={formData.warehouseLocation}
                   onChange={(e) => handleChange('warehouseLocation', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., Shelf A-12"
                 />
                 {errors.warehouseLocation && <ErrorMsg msg={errors.warehouseLocation} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Received Date
                 </label>
                 <input
                   type="date"
                   value={formData.receivedDate}
                   onChange={(e) => handleChange('receivedDate', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 {errors.receivedDate && <ErrorMsg msg={errors.receivedDate} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Reorder Level
                 </label>
                 <input
                   type="number"
                   value={formData.reorderLevel}
                   onChange={(e) => handleChange('reorderLevel', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., 20"
                 />
                 {errors.reorderLevel && <ErrorMsg msg={errors.reorderLevel} />}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                   Expiry Date
                 </label>
                 <input
                   type="date"
                   value={formData.expiryDate}
                   onChange={(e) => handleChange('expiryDate', e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
                 Description (Optional)
               </label>
               <ReactQuill
@@ -630,12 +629,12 @@ const StockInForm: React.FC<{
           </div>
 
           {/* Actions */}
-          <div className="px-6 py-4 bg-gray-50 border-t rounded-b-xl">
+          <div className="px-6 py-4 bg-theme-bg-tertiary border-t border-theme-border rounded-b-xl">
             <div className="flex justify-between">
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-6 py-2.5 text-xs font-medium text-gray-600 hover:text-gray-800"
+                className="px-6 py-2.5 text-xs font-medium text-theme-text-secondary hover:text-theme-text-primary"
               >
                 Cancel
               </button>
@@ -652,8 +651,8 @@ const StockInForm: React.FC<{
           </div>
 
           {errors.general && (
-            <div className="mx-6 mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-xs text-red-600 flex items-center gap-2">
+            <div className="mx-6 mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-xs text-red-500 flex items-center gap-2">
                 <X className="h-4 w-4" />
                 {errors.general}
               </p>

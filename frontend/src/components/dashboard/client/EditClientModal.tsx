@@ -150,9 +150,9 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="bg-primary-500 rounded-t-lg p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-theme-bg-primary rounded-lg border border-theme-border w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div className="bg-primary-600 p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-semibold text-white">Edit Client</h2>
@@ -160,7 +160,7 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 text-primary-100 hover:text-white rounded"
+                            className="p-1 text-primary-100 hover:text-white rounded transition-colors"
                             aria-label="Close modal"
                         >
                             <X className="w-4 h-4" />
@@ -176,12 +176,12 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                     <img
                                         src={imagePreview.includes('http') ? imagePreview : `${API_URL}${imagePreview}`}
                                         alt="Profile Preview"
-                                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                                        className="w-20 h-20 rounded-full object-cover border-2 border-theme-border"
                                     />
                                     <button
                                         type="button"
                                         onClick={handleRemoveImage}
-                                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
+                                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors shadow-sm"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -189,9 +189,9 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                             ) : (
                                 <div
                                     onClick={triggerFileInput}
-                                    className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-colors"
+                                    className="w-20 h-20 rounded-full border-2 border-dashed border-theme-border bg-theme-bg-secondary flex items-center justify-center cursor-pointer hover:border-primary-500/50 hover:bg-primary-500/5 transition-all group"
                                 >
-                                    <Camera className="w-12 h-12 text-gray-400 group-hover:text-primary-500 transition-colors" />
+                                    <Camera className="w-8 h-8 text-theme-text-secondary group-hover:text-primary-500 transition-colors" />
                                 </div>
                             )}
                         </div>
@@ -199,7 +199,7 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                         <button
                             type="button"
                             onClick={triggerFileInput}
-                            className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                            className="inline-flex items-center space-x-2 px-4 py-2 text-xs font-medium text-primary-600 bg-primary-500/10 hover:bg-primary-500/20 rounded transition-colors"
                         >
                             <Upload className="w-4 h-4" />
                             <span>{imagePreview ? 'Change Photo' : 'Upload Photo'}</span>
@@ -216,8 +216,8 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                                <User className="w-4 h-4 text-gray-400" />
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
+                                <User className="w-4 h-4 text-primary-500" />
                                 <span>First Name <span className="text-red-500">*</span></span>
                             </label>
                             <input
@@ -225,14 +225,14 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                 name="firstname"
                                 value={formData.firstname}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                                 placeholder="Enter first name"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                                <User className="w-4 h-4 text-gray-400" />
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
+                                <User className="w-4 h-4 text-primary-500" />
                                 <span>Last Name <span className="text-red-500">*</span></span>
                             </label>
                             <input
@@ -240,14 +240,14 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                 name="lastname"
                                 value={formData.lastname}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                                 placeholder="Enter last name"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                                <Mail className="w-4 h-4 text-gray-400" />
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
+                                <Mail className="w-4 h-4 text-primary-500" />
                                 <span>Email Address <span className="text-red-500">*</span></span>
                             </label>
                             <input
@@ -255,14 +255,14 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                                 placeholder="Enter email address"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                                <Phone className="w-4 h-4 text-gray-400" />
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
+                                <Phone className="w-4 h-4 text-primary-500" />
                                 <span>Phone Number</span>
                             </label>
                             <input
@@ -270,14 +270,14 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                 name="phone"
                                 value={formData.phone || ''}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                                 placeholder="Enter phone number"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                                <MapPin className="w-4 h-4 text-gray-400" />
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
+                                <MapPin className="w-4 h-4 text-primary-500" />
                                 <span>Address</span>
                             </label>
                             <input
@@ -285,20 +285,20 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                                 name="address"
                                 value={formData.address || ''}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                                 placeholder="Enter address"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                            <label className="flex items-center space-x-2 text-xs font-medium text-theme-text-secondary">
                                 <span>Status</span>
                             </label>
                             <select
                                 name="status"
                                 value={formData.status}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                                className="w-full px-3 py-2 bg-theme-bg-secondary border border-theme-border text-theme-text-primary rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs transition-all"
                             >
                                 <option value="ACTIVE">Active</option>
                                 <option value="INACTIVE">Inactive</option>
@@ -307,32 +307,32 @@ const EditClientModal: React.FC<EditClientModalProps> = ({ isOpen, onClose, clie
                     </div>
 
                     {errors.length > 0 && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="bg-red-500/10 border border-red-500/20 rounded p-4">
                             <div className="flex items-start space-x-3">
-                                <div className="w-4 h-4 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <div className="w-4 h-4 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                     <X className="w-3 h-3 text-red-600" />
                                 </div>
                                 <div className="space-y-1">
                                     {errors.map((error, index) => (
-                                        <p key={index} className="text-sm text-red-600">{error}</p>
+                                        <p key={index} className="text-xs text-red-600 dark:text-red-400">{error}</p>
                                     ))}
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="flex space-x-3 pt-4">
+                    <div className="flex space-x-3 pt-4 border-t border-theme-border">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="flex-1 px-4 py-2 text-xs font-medium text-theme-text-primary bg-theme-bg-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                            className="flex-1 px-4 py-2 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-sm"
                         >
                             {isSubmitting ? (
                                 <>

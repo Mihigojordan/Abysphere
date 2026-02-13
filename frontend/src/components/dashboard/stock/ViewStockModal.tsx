@@ -2,6 +2,8 @@ import React from 'react';
 import { X, Package, MapPin, Calendar, DollarSign, AlertTriangle, Tag, Layers, Clock } from 'lucide-react';
 import { type Stock } from '../../../services/stockService';
 
+import { useLanguage } from '../../../context/LanguageContext';
+
 interface Props {
     isOpen: boolean;
     stock: Stock | null;
@@ -9,6 +11,7 @@ interface Props {
 }
 
 const ViewStockModal: React.FC<Props> = ({ isOpen, stock, onClose }) => {
+    const { t } = useLanguage();
     if (!isOpen || !stock) return null;
 
     const isLowStock = stock.receivedQuantity <= stock.reorderLevel;
@@ -27,37 +30,36 @@ const ViewStockModal: React.FC<Props> = ({ isOpen, stock, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-theme-bg-primary rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-theme-border animate-in fade-in zoom-in duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                <div className="flex items-center justify-between p-6 border-b border-theme-border">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-primary-600" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center shadow-lg shadow-primary-500/10">
+                            <Package className="w-6 h-6 text-primary-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{stock.itemName}</h3>
-                            <p className="text-xs text-gray-500">SKU: {stock.sku}</p>
+                            <h3 className="text-xl font-black text-theme-text-primary uppercase tracking-tighter">{stock.itemName}</h3>
+                            <p className="font-mono text-[10px] text-primary-500 font-bold bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20 inline-block">{stock.sku}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
+                    <button onClick={onClose} className="p-2 hover:bg-theme-bg-tertiary rounded-xl transition-colors text-theme-text-secondary hover:text-theme-text-primary">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Status Badge */}
-                <div className="px-5 pt-4">
-                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                <div className="px-6 pt-6">
+                    <span className={`inline-flex px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-xl ${isLowStock ? 'bg-red-500/10 text-red-600 border border-red-500/20' : 'bg-green-500/10 text-green-600 border border-green-500/20'}`}>
                         {isLowStock ? (
-                            <><AlertTriangle className="w-3 h-3 mr-1" /> Low Stock</>
+                            <><AlertTriangle className="w-3 h-3 mr-2" /> {t('stockIn.lowStockStatus')}</>
                         ) : (
-                            'In Stock'
+                            t('stockIn.inStock')
                         )}
                     </span>
                 </div>
 
-                {/* Details Grid */}
-                <div className="p-5 space-y-4">
+                <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <DetailItem
                             icon={<Layers className="w-4 h-4 text-blue-500" />}
@@ -76,7 +78,7 @@ const ViewStockModal: React.FC<Props> = ({ isOpen, stock, onClose }) => {
                             value={formatCurrency(stock.unitCost)}
                         />
                         <DetailItem
-                            icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
+                            icon={<DollarSign className="w-4 h-4 text-emerald-500" />}
                             label="Total Value"
                             value={formatCurrency(stock.totalValue)}
                         />
@@ -103,27 +105,27 @@ const ViewStockModal: React.FC<Props> = ({ isOpen, stock, onClose }) => {
                     </div>
 
                     {stock.description && (
-                        <div className="pt-3 border-t border-gray-100">
-                            <p className="text-xs font-medium text-gray-600 mb-1">Description</p>
-                            <p className="text-sm text-gray-700">{stock.description}</p>
+                        <div className="pt-4 border-t border-theme-border">
+                            <p className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest mb-1.5">Description</p>
+                            <p className="text-xs text-theme-text-primary leading-relaxed">{stock.description}</p>
                         </div>
                     )}
 
-                    <div className="pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <Clock className="w-3 h-3" />
+                    <div className="pt-4 border-t border-theme-border">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-theme-text-secondary uppercase tracking-widest">
+                            <Clock className="w-3.5 h-3.5" />
                             <span>Created: {formatDate(stock.createdAt)}</span>
-                            <span>•</span>
+                            <span className="opacity-30 mx-1">|</span>
                             <span>Updated: {formatDate(stock.updatedAt)}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-3 bg-gray-50 rounded-b-xl border-t border-gray-100">
+                <div className="px-6 py-4 bg-theme-bg-tertiary rounded-b-2xl border-t border-theme-border">
                     <button
                         onClick={onClose}
-                        className="w-full px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-white transition-colors"
+                        className="w-full px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-xl transition-all"
                     >
                         Close
                     </button>
@@ -139,11 +141,11 @@ const DetailItem = ({ icon, label, value, highlight }: {
     value: string;
     highlight?: boolean;
 }) => (
-    <div className="flex items-start gap-2.5 p-2.5 bg-gray-50 rounded-lg">
-        <div className="mt-0.5">{icon}</div>
+    <div className="flex items-start gap-4 p-3 bg-theme-bg-tertiary rounded-2xl border border-theme-border">
+        <div className="mt-1">{icon}</div>
         <div className="min-w-0">
-            <p className="text-xs text-gray-500">{label}</p>
-            <p className={`text-sm font-medium truncate ${highlight ? 'text-red-600' : 'text-gray-900'}`}>{value}</p>
+            <p className="text-[9px] font-black text-theme-text-secondary uppercase tracking-widest mb-0.5">{label}</p>
+            <p className={`text-[11px] font-black tracking-tighter truncate ${highlight ? 'text-red-500' : 'text-theme-text-primary'}`}>{value}</p>
         </div>
     </div>
 );

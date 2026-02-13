@@ -57,6 +57,29 @@ export interface StockOutResponse {
   transactionId?: string;
 }
 
+export interface StockOut {
+  id: string;
+  stockinId: number;
+  quantity: number;
+  soldPrice?: number;
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  paymentMethod?: PaymentMethod;
+  transactionId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  adminId?: string;
+  employeeId?: string;
+  stockin?: {
+    itemName: string;
+    product?: {
+      productName: string;
+      brand?: string;
+    };
+  };
+}
+
 class StockOutService {
   private readonly baseUrl = '/stockout';
 

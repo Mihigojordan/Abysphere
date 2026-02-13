@@ -12,7 +12,7 @@ import { StockService } from './stock.service';
 import { StockGateway } from './stock.gateway';
 import { Unit } from 'generated/prisma';
 
-@Controller('stock')
+@Controller('stock-in')
 export class StockController {
   constructor(
     private readonly stockService: StockService,

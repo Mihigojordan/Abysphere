@@ -18,6 +18,7 @@ export interface Stock {
   description?: string;
   adminId: string;
   expiryDate?: string | Date;
+  categoryName?: string;
   createdAt: string;
   updatedAt: string;
 }

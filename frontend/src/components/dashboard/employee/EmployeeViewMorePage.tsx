@@ -299,12 +299,11 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
   }
 
   return (
-    <div className="h-[90vh] overflow-y-auto bg-gray-50 py-6">
+    <div className="h-[90vh] overflow-y-auto bg-theme-bg-secondary py-6 transition-colors duration-200">
       {notification && (
         <div
-          className={`fixed top-3 right-3 z-50 flex items-center gap-1.5 px-3 py-2 rounded shadow-lg ${
-            notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-          }`}
+          className={`fixed top-3 right-3 z-50 flex items-center gap-1.5 px-3 py-2 rounded shadow-lg ${notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`}
         >
           {notification.type === 'success' ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
           <span className="text-xs">{notification.message}</span>
@@ -312,8 +311,8 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
       )}
 
       {previewUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded p-3 max-w-3xl w-full max-h-[80vh] overflow-auto relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-theme-bg-primary rounded-2xl shadow-xl border border-theme-border p-3 max-w-3xl w-full max-h-[90vh] overflow-auto relative">
             <button
               onClick={closePreview}
               className="absolute top-1 right-1 text-gray-600 hover:text-gray-900"
@@ -330,35 +329,35 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
       )}
 
       {updateModalOpen && selectedContract && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded p-5 max-w-2xl w-full max-h-[80vh] overflow-auto relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-theme-bg-primary rounded-2xl shadow-xl border border-theme-border p-6 max-w-2xl w-full max-h-[90vh] overflow-auto relative">
             <button
               onClick={handleCloseUpdateModal}
-              className="absolute top-1 right-1 text-gray-600 hover:text-gray-900"
+              className="absolute top-4 right-4 text-theme-text-secondary hover:text-theme-text-primary transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Update Contract</h2>
+            <h2 className="text-xl font-bold text-theme-text-primary mb-6">Update Contract</h2>
             <form onSubmit={handleUpdateContract} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Contract Type</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Contract Type</label>
                   <input
                     type="text"
                     name="contractType"
                     value={formData.contractType || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Status</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Status</label>
                   <select
                     name="status"
                     value={formData.status || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                     required
                   >
                     <option value="">Select Status</option>
@@ -370,63 +369,63 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Start Date</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Start Date</label>
                   <input
                     type="date"
                     name="startDate"
                     value={formData.startDate || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">End Date</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">End Date</label>
                   <input
                     type="date"
                     name="endDate"
                     value={formData.endDate || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Salary</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Salary</label>
                   <input
                     type="number"
                     name="salary"
                     value={formData.salary || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Currency</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Currency</label>
                   <input
                     type="text"
                     name="currency"
                     value={formData.currency || ''}
                     onChange={handleFormChange}
-                    className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                    className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700">Benefits</label>
+                <label className="block text-xs font-medium text-theme-text-secondary">Benefits</label>
                 <textarea
                   name="benefits"
                   value={formData.benefits || ''}
                   onChange={handleFormChange}
-                  className="mt-0.5 block w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs"
+                  className="mt-0.5 block w-full rounded bg-theme-bg-secondary border-theme-border text-theme-text-primary shadow-sm focus:border-primary-500 focus:ring-primary-500 text-xs"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={handleCloseUpdateModal}
-                  className="px-3 py-1.5 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 text-xs"
+                  className="px-3 py-1.5 rounded bg-theme-bg-tertiary text-theme-text-secondary hover:text-theme-text-primary text-xs transition-colors"
                 >
                   Cancel
                 </button>
@@ -458,7 +457,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <button
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-3 text-xs"
+            className="flex items-center text-theme-text-secondary hover:text-theme-text-primary mb-3 text-xs transition-colors"
             onClick={() => navigate(`/${role}/dashboard/employee-management`)}
           >
             <ArrowLeft className="w-3 h-3 mr-1.5" />
@@ -466,57 +465,57 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-theme-text-primary">
                 {employee.first_name || ''} {employee.last_name || ''}
               </h1>
-              <p className="text-xs text-gray-600 mt-0.5">{employee.gender || 'N/A'}</p>
+              <p className="text-sm text-theme-text-secondary mt-1">{employee.gender || 'N/A'}</p>
             </div>
             <div className="text-right">
-              <div className="text-xs text-gray-500">Hire Date</div>
-              <div className="text-sm font-semibold">{formatDate(employee.date_hired)}</div>
+              <div className="text-xs text-theme-text-secondary uppercase tracking-wider font-medium">Hire Date</div>
+              <div className="text-base font-bold text-theme-text-primary">{formatDate(employee.date_hired)}</div>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Personal Information */}
-          <div className="bg-white rounded shadow">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                <User className="w-4 h-4 mr-1.5" />
+          <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+              <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                <User className="w-5 h-5 mr-2 text-primary-500" />
                 Personal Information
               </h2>
             </div>
             <div className="p-5">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Full Name</label>
-                  <p className="mt-0.5 text-xs text-gray-900">
+                  <label className="block text-xs font-medium text-theme-text-secondary">Full Name</label>
+                  <p className="mt-0.5 text-xs text-theme-text-primary">
                     {employee.first_name || ''} {employee.last_name || ''}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700">Gender</label>
-                    <p className="mt-0.5 text-xs text-gray-900">{employee.gender || 'N/A'}</p>
+                    <label className="block text-xs font-medium text-theme-text-secondary">Gender</label>
+                    <p className="mt-0.5 text-xs text-theme-text-primary">{employee.gender || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700">National ID</label>
-                    <p className="mt-0.5 text-xs text-gray-900">{employee.national_id || 'N/A'}</p>
+                    <label className="block text-xs font-medium text-theme-text-secondary">National ID</label>
+                    <p className="mt-0.5 text-xs text-theme-text-primary">{employee.national_id || 'N/A'}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Emergency Contact Name</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Emergency Contact Name</label>
                   <div className="flex items-center mt-0.5">
-                    <UserPlus className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{employee.emergency_contact_name || 'N/A'}</p>
+                    <UserPlus className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{employee.emergency_contact_name || 'N/A'}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Emergency Contact Phone</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Emergency Contact Phone</label>
                   <div className="flex items-center mt-0.5">
-                    <Phone className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{employee.emergency_contact_phone || 'N/A'}</p>
+                    <Phone className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{employee.emergency_contact_phone || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -524,27 +523,27 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
           </div>
 
           {/* Contact Information */}
-          <div className="bg-white rounded shadow">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                <Mail className="w-4 h-4 mr-1.5" />
+          <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+              <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                <Mail className="w-5 h-5 mr-2 text-primary-500" />
                 Contact Information
               </h2>
             </div>
             <div className="p-5">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Email</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Email</label>
                   <div className="flex items-center mt-0.5">
-                    <Mail className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{employee.email || 'N/A'}</p>
+                    <Mail className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{employee.email || 'N/A'}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Phone</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Phone</label>
                   <div className="flex items-center mt-0.5">
-                    <Phone className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{employee.phone || 'N/A'}</p>
+                    <Phone className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{employee.phone || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -552,35 +551,35 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
           </div>
 
           {/* Employment Information */}
-          <div className="bg-white rounded shadow">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                <Briefcase className="w-4 h-4 mr-1.5" />
+          <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+              <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                <Briefcase className="w-5 h-5 mr-2 text-primary-500" />
                 Employment Information
               </h2>
             </div>
             <div className="p-5">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Position</label>
-                  <p className="mt-0.5 text-xs text-gray-900">{employee.position || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Position</label>
+                  <p className="mt-0.5 text-xs text-theme-text-primary">{employee.position || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Department</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Department</label>
                   <div className="flex items-center mt-0.5">
-                    <Building2 className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{employee.department || 'N/A'}</p>
+                    <Building2 className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{employee.department || 'N/A'}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Status</label>
-                  <p className="mt-0.5 text-xs text-gray-900">{employee.status || 'N/A'}</p>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Status</label>
+                  <p className="mt-0.5 text-xs text-theme-text-primary">{employee.status || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Hire Date</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Hire Date</label>
                   <div className="flex items-center mt-0.5">
-                    <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                    <p className="text-xs text-gray-900">{formatDate(employee.date_hired)}</p>
+                    <Calendar className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                    <p className="text-xs text-theme-text-primary">{formatDate(employee.date_hired)}</p>
                   </div>
                 </div>
               </div>
@@ -588,28 +587,28 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
           </div>
 
           {/* Documents */}
-          <div className="bg-white rounded shadow">
-            <div className="px-5 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                <FileText className="w-4 h-4 mr-1.5" />
+          <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+              <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-primary-500" />
                 Documents
               </h2>
             </div>
             <div className="p-5">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700">Profile Picture</label>
+                  <label className="block text-xs font-medium text-theme-text-secondary">Profile Picture</label>
                   <div className="flex items-center mt-0.5">
                     {employee.profile_picture ? (
                       <button
                         onClick={() => handlePreview(employee.profile_picture)}
-                        className="text-blue-600 hover:underline flex items-center text-xs"
+                        className="text-primary-500 hover:underline flex items-center text-xs"
                       >
                         <File className="w-3 h-3 mr-1" />
                         Preview Profile Picture
                       </button>
                     ) : (
-                      <p className="text-xs text-gray-900">N/A</p>
+                      <p className="text-xs text-theme-text-primary">N/A</p>
                     )}
                   </div>
                 </div>
@@ -619,10 +618,10 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
 
           {/* Contract Information */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded shadow">
-              <div className="px-5 py-3 border-b border-gray-200">
-                <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                  <Briefcase className="w-4 h-4 mr-1.5" />
+            <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+                <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                  <Briefcase className="w-5 h-5 mr-2 text-primary-500" />
                   Contract Information
                 </h2>
               </div>
@@ -630,46 +629,45 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                 {currentContracts.length > 0 ? (
                   <div className="space-y-5">
                     {currentContracts.map((contract) => (
-                      <div key={contract.id} className="border-b border-gray-200 pb-3 last:border-b-0">
+                      <div key={contract.id} className="border-b border-theme-border pb-3 last:border-b-0">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">Contract Type</label>
-                            <p className="mt-0.5 text-xs text-gray-900">{contract.contractType || 'N/A'}</p>
+                            <label className="block text-xs font-medium text-theme-text-secondary">Contract Type</label>
+                            <p className="mt-0.5 text-xs text-theme-text-primary">{contract.contractType || 'N/A'}</p>
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">Status</label>
-                            <p className="mt-0.5 text-xs text-gray-900">{contract.status || 'N/A'}</p>
+                            <label className="block text-xs font-medium text-theme-text-secondary">Status</label>
+                            <p className="mt-0.5 text-xs text-theme-text-primary">{contract.status || 'N/A'}</p>
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">Start Date</label>
-                            <p className="text-xs text-gray-900">{formatDate(contract.startDate)}</p>
+                            <label className="block text-xs font-medium text-theme-text-secondary">Start Date</label>
+                            <p className="text-xs text-theme-text-primary">{formatDate(contract.startDate)}</p>
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">End Date</label>
-                            <p className="text-xs text-gray-900">
+                            <label className="block text-xs font-medium text-theme-text-secondary">End Date</label>
+                            <p className="text-xs text-theme-text-primary">
                               {contract.endDate ? formatDate(contract.endDate) : 'N/A'}
                             </p>
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">Salary</label>
-                            <p className="text-xs text-gray-900">
+                            <label className="block text-xs font-medium text-theme-text-secondary">Salary</label>
+                            <p className="text-xs text-theme-text-primary">
                               {formatCurrency(contract.salary, contract.currency || 'RWF')}
                             </p>
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700">Working Hours</label>
-                            <p className="text-xs text-gray-900">{contract.workingHours || 'N/A'}</p>
+                            <label className="block text-xs font-medium text-theme-text-secondary">Working Hours</label>
+                            <p className="text-xs text-theme-text-primary">{contract.workingHours || 'N/A'}</p>
                           </div>
                         </div>
                         <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => handleDownloadContractPDF(contract.id)}
                             disabled={downloadLoading === contract.id}
-                            className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${
-                              downloadLoading === contract.id
-                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
+                            className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${downloadLoading === contract.id
+                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              }`}
                           >
                             <Download className="w-3 h-3 mr-1.5" />
                             {downloadLoading === contract.id ? 'Downloading...' : 'Download PDF'}
@@ -684,11 +682,10 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                           <button
                             onClick={() => handleDeleteContract(contract)}
                             disabled={deleteLoading === contract.id}
-                            className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${
-                              deleteLoading === contract.id
-                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                : 'bg-red-600 text-white hover:bg-red-700'
-                            }`}
+                            className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${deleteLoading === contract.id
+                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                              : 'bg-red-600 text-white hover:bg-red-700'
+                              }`}
                           >
                             <Trash2 className="w-3 h-3 mr-1.5" />
                             {deleteLoading === contract.id ? 'Deleting...' : 'Delete'}
@@ -701,25 +698,23 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                         <button
                           onClick={() => paginate(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`px-3 py-1.5 rounded text-xs ${
-                            currentPage === 1
-                              ? 'bg-gray-200 text-gray-500'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
+                          className={`px-3 py-1.5 rounded text-xs ${currentPage === 1
+                            ? 'bg-gray-200 text-gray-500'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
                         >
                           Previous
                         </button>
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-theme-text-secondary">
                           Page {currentPage} of {totalPages}
                         </span>
                         <button
                           onClick={() => paginate(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`px-3 py-1.5 rounded text-xs ${
-                            currentPage === totalPages
-                              ? 'bg-gray-200 text-gray-500'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
+                          className={`px-3 py-1.5 rounded text-xs ${currentPage === totalPages
+                            ? 'bg-theme-bg-tertiary text-theme-text-secondary'
+                            : 'bg-primary-600 text-white hover:bg-primary-700'
+                            }`}
                         >
                           Next
                         </button>
@@ -727,7 +722,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-600">No contracts found for this employee.</p>
+                  <p className="text-xs text-theme-text-secondary">No contracts found for this employee.</p>
                 )}
               </div>
             </div>
@@ -735,27 +730,27 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
 
           {/* System Information */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded shadow">
-              <div className="px-5 py-3 border-b border-gray-200">
-                <h2 className="text-sm font-semibold text-gray-900 flex items-center">
-                  <Activity className="w-4 h-4 mr-1.5" />
+            <div className="bg-theme-bg-primary rounded-2xl border border-theme-border shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-theme-border bg-theme-bg-tertiary/30">
+                <h2 className="text-base font-bold text-theme-text-primary flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-primary-500" />
                   System Information
                 </h2>
               </div>
               <div className="p-5">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700">Created At</label>
+                    <label className="block text-xs font-medium text-theme-text-secondary">Created At</label>
                     <div className="flex items-center mt-0.5">
-                      <Clock className="w-3 h-3 text-gray-400 mr-1" />
-                      <p className="text-xs text-gray-900">{formatDateTime(employee.createdAt)}</p>
+                      <Clock className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                      <p className="text-xs text-theme-text-primary">{formatDateTime(employee.createdAt)}</p>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700">Last Updated</label>
+                    <label className="block text-xs font-medium text-theme-text-secondary">Last Updated</label>
                     <div className="flex items-center mt-0.5">
-                      <Clock className="w-3 h-3 text-gray-400 mr-1" />
-                      <p className="text-xs text-gray-900">{formatDateTime(employee.updatedAt)}</p>
+                      <Clock className="w-3 h-3 text-theme-text-secondary/50 mr-1" />
+                      <p className="text-xs text-theme-text-primary">{formatDateTime(employee.updatedAt)}</p>
                     </div>
                   </div>
                 </div>

@@ -1,8 +1,10 @@
 import {
-  Bell,
+  Maximize,
+  Minimize,
+  Sun,
+  Moon,
   LogOut,
   Menu,
-  Settings,
   User,
   Lock,
   ChevronDown,
@@ -16,6 +18,9 @@ import { useNavigate } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { API_URL } from "../../api/api";
+import { useTheme } from "../../context/ThemeContext";
+
+import LanguageSwitcher from "../common/LanguageSwitcher";
 
 interface HeaderProps {
   onToggle: () => void;
@@ -29,14 +34,35 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
   const navigate = useNavigate();
   const { user: adminUser, logout: adminLogout, lockAdmin } = useAdminAuth();
   const { user: employeeUser, logout: employeeLogout, lockEmployee } = useEmployeeAuth();
+  const { isDarkMode, changeTheme } = useTheme();
 
-  const user = role === "admin" ? adminUser : employeeUser;
   const logout = role === "admin" ? adminLogout : employeeLogout;
   const lock = role === "admin" ? lockAdmin : lockEmployee;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [isLocking, setIsLocking] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      changeTheme("default");
+    } else {
+      changeTheme("dark");
+    }
+  };
 
   const onLogout = async () => {
     try {
@@ -80,10 +106,10 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
   const isMessageValid = (): boolean => {
     if (!adminUser?.message) return false;
     if (!adminUser?.messageExpiry) return false;
-    
+
     const now = new Date();
     const expiry = new Date(adminUser.messageExpiry);
-    
+
     // Only show if current time is before or equal to expiry time
     return now <= expiry;
   };
@@ -166,6 +192,14 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
     return () => document.removeEventListener("keydown", handleEscapeKey);
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   return (
     <>
       <header className="bg-header-bg shadow-sm border-b border-theme-border transition-colors duration-200">
@@ -180,17 +214,28 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                   <Menu className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-theme-text-primary">
-                  MY SYSTEM 
+                  MY SYSTEM
                 </h1>
               </div>
             </div>
 
             <div className="flex md:items-center space-x-4">
-              <button className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors">
-                <Bell className="w-5 h-5" />
+              <LanguageSwitcher />
+
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
-              <button className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors">
-                <Settings className="w-5 h-5" />
+
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary rounded-lg transition-colors"
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
 
               <div className="relative" ref={dropdownRef}>
@@ -215,9 +260,8 @@ const Header: React.FC<HeaderProps> = ({ onToggle, role }) => {
                     <div className="text-xs text-primary-600">{role === "admin" ? "Administrator" : "Employee"}</div>
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-theme-text-secondary transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 text-theme-text-secondary transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
 

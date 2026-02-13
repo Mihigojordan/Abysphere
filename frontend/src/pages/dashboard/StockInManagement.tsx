@@ -7,32 +7,35 @@ import {
     Edit,
     Trash2,
     Download,
-    Grid3X3,
-    List,
+    Upload,
+    RefreshCw,
     Package,
+    AlertCircle,
     CheckCircle,
     XCircle,
-    AlertCircle,
-    ChevronRight,
-    ChevronLeft,
-    X,
-    Filter,
-    RefreshCw,
-    Eye,
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Filter,
     MoreHorizontal,
-    Upload
+    Eye,
+    TrendingUp,
+    X,
+    Grid3X3,
+    List
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
 import stockService, { type Stock } from '../../services/stockService';
 import DeleteStockModal from '../../components/dashboard/stock/DeleteStockInModal';
 import QuickUpdateStockModal from '../../components/dashboard/stock/QuickUpdateStockModal';
 import ViewStockModal from '../../components/dashboard/stock/ViewStockModal';
+import AddStockIn from './AddStockin';
 import ImportStockModal from '../../components/dashboard/stock/ImportStockModal';
-import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface OperationStatus {
     type: 'success' | 'error' | 'info';
@@ -48,7 +51,6 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('all');
     const [sortBy, setSortBy] = useState<keyof Stock>('createdAt');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [rowsPerPage] = useState(8);
@@ -70,9 +72,9 @@ const StockInManagement = ({ role }: { role: string }) => {
     const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
-
-    // const pdfContentRef = useRef<HTMLDivElement>(null);
+    const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     // Helper: Safely parse number
     const toNumber = (value: any): number => {
@@ -82,7 +84,7 @@ const StockInManagement = ({ role }: { role: string }) => {
 
     // Helper: Format currency
     const formatCurrency = (value: any): string => {
-        return `Rwf ${toNumber(value).toLocaleString()}`;
+        return `Rwf ${toNumber(value).toLocaleString()} `;
     };
 
     // === DATE RANGE CALCULATION ===
@@ -266,7 +268,7 @@ const StockInManagement = ({ role }: { role: string }) => {
             const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
             const filename = `stockin_export_${date}.pdf`;
 
-            const tableRows = filteredStocks.map((stock, index) => {
+            const tableRows = stocks.map((stock, index) => {
                 return `
                     <tr>
                         <td style="font-size:10px;">${index + 1}</td>
@@ -316,7 +318,7 @@ const StockInManagement = ({ role }: { role: string }) => {
                     </table>
                 </body>
                 </html>
-            `;
+    `;
 
             const opt = {
                 margin: 0.5,
@@ -429,74 +431,78 @@ const StockInManagement = ({ role }: { role: string }) => {
         const isLowStock = stock.receivedQuantity <= stock.reorderLevel;
 
         return (
-            <div className="bg-white rounded border border-gray-200 p-3 hover:shadow-sm transition-shadow">
-                <div className="flex items-center justify-between mb-2">
+            <div className="bg-theme-bg-primary rounded-xl border border-theme-border p-5 hover:shadow-md hover:scale-[1.01] transition-all group">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-[11px] font-bold shadow-md ${getAvatarColor(stock.itemName)}`}>
+                            {getInitials(stock.itemName)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-theme-text-primary text-sm truncate">{stock.itemName}</div>
+                            <div className="text-theme-text-secondary text-xs truncate">SKU: {stock.sku}</div>
+                        </div>
+                    </div>
                     <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-2 hover:bg-theme-bg-tertiary rounded-lg transition-colors"
                         >
-                            <MoreHorizontal className="w-3 h-3 text-gray-400" />
+                            <MoreHorizontal className="w-4 h-4 text-theme-text-secondary" />
                         </button>
                         {isDropdownOpen && (
-                            <div className="absolute right-0 top-6 bg-white shadow-lg rounded border py-1 z-10">
+                            <div className="absolute right-0 top-10 bg-theme-bg-primary shadow-xl rounded-xl border border-theme-border py-2 z-[60] min-w-[170px] animate-in fade-in zoom-in-95 duration-200">
                                 <button
                                     onClick={() => { handleViewStock(stock); setIsDropdownOpen(false); }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-4 py-2.5 text-xs text-theme-text-primary hover:bg-theme-bg-tertiary w-full font-medium transition-colors"
                                 >
-                                    <Eye className="w-3 h-3 mr-1" /> View
+                                    <Eye className="w-4 h-4 mr-3 text-primary-500" /> {t('stockIn.viewStock')}
                                 </button>
                                 <button
                                     onClick={() => { handleEditStock(stock); setIsDropdownOpen(false); }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-4 py-2.5 text-xs text-theme-text-primary hover:bg-theme-bg-tertiary w-full font-medium transition-colors"
                                 >
-                                    <Edit className="w-3 h-3 mr-1" /> Edit
+                                    <Edit className="w-4 h-4 mr-3 text-amber-500" /> {t('stockIn.editStock')}
                                 </button>
                                 <button
                                     onClick={() => { handleDeleteStock(stock); setIsDropdownOpen(false); }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    className="flex items-center px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 w-full font-medium transition-colors"
                                 >
-                                    <Trash2 className="w-3 h-3 mr-1" /> Delete
+                                    <Trash2 className="w-4 h-4 mr-3" /> {t('stockIn.deleteStock')}
                                 </button>
+                                <div className="h-px bg-theme-border my-2 mx-4" />
                                 <button
                                     onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); setIsDropdownOpen(false); }}
-                                    className="flex items-center px-2 py-1 text-xs text-primary-700 hover:bg-primary-50 w-full"
+                                    className="flex items-center px-4 py-2.5 text-xs text-primary-600 hover:bg-primary-50 w-full font-medium transition-colors"
                                 >
-                                    <RefreshCw className="w-3 h-3 mr-1" /> Quick Update
+                                    <RefreshCw className="w-4 h-4 mr-3" /> {t('stockIn.quickUpdate')}
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
-                <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${getAvatarColor(stock.itemName)}`}>
-                        {getInitials(stock.itemName)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-xs truncate">{stock.itemName}</div>
-                        <div className="text-gray-500 text-xs truncate">SKU: {stock.sku}</div>
-                    </div>
-                </div>
-                <div className="space-y-1 mb-2">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">Qty:</span>
-                        <span className={`font-medium ${isLowStock ? 'text-red-600' : ''}`}>
+
+                <div className="space-y-2.5 mb-5">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-theme-text-secondary">{t('stockIn.quantity')}:</span>
+                        <span className={`font-medium ${isLowStock ? 'text-red-600 bg-red-50 px-2 py-0.5 rounded-lg' : 'text-theme-text-primary'}`}>
                             {stock.receivedQuantity} {stock.unitOfMeasure}
                         </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">Value:</span>
-                        <span className="font-medium">{formatCurrency(stock.totalValue)}</span>
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-theme-text-secondary">{t('stockIn.totalValue')}:</span>
+                        <span className="font-semibold text-green-600">{formatCurrency(stock.totalValue)}</span>
                     </div>
                 </div>
-                <div className="flex items-center justify-between">
+
+                <div className="flex items-center justify-between pt-4 border-t border-theme-border text-xs">
+                    <span className="text-theme-text-secondary">{formatDate(stock.receivedDate)}</span>
                     {isLowStock ? (
-                        <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                            Low Stock
+                        <span className="px-2 py-1 font-medium rounded-lg bg-red-50 text-red-600 border border-red-100">
+                            {t('stockIn.lowStockStatus')}
                         </span>
                     ) : (
-                        <span className="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            In Stock
+                        <span className="px-2 py-1 font-medium rounded-lg bg-green-50 text-green-600 border border-green-100">
+                            {t('stockIn.inStock')}
                         </span>
                     )}
                 </div>
@@ -505,77 +511,87 @@ const StockInManagement = ({ role }: { role: string }) => {
     };
 
     const renderTableView = () => (
-        <div className="bg-white rounded border border-gray-200">
+        <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium">#</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium">SKU</th>
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="bg-theme-bg-tertiary border-b border-theme-border">
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">#</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockIn.sku')}</th>
                             <th
-                                className="text-left py-2 px-2 text-gray-600 font-medium cursor-pointer hover:bg-gray-100"
+                                className="px-5 py-3 text-left font-medium text-theme-text-secondary cursor-pointer hover:bg-theme-bg-secondary transition-colors"
                                 onClick={() => {
                                     setSortBy('itemName');
                                     setSortOrder(sortBy === 'itemName' && sortOrder === 'asc' ? 'desc' : 'asc');
                                 }}
                             >
-                                <div className="flex items-center space-x-1">
-                                    <span>Item Name</span>
-                                    <ChevronDown className={`w-3 h-3 ${sortBy === 'itemName' ? 'text-primary-600' : 'text-gray-400'}`} />
+                                <div className="flex items-center space-x-2">
+                                    <span>{t('stockIn.itemName')}</span>
+                                    <ChevronDown className={`w-3 h-3 transition-transform ${sortBy === 'itemName' ? 'text-primary-500' : 'text-theme-text-secondary opacity-50'} ${sortBy === 'itemName' && sortOrder === 'desc' ? 'rotate-180' : ''}`} />
                                 </div>
                             </th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden sm:table-cell">Qty</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden md:table-cell">Unit Cost</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden lg:table-cell">Total Value</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium hidden xl:table-cell">Location</th>
-                            <th className="text-left py-2 px-2 text-gray-600 font-medium">Status</th>
-                            <th className="text-right py-2 px-2 text-gray-600 font-medium">Actions</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden sm:table-cell">{t('stockIn.quantity')}</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden md:table-cell">{t('stockIn.unitCost')}</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden lg:table-cell">{t('stockIn.totalValue')}</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden xl:table-cell">{t('stockIn.location')}</th>
+                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockIn.status')}</th>
+                            <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">{t('stockIn.actions')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-theme-border">
                         {currentStocks.map((stock, index) => {
                             const isLowStock = stock.receivedQuantity <= stock.reorderLevel;
                             return (
-                                <tr key={stock.id} className="hover:bg-gray-25">
-                                    <td className="py-2 px-2 text-gray-700">{startIndex + index + 1}</td>
-                                    <td className="py-2 px-2 font-mono text-xs text-gray-900">{stock.sku}</td>
-                                    <td className="py-2 px-2">
-                                        <div className="flex items-center space-x-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${getAvatarColor(stock.itemName)}`}>
+                                <tr key={stock.id} className="hover:bg-theme-bg-tertiary transition-colors group">
+                                    <td className="px-5 py-4 text-theme-text-secondary">{startIndex + index + 1}</td>
+                                    <td className="px-5 py-4">
+                                        <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{stock.sku}</span>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-[10px] font-bold shadow-md ${getAvatarColor(stock.itemName)}`}>
                                                 {getInitials(stock.itemName)}
                                             </div>
-                                            <span className="font-medium text-gray-900 text-xs">{stock.itemName}</span>
+                                            <div>
+                                                <div className="font-medium text-theme-text-primary truncate max-w-[200px]">{stock.itemName}</div>
+                                                <div className="text-[10px] text-theme-text-secondary">{stock.categoryName || 'General'}</div>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td className="py-2 px-2 text-gray-700 hidden sm:table-cell">
-                                        {stock.receivedQuantity} {stock.unitOfMeasure}
+                                    <td className="px-5 py-4 font-medium text-theme-text-primary hidden sm:table-cell text-left">
+                                        {stock.receivedQuantity} <span className="text-theme-text-secondary text-[10px] ml-1">{stock.unitOfMeasure}</span>
                                     </td>
-                                    <td className="py-2 px-2 text-gray-700 hidden md:table-cell">
+                                    <td className="px-5 py-4 text-theme-text-secondary hidden md:table-cell">
                                         {formatCurrency(stock.unitCost)}
                                     </td>
-                                    <td className="py-2 px-2 text-gray-700 hidden lg:table-cell">
+                                    <td className="px-5 py-4 text-green-600 font-bold hidden lg:table-cell">
                                         {formatCurrency(stock.totalValue)}
                                     </td>
-                                    <td className="py-2 px-2 text-gray-700 hidden xl:table-cell">{stock.warehouseLocation}</td>
-                                    <td className="py-2 px-2">
-                                        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${isLowStock ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                                            }`}>
-                                            {isLowStock ? 'Low Stock' : 'In Stock'}
-                                        </span>
+                                    <td className="px-5 py-4 text-theme-text-secondary hidden xl:table-cell">{stock.warehouseLocation || '—'}</td>
+                                    <td className="px-5 py-4">
+                                        {isLowStock ? (
+                                            <span className="inline-flex px-2 py-1 text-[10px] font-medium rounded-lg bg-red-500/10 text-red-600 border border-red-500/20">
+                                                {t('stockIn.lowStockStatus')}
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex px-2 py-1 text-[10px] font-medium rounded-lg bg-green-500/10 text-green-600 border border-green-500/20">
+                                                {t('stockIn.inStock')}
+                                            </span>
+                                        )}
                                     </td>
-                                    <td className="py-2 px-2">
-                                        <div className="flex items-center justify-end space-x-1">
-                                            <button onClick={() => handleViewStock(stock)} className="text-gray-400 hover:text-primary-600 p-1" title="View">
-                                                <Eye className="w-3 h-3" />
+                                    <td className="px-5 py-4 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title={t('stockIn.viewStock')}>
+                                                <Eye className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50" title="Edit">
-                                                <Edit className="w-3 h-3" />
+                                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.editStock')}>
+                                                <Edit className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50" title="Delete">
-                                                <Trash2 className="w-3 h-3" />
+                                            <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.deleteStock')}>
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50" title="Quick Update">
-                                                <RefreshCw className="w-3 h-3" />
+                                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.quickUpdate')}>
+                                                <RefreshCw className="w-4 h-4" />
                                             </button>
                                         </div>
                                     </td>
@@ -597,44 +613,55 @@ const StockInManagement = ({ role }: { role: string }) => {
     );
 
     const renderListView = () => (
-        <div className="bg-white rounded border border-gray-200 divide-y divide-gray-100">
-            {currentStocks.map((stock) => {
-
-                return (
-                    <div key={stock.id} className="px-4 py-3 hover:bg-gray-25">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3 flex-1 min-w-0">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(stock.itemName)}`}>
-                                    {getInitials(stock.itemName)}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-gray-900 text-sm truncate">{stock.itemName}</div>
-                                    <div className="text-gray-500 text-xs truncate">SKU: {stock.sku}</div>
-                                </div>
+        <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border divide-y divide-theme-border overflow-hidden">
+            {currentStocks.map((stock) => (
+                <div key={stock.id} className="p-5 hover:bg-theme-bg-tertiary transition-all group">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                        <div className="flex items-center space-x-4 flex-1 min-w-0">
+                            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm ${getAvatarColor(stock.itemName)}`}>
+                                {getInitials(stock.itemName)}
                             </div>
-                            <div className="hidden md:grid grid-cols-3 gap-4 text-xs text-gray-600 flex-1 max-w-xl px-4">
-                                <span>{stock.receivedQuantity} {stock.unitOfMeasure}</span>
-                                <span>{formatCurrency(stock.totalValue)}</span>
-                                <span>{formatDate(stock.receivedDate)}</span>
-                            </div>
-                            <div className="flex items-center space-x-1 flex-shrink-0">
-                                <button onClick={() => handleViewStock(stock)} className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors" title="View Stock">
-                                    <Eye className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50" title="Edit Stock">
-                                    <Edit className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50" title="Delete Stock">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50" title="Quick Update">
-                                    <RefreshCw className="w-4 h-4" />
-                                </button>
+                            <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-theme-text-primary text-sm truncate">{stock.itemName}</div>
+                                <div className="flex items-center gap-3 mt-1.5">
+                                    <span className="text-primary-600 font-mono text-xs bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{stock.sku}</span>
+                                    <span className="text-theme-text-secondary text-xs">{formatDate(stock.receivedDate)}</span>
+                                </div>
                             </div>
                         </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-sm flex-1 max-w-2xl px-4">
+                            <div className="flex flex-col">
+                                <span className="text-theme-text-secondary text-xs mb-1">{t('stockIn.quantity')}</span>
+                                <span className="text-theme-text-primary font-medium">{stock.receivedQuantity} {stock.unitOfMeasure}</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-theme-text-secondary text-xs mb-1">{t('stockIn.totalValue')}</span>
+                                <span className="text-green-600 font-bold">{formatCurrency(stock.totalValue)}</span>
+                            </div>
+                            <div className="hidden md:flex flex-col">
+                                <span className="text-theme-text-secondary text-xs mb-1">{t('stockIn.status')}</span>
+                                <span className={`font-medium ${stock.receivedQuantity <= stock.reorderLevel ? 'text-red-600' : 'text-green-600'}`}>
+                                    {stock.receivedQuantity <= stock.reorderLevel ? t('stockIn.lowStockStatus') : t('stockIn.inStock')}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-center gap-2">
+                            <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title="View Stock">
+                                <Eye className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Edit Stock">
+                                <Edit className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Delete Stock">
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Quick Update">
+                                <RefreshCw className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
-                );
-            })}
+                </div>
+            ))}
         </div>
     );
 
@@ -649,24 +676,26 @@ const StockInManagement = ({ role }: { role: string }) => {
         for (let i = startPage; i <= endPage; i++) pages.push(i);
 
         return (
-            <div className="flex items-center justify-between bg-white px-3 py-2 border-t border-gray-200">
-                <div className="text-xs text-gray-600">
-                    Showing {startIndex + 1}-{Math.min(endIndex, filteredStocks.length)} of {filteredStocks.length}
+            <div className="flex items-center justify-between bg-theme-bg-tertiary px-6 py-4 border-t border-theme-border rounded-b-xl">
+                <div className="text-sm text-theme-text-secondary">
+                    Showing <span className="text-theme-text-primary px-1">{startIndex + 1}</span>–<span className="text-theme-text-primary px-1">{Math.min(endIndex, filteredStocks.length)}</span> of <span className="text-theme-text-primary px-1">{filteredStocks.length}</span>
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-2">
                     <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}
-                        className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <ChevronLeft className="w-3 h-3" />
+                        className="p-2 text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded-lg hover:bg-theme-bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm">
+                        <ChevronLeft className="w-4 h-4" />
                     </button>
-                    {pages.map((page) => (
-                        <button key={page} onClick={() => setCurrentPage(page)}
-                            className={`px-2 py-1 text-xs rounded ${currentPage === page ? 'bg-primary-500 text-white' : 'text-gray-700 bg-white border border-gray-200 hover:bg-gray-50'}`}>
-                            {page}
-                        </button>
-                    ))}
+                    <div className="flex items-center gap-1">
+                        {pages.map((page) => (
+                            <button key={page} onClick={() => setCurrentPage(page)}
+                                className={`min-w-[32px] h-8 text-xs font-medium rounded-lg transition-all ${currentPage === page ? 'bg-primary-600 text-white shadow-md' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary border border-theme-border'}`}>
+                                {page}
+                            </button>
+                        ))}
+                    </div>
                     <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}
-                        className="flex items-center px-2 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <ChevronRight className="w-3 h-3" />
+                        className="p-2 text-theme-text-secondary bg-theme-bg-primary border border-theme-border rounded-lg hover:bg-theme-bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm">
+                        <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
             </div>
@@ -740,140 +769,119 @@ const StockInManagement = ({ role }: { role: string }) => {
                     </div>
                 </div>
             )}
-            <div className="bg-white shadow-md">
-                <div className="px-4 py-3">
+            <div className="bg-theme-bg-primary shadow-sm border-b border-theme-border">
+                <div className="px-5 py-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-lg font-semibold text-gray-900">Stock In Management</h1>
-                            <p className="text-xs text-gray-500 mt-0.5">Track incoming inventory and stock levels</p>
+                            <h1 className="text-xl font-bold text-theme-text-primary">{t('stockIn.title')}</h1>
+                            <p className="text-xs text-theme-text-secondary mt-1">{t('stockIn.subtitle')}</p>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-3">
                             <button onClick={async () => {
                                 setLoading(true);
-                                const data = await stockService.getAllStocks();
-                                setAllStocks((Array.isArray(data) ? data : [data]).map(s => ({
-                                    ...s,
-                                    unitCost: toNumber(s.unitCost),
-                                    receivedQuantity: parseInt(s.receivedQuantity as any) || 0,
-                                    totalValue: toNumber(s.totalValue),
-                                    reorderLevel: parseInt(s.reorderLevel as any) || 0,
-                                })));
-                                setLoading(false);
-                            }} disabled={loading} className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50" title="Refresh">
-                                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-                                <span>Refresh</span>
+                                try {
+                                    const data = await stockService.getAllStocks();
+                                    setAllStocks((Array.isArray(data) ? data : [data]).map(s => ({
+                                        ...s,
+                                        unitCost: toNumber(s.unitCost),
+                                        receivedQuantity: parseInt(s.receivedQuantity as any) || 0,
+                                        totalValue: toNumber(s.totalValue),
+                                        reorderLevel: parseInt(s.reorderLevel as any) || 0,
+                                    })));
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }} disabled={loading} className="flex items-center gap-2 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-lg hover:bg-theme-bg-tertiary disabled:opacity-50 transition-all" title={t('stockIn.refresh')}>
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                <span className="text-xs font-medium">{t('stockIn.refresh')}</span>
                             </button>
                             <button onClick={handleExportPDF} disabled={operationLoading || filteredStocks.length === 0}
-                                className="flex items-center space-x-1 px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50" title="Export PDF">
-                                <Download className="w-3 h-3" />
-                                <span>Export</span>
+                                className="flex items-center gap-2 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-lg hover:bg-theme-bg-tertiary disabled:opacity-50 transition-all" title={t('stockIn.export')}>
+                                <Download className="w-4 h-4" />
+                                <span className="text-xs font-medium">{t('stockIn.export')}</span>
                             </button>
                             <button onClick={handleAddStock} disabled={operationLoading}
-                                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50">
-                                <Plus className="w-3 h-3" />
-                                <span>Receive Stock</span>
+                                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md shadow-primary-600/20 transition-all disabled:opacity-50">
+                                <Plus className="w-4 h-4" />
+                                <span className="text-xs">{t('stockIn.receiveStock')}</span>
                             </button>
                             <button onClick={() => setIsImportModalOpen(true)} disabled={operationLoading}
-                                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50">
-                                <Upload className="w-3 h-3" />
-                                <span>Import Stock</span>
+                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50">
+                                <Upload className="w-4 h-4" />
+                                <span className="text-xs">{t('stockIn.importStock')}</span>
                             </button>
                         </div>
                     </div>
-
-                    {/* Filters Section */}
-                    <div className="mt-4 flex flex-wrap gap-2 items-center text-xs">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="Search all fields..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-primary-500 focus:border-primary-500 w-48"
-                            />
-                            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2" />
-                        </div>
-
-
-
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center px-3 py-1.5 border rounded ${showFilters ? 'bg-primary-50 border-primary-200 text-primary-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            <Filter className="w-3.5 h-3.5 mr-1" /> Filters
-                        </button>
-                    </div>
-
                 </div>
             </div>
 
             <div className="px-4 py-4 space-y-4">
                 {/* STATS */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="bg-white rounded shadow p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-primary-100 rounded-full flex items-center justify-center">
-                                <Package className="w-5 h-5 text-primary-600" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5 hover:shadow-md transition-shadow">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-primary-500/10 rounded-xl flex items-center justify-center">
+                                <Package className="w-6 h-6 text-primary-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Total Items</p>
-                                <p className="text-lg font-semibold text-gray-900">{totalStockItems}</p>
+                                <p className="text-xs font-medium text-theme-text-secondary">{t('stockIn.totalItems')}</p>
+                                <p className="text-2xl font-bold text-theme-text-primary">{totalStockItems}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5 hover:shadow-md transition-shadow">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-emerald-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Total Value</p>
-                                <p className="text-lg font-semibold text-gray-900">{formatCurrency(totalValue)}</p>
+                                <p className="text-xs font-medium text-theme-text-secondary">{t('stockIn.totalValue')}</p>
+                                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(totalValue)}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-orange-100 rounded-full flex items-center justify-center">
-                                <AlertCircle className="w-5 h-5 text-orange-600" />
+                    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5 hover:shadow-md transition-shadow">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-rose-500/10 rounded-xl flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-rose-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">Low Stock</p>
-                                <p className="text-lg font-semibold text-gray-900">{lowStockItems}</p>
+                                <p className="text-xs font-medium text-theme-text-secondary">{t('stockIn.lowStock')}</p>
+                                <p className="text-2xl font-bold text-rose-600">{lowStockItems}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded shadow p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-3 bg-purple-100 rounded-full flex items-center justify-center">
-                                <Package className="w-5 h-5 text-purple-600" />
+                    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5 hover:shadow-md transition-shadow">
+                        <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                                <Package className="w-6 h-6 text-amber-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-gray-600">High Value</p>
-                                <p className="text-lg font-semibold text-gray-900">{highValueItems}</p>
+                                <p className="text-xs font-medium text-theme-text-secondary">{t('stockIn.highValue')}</p>
+                                <p className="text-2xl font-bold text-theme-text-primary">{highValueItems}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* SEARCH & FILTERS */}
-                <div className="bg-white rounded border border-gray-200 p-3">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0 gap-3">
+                <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-5">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                         {/* Search + Date Filter */}
-                        <div className="flex items-center space-x-2 flex-1">
-                            <div className="relative">
-                                <Search className="w-3 h-3 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" />
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1">
+                            <div className="relative flex-1 max-w-sm">
+                                <Search className="w-4 h-4 text-theme-text-secondary absolute left-3 top-1/2 transform -translate-y-1/2" />
                                 <input
                                     type="text"
-                                    placeholder="Search stock..."
+                                    placeholder={t('stockIn.searchPlaceholder')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-48 pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                    className="w-full pl-10 pr-4 py-2 text-xs border border-theme-border rounded-lg bg-theme-bg-secondary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all placeholder:text-theme-text-secondary/50"
                                 />
                             </div>
 
                             {/* Date Filter Buttons */}
-                            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                            <div className="flex gap-1 bg-theme-bg-tertiary/50 p-1 rounded-lg border border-theme-border">
                                 {(['all', 'today', 'week', 'month', 'custom'] as const).map((opt) => (
                                     <button
                                         key={opt}
@@ -884,38 +892,45 @@ const StockInManagement = ({ role }: { role: string }) => {
                                                 setCustomEndDate('');
                                             }
                                         }}
-                                        className={`px-3 py-1.5 text-xs font-medium rounded capitalize transition-colors ${dateFilter === opt
-                                            ? 'bg-white text-primary-600 shadow-sm'
-                                            : 'text-gray-600 hover:text-gray-900'
+                                        className={`px-3 py-1.5 text-[10px] font-medium rounded-md capitalize transition-all ${dateFilter === opt
+                                            ? 'bg-theme-bg-primary text-primary-600 shadow-sm border border-theme-border'
+                                            : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'
                                             }`}
                                     >
-                                        {opt === 'all' ? 'All Time' : opt}
+                                        {opt === 'all' ? t('stockIn.allTime') :
+                                            opt === 'today' ? t('stockIn.today') :
+                                                opt === 'week' ? t('stockIn.week') :
+                                                    opt === 'month' ? t('stockIn.month') : t('stockIn.custom')}
                                     </button>
                                 ))}
                             </div>
 
                             {/* Custom Date Inputs */}
                             {dateFilter === 'custom' && (
-                                <div className="flex items-center gap-2">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-2"
+                                >
                                     <input
                                         type="date"
                                         value={customStartDate}
                                         onChange={(e) => setCustomStartDate(e.target.value)}
-                                        className="px-3 py-1.5 text-xs border rounded"
+                                        className="px-3 py-1.5 text-xs bg-theme-bg-secondary border border-theme-border rounded-lg text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                                     />
-                                    <span className="text-gray-500 text-sm">to</span>
+                                    <span className="text-theme-text-secondary text-xs">{t('stockIn.to')}</span>
                                     <input
                                         type="date"
                                         value={customEndDate}
                                         onChange={(e) => setCustomEndDate(e.target.value)}
-                                        className="px-3 py-1.5 text-xs border rounded"
+                                        className="px-3 py-1.5 text-xs bg-theme-bg-secondary border border-theme-border rounded-lg text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                                     />
-                                </div>
+                                </motion.div>
                             )}
                         </div>
 
                         {/* Sort & View Mode */}
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-3">
                             <select
                                 value={`${sortBy}-${sortOrder}`}
                                 onChange={(e) => {
@@ -923,26 +938,26 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     setSortBy(field);
                                     setSortOrder(order);
                                 }}
-                                className="text-xs border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                className="text-xs bg-theme-bg-secondary border border-theme-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500/20 text-theme-text-primary cursor-pointer hover:bg-theme-bg-tertiary transition-all"
                             >
-                                <option value="itemName-asc">Name (A-Z)</option>
-                                <option value="itemName-desc">Name (Z-A)</option>
-                                <option value="receivedDate-desc">Newest First</option>
-                                <option value="receivedDate-asc">Oldest First</option>
-                                <option value="receivedQuantity-desc">Highest Quantity</option>
-                                <option value="receivedQuantity-asc">Lowest Quantity</option>
-                                <option value="totalValue-desc">Highest Value</option>
-                                <option value="totalValue-asc">Lowest Value</option>
+                                <option value="itemName-asc">{t('stockIn.sort.nameAsc')}</option>
+                                <option value="itemName-desc">{t('stockIn.sort.nameDesc')}</option>
+                                <option value="receivedDate-desc">{t('stockIn.sort.newest')}</option>
+                                <option value="receivedDate-asc">{t('stockIn.sort.oldest')}</option>
+                                <option value="receivedQuantity-desc">{t('stockIn.sort.qtyHigh')}</option>
+                                <option value="receivedQuantity-asc">{t('stockIn.sort.qtyLow')}</option>
+                                <option value="totalValue-desc">{t('stockIn.sort.valHigh')}</option>
+                                <option value="totalValue-asc">{t('stockIn.sort.valLow')}</option>
                             </select>
-                            <div className="flex items-center border border-gray-200 rounded">
-                                <button onClick={() => setViewMode('table')} className={`p-1.5 text-xs transition-colors ${viewMode === 'table' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`} title="Table View">
-                                    <List className="w-3 h-3" />
+                            <div className="flex items-center bg-theme-bg-tertiary/50 p-1 rounded-lg border border-theme-border">
+                                <button onClick={() => setViewMode('table')} className={`p-2 rounded transition-all ${viewMode === 'table' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`} title={t('stockIn.sort.tableView')}>
+                                    <List className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setViewMode('grid')} className={`p-1.5 text-xs transition-colors ${viewMode === 'grid' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`} title="Grid View">
-                                    <Grid3X3 className="w-3 h-3" />
+                                <button onClick={() => setViewMode('grid')} className={`p-2 rounded transition-all ${viewMode === 'grid' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`} title={t('stockIn.sort.gridView')}>
+                                    <Grid3X3 className="w-4 h-4" />
                                 </button>
-                                <button onClick={() => setViewMode('list')} className={`p-1.5 text-xs transition-colors ${viewMode === 'list' ? 'bg-primary-50 text-primary-600' : 'text-gray-400 hover:text-gray-600'}`} title="List View">
-                                    <Package className="w-3 h-3" />
+                                <button onClick={() => setViewMode('list')} className={`p-2 rounded transition-all ${viewMode === 'list' ? 'bg-theme-bg-primary shadow-sm text-primary-600 border border-theme-border' : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-bg-tertiary'}`} title={t('stockIn.sort.listView')}>
+                                    <Package className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
@@ -962,25 +977,37 @@ const StockInManagement = ({ role }: { role: string }) => {
                                 </select>
                                 <button onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setDateFilter('all'); setCustomStartDate(''); setCustomEndDate(''); }}
                                     className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 border border-gray-200 rounded">
-                                    Clear Filters
+                                    {t('stockIn.clearFilters')}
                                 </button>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {error && <div className="bg-red-50 border border-red-200 rounded p-3 text-red-700 text-xs">{error}</div>}
+                {error && (
+                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-600 text-xs font-medium animate-in shake-1">
+                        <div className="flex items-center gap-3">
+                            <XCircle className="w-5 h-5" />
+                            {error}
+                        </div>
+                    </div>
+                )}
                 {loading ? (
-                    <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
-                        <div className="inline-flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-xs">Loading stock items...</span>
+                    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-16 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-sm font-medium text-theme-text-secondary">{t('stockIn.loading')}</span>
                         </div>
                     </div>
                 ) : currentStocks.length === 0 ? (
-                    <div className="bg-white rounded border border-gray-200 p-8 text-center text-gray-500">
-                        <div className="text-xs">
-                            {searchTerm || categoryFilter !== 'all' || dateFilter !== 'all' ? 'No stock items found' : 'No stock received yet'}
+                    <div className="bg-theme-bg-primary rounded-2xl shadow-xl border border-theme-border p-16 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 bg-theme-bg-tertiary rounded-full flex items-center justify-center text-theme-text-secondary">
+                                <Search className="w-8 h-8" />
+                            </div>
+                            <div className="text-sm font-medium text-theme-text-secondary">
+                                {searchTerm || categoryFilter !== 'all' || dateFilter !== 'all' ? t('stockIn.noStockFound') : t('stockIn.noStockReceived')}
+                            </div>
                         </div>
                     </div>
                 ) : (

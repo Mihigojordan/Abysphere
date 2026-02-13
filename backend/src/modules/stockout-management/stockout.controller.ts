@@ -22,7 +22,7 @@ export class StockoutController {
   @Get('performance')
   @UseGuards(AdminJwtAuthGuard)
   async getProductPerformance(@Req() req: RequestWithAdmin) {
-    return await this.stockoutService.getProductPerformance(req.admin.id);
+    return await this.stockoutService.getProductPerformance(req.admin!.id);
   }
 
   @Post('create')

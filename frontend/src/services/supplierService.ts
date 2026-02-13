@@ -23,7 +23,7 @@ class SupplierService {
   // 🟢 Create supplier
   async createSupplier(supplierData: Supplier): Promise<Supplier> {
     try {
-      const response: AxiosResponse<Supplier> = await api.post('/supplier/create', supplierData);
+      const response: AxiosResponse<Supplier> = await api.post('/supplier', supplierData);
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to create supplier');
@@ -54,7 +54,7 @@ class SupplierService {
   // 🔵 Update supplier
   async updateSupplier(id: string, supplierData: Supplier): Promise<Supplier> {
     try {
-      const response: AxiosResponse<Supplier> = await api.put(`/supplier/update/${id}`, supplierData);
+      const response: AxiosResponse<Supplier> = await api.put(`/supplier/${id}`, supplierData);
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to update supplier');
@@ -64,7 +64,7 @@ class SupplierService {
   // 🔴 Delete supplier
   async deleteSupplier(id: string): Promise<{ message: string }> {
     try {
-      const response: AxiosResponse<{ message: string }> = await api.delete(`/supplier/delete/${id}`);
+      const response: AxiosResponse<{ message: string }> = await api.delete(`/supplier/${id}`);
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to delete supplier');

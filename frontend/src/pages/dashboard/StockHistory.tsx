@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Package, Calendar, Download, ArrowLeft, RefreshCw, CheckCircle, XCircle, AlertCircle, X, ChevronLeft, ChevronRight, Filter, Search, ArrowUpCircle, ArrowDownCircle, Settings } from 'lucide-react';
+import { Package, Download, ArrowLeft, RefreshCw, CheckCircle, XCircle, AlertCircle, X, ChevronLeft, ChevronRight, Search, ArrowUpCircle, ArrowDownCircle, Settings } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import stockService, { type Stock, type StockHistoryRecord } from '../../services/stockService';
 import { useSocketEvent } from '../../context/SocketContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface OperationStatus {
   type: 'success' | 'error' | 'info';
@@ -19,7 +20,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [history, setHistory] = useState<StockHistoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  // const [error, setError] = useState<string | null>(null); // Removed unused error state
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   const [operationLoading, setOperationLoading] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<string>(searchParams.get('startDate') || '');
@@ -28,7 +29,8 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [movementFilter, setMovementFilter] = useState<'ALL' | 'IN' | 'OUT' | 'ADJUSTMENT'>('ALL');
   const itemsPerPage = 20;
-  const pdfContentRef = useRef<HTMLDivElement>(null);
+  // const pdfContentRef = useRef<HTMLDivElement>(null); // Removed unused ref
+  const { t } = useLanguage();
 
   // Fetch all stock history
   useEffect(() => {
@@ -37,12 +39,10 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         setLoading(true);
         const records = await stockService.getStockHistory();
         setHistory(records || []);
-        setError(null);
+        // setError(null);
       } catch (err: any) {
-        const errorMessage = err.message || 'Failed to load stock history';
         console.error('Error fetching stock history:', err);
-        setError(errorMessage);
-        showOperationStatus('error', errorMessage);
+        showOperationStatus('error', t('stockHistory.exportError'));
       } finally {
         setLoading(false);
       }
@@ -63,13 +63,13 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   useSocketEvent('stockHistoryCreated', async () => {
     const records = await stockService.getStockHistory();
     setHistory(records || []);
-    showOperationStatus('success', 'New stock history record added');
+    showOperationStatus('success', t('stockHistory.newRecord'));
   });
 
   useSocketEvent('stockUpdated', async (stockData: Stock) => {
     const records = await stockService.getStockHistory();
     setHistory(records || []);
-    showOperationStatus('success', `Stock item ${stockData.itemName} updated`);
+    showOperationStatus('success', `${t('stockHistory.stockUpdated')}: ${stockData.itemName}`);
   });
 
   // Operation status handler
@@ -166,10 +166,11 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
   const handleFilter = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setCurrentPage(1);
+    setCurrentPage(1);
     if (!startDate || !endDate) {
-      showOperationStatus('info', 'Date filter cleared');
+      showOperationStatus('info', t('stockHistory.dateFilterCleared'));
     } else {
-      showOperationStatus('success', 'Date filter applied');
+      showOperationStatus('success', t('stockHistory.dateFilterApplied'));
     }
   };
 
@@ -179,7 +180,8 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
     setEndDate('');
     setCurrentPage(1);
     setSearchParams({}, { replace: true });
-    showOperationStatus('info', 'Date filter cleared');
+    setSearchParams({}, { replace: true });
+    showOperationStatus('info', t('stockHistory.dateFilterCleared'));
   };
 
   // Export to PDF
@@ -255,10 +257,10 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       };
 
       await html2pdf().from(htmlContent).set(opt).save();
-      showOperationStatus('success', 'Stock history exported successfully');
+      showOperationStatus('success', t('stockHistory.exportSuccess'));
     } catch (err: any) {
       console.error('Error generating PDF:', err);
-      showOperationStatus('error', 'Failed to export stock history');
+      showOperationStatus('error', t('stockHistory.exportError'));
     } finally {
       setOperationLoading(false);
     }
@@ -270,11 +272,11 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       setLoading(true);
       const records = await stockService.getStockHistory();
       setHistory(records || []);
-      setError(null);
-      showOperationStatus('success', 'Data refreshed');
+      // setError(null);
+      showOperationStatus('success', t('stockHistory.refreshSuccess'));
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to refresh data';
-      setError(errorMessage);
+      const errorMessage = err.message || t('stockHistory.refreshError');
+      // setError(errorMessage);
       showOperationStatus('error', errorMessage);
     } finally {
       setLoading(false);
@@ -314,7 +316,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         <div className="bg-theme-bg-primary rounded border border-theme-border p-8 text-center text-theme-text-secondary text-xs">
           <div className="inline-flex items-center space-x-2">
             <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-            <span>Loading stock history...</span>
+            <span>{t('stockHistory.loading')}</span>
           </div>
         </div>
       </div>
@@ -328,15 +330,15 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         <div className="fixed top-4 right-4 z-50">
           <div
             className={`flex items-center space-x-2 px-3 py-2 rounded shadow-lg text-xs ${operationStatus.type === 'success'
-              ? 'bg-green-50 border border-green-200 text-green-800'
+              ? 'bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400'
               : operationStatus.type === 'error'
-                ? 'bg-red-50 border border-red-200 text-red-800'
-                : 'bg-primary-50 border border-primary-200 text-primary-800'
+                ? 'bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400'
+                : 'bg-primary-500/10 border border-primary-500/20 text-primary-700 dark:text-primary-400'
               }`}
           >
-            {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-600" />}
-            {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-600" />}
-            {operationStatus.type === 'info' && <AlertCircle className="w-4 h-4 text-primary-600" />}
+            {operationStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
+            {operationStatus.type === 'error' && <XCircle className="w-4 h-4 text-red-500" />}
+            {operationStatus.type === 'info' && <AlertCircle className="w-4 h-4 text-primary-500" />}
             <span className="font-medium">{operationStatus.message}</span>
             <button onClick={() => setOperationStatus(null)} className="hover:opacity-70">
               <X className="w-3 h-3" />
@@ -347,11 +349,11 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
 
       {/* Operation Loading */}
       {operationLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
-          <div className="bg-white rounded p-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40">
+          <div className="bg-theme-bg-primary border border-theme-border rounded p-4 shadow-xl">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-gray-700 text-xs font-medium">Processing...</span>
+              <span className="text-theme-text-primary text-xs font-medium">{t('stockHistory.processing')}</span>
             </div>
           </div>
         </div>
@@ -362,35 +364,35 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-theme-text-primary">Stock History</h1>
-              <p className="text-xs text-theme-text-secondary mt-0.5">Track all stock movement transactions</p>
+              <h1 className="text-lg font-semibold text-theme-text-primary">{t('stockHistory.title')}</h1>
+              <p className="text-xs text-theme-text-secondary mt-0.5">{t('stockHistory.subtitle')}</p>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => navigate(`/${role}/dashboard/stock-management`)}
                 className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary"
-                title="Back to Stock Management"
+                title={t('stockHistory.back')}
               >
                 <ArrowLeft className="w-3 h-3" />
-                <span>Back</span>
+                <span>{t('stockHistory.back')}</span>
               </button>
               <button
                 onClick={handleRefresh}
                 disabled={loading}
                 className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
-                title="Refresh"
+                title={t('stockHistory.refresh')}
               >
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <span>{t('stockHistory.refresh')}</span>
               </button>
               <button
                 onClick={handleExportPDF}
                 disabled={operationLoading || filteredHistory.length === 0}
                 className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50"
-                title="Export PDF"
+                title={t('stockHistory.export')}
               >
                 <Download className="w-3 h-3" />
-                <span>Export</span>
+                <span>{t('stockHistory.export')}</span>
               </button>
             </div>
           </div>
@@ -401,41 +403,41 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
       <div className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+          <div className="bg-theme-bg-primary rounded shadow-sm border border-theme-border p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-green-100 rounded-full flex items-center justify-center">
-                <ArrowUpCircle className="w-5 h-5 text-green-600" />
+              <div className="p-3 bg-green-500/10 rounded-full flex items-center justify-center">
+                <ArrowUpCircle className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <p className="text-xs text-theme-text-secondary">Stock In</p>
+                <p className="text-xs text-theme-text-secondary">{t('stockHistory.stockIn')}</p>
                 <p className="text-lg font-semibold text-theme-text-primary">{stats.totalIn.toFixed(1)}</p>
-                <p className="text-xs text-theme-text-secondary">{stats.inCount} movements</p>
+                <p className="text-[10px] text-theme-text-secondary">{stats.inCount} {t('stockHistory.movements')}</p>
               </div>
             </div>
           </div>
-          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+          <div className="bg-theme-bg-primary rounded shadow-sm border border-theme-border p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-red-100 rounded-full flex items-center justify-center">
-                <ArrowDownCircle className="w-5 h-5 text-red-600" />
+              <div className="p-3 bg-red-500/10 rounded-full flex items-center justify-center">
+                <ArrowDownCircle className="w-5 h-5 text-red-500" />
               </div>
               <div>
-                <p className="text-xs text-theme-text-secondary">Stock Out</p>
+                <p className="text-xs text-theme-text-secondary">{t('stockHistory.stockOut')}</p>
                 <p className="text-lg font-semibold text-theme-text-primary">{stats.totalOut.toFixed(1)}</p>
-                <p className="text-xs text-theme-text-secondary">{stats.outCount} movements</p>
+                <p className="text-[10px] text-theme-text-secondary">{stats.outCount} {t('stockHistory.movements')}</p>
               </div>
             </div>
           </div>
-          <div className="bg-theme-bg-primary rounded shadow border border-theme-border p-4">
+          <div className="bg-theme-bg-primary rounded shadow-sm border border-theme-border p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-100 rounded-full flex items-center justify-center">
-                <Settings className="w-5 h-5 text-blue-600" />
+              <div className="p-3 bg-primary-500/10 rounded-full flex items-center justify-center">
+                <Settings className="w-5 h-5 text-primary-500" />
               </div>
               <div>
-                <p className="text-xs text-theme-text-secondary">Net Change</p>
-                <p className={`text-lg font-semibold ${stats.netChange >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                <p className="text-xs text-theme-text-secondary">{t('stockHistory.netChange')}</p>
+                <p className={`text-lg font-semibold ${stats.netChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {stats.netChange >= 0 ? '+' : ''}{stats.netChange.toFixed(1)}
                 </p>
-                <p className="text-xs text-theme-text-secondary">{stats.adjustmentCount} adjustments</p>
+                <p className="text-[10px] text-theme-text-secondary">{stats.adjustmentCount} {t('stockHistory.adjustments')}</p>
               </div>
             </div>
           </div>
@@ -449,7 +451,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
               <Search className="w-3 h-3 text-theme-text-secondary absolute left-2 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search product, notes, user..."
+                placeholder={t('stockHistory.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="w-56 pl-7 pr-3 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
@@ -467,7 +469,9 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                     : 'text-theme-text-secondary hover:text-theme-text-primary'
                     }`}
                 >
-                  {type === 'ALL' ? 'All' : type}
+                  {type === 'ALL' ? t('stockHistory.all') :
+                    type === 'IN' ? t('stockHistory.in') :
+                      type === 'OUT' ? t('stockHistory.out') : t('stockHistory.adjustment')}
                 </button>
               ))}
             </div>
@@ -480,7 +484,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="px-2 py-1.5 text-xs border border-theme-border rounded bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
-              <span className="text-theme-text-secondary text-xs">to</span>
+              <span className="text-theme-text-secondary text-xs">{t('stockIn.to')}</span>
               <input
                 type="date"
                 value={endDate}
@@ -491,14 +495,14 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                 onClick={handleFilter}
                 className="px-3 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary text-xs"
               >
-                Apply
+                {t('stockHistory.apply')}
               </button>
               {(startDate || endDate) && (
                 <button
                   onClick={handleClearFilter}
                   className="px-3 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary text-xs"
                 >
-                  Clear
+                  {t('stockHistory.clear')}
                 </button>
               )}
             </div>
@@ -518,25 +522,25 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
               <thead className="bg-theme-bg-tertiary border-b border-theme-border">
                 <tr>
                   <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">#</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Product Name</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Movement</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Source</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty Before</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty Change</th>
-                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Qty After</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.productName')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.movement')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.source')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.qtyBefore')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.qtyChange')}</th>
+                  <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.qtyAfter')}</th>
                   {role === 'admin' && (
-                    <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">Unit Price</th>
+                    <th className="text-right py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.unitPrice')}</th>
                   )}
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Notes</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">By</th>
-                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">Date</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.notes')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.by')}</th>
+                  <th className="text-left py-2 px-2 text-theme-text-secondary font-medium">{t('stockHistory.date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-theme-border">
                 {paginatedHistory.length === 0 ? (
                   <tr>
                     <td colSpan={role === 'admin' ? 11 : 10} className="px-2 py-8 text-center text-xs text-theme-text-secondary">
-                      No stock history records found
+                      {t('stockHistory.noRecords')}
                     </td>
                   </tr>
                 ) : (
@@ -609,7 +613,7 @@ const StockHistoryAll: React.FC<Props> = ({ role }) => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-2 py-1 text-xs rounded ${currentPage === page
+                        className={`px-2 py-1 text-[10px] rounded transition-colors ${currentPage === page
                           ? 'bg-primary-600 text-white'
                           : 'text-theme-text-primary hover:bg-theme-bg-tertiary border border-theme-border'
                           }`}

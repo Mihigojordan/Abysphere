@@ -17,7 +17,6 @@ import {
   PanelLeft,
   ShoppingCart,
   ClipboardCheck,
-  Package,
   Tags,
   Truck,
   AlertTriangle
@@ -27,6 +26,7 @@ import useAdminAuth from "../../context/AdminAuthContext";
 import useEmployeeAuth from "../../context/EmployeeAuthContext";
 import { API_URL } from "../../api/api";
 import PWAInstallButton from "./PWAInstallButton";
+import { useLanguage } from "../../context/LanguageContext";
 
 /* -------------------------------------------------------------------------- */
 /*  LocalStorage key for sidebar collapsed state                              */
@@ -84,6 +84,7 @@ interface SidebarProps {
 
 /* -------------------------------------------------------------------------- */
 const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
+  const { t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation();
 
@@ -134,11 +135,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
     const base = `/${role}/dashboard`;
 
     return [
-      { id: "dashboard", label: "Dashboard Summary", icon: TrendingUp, path: base },
+      { id: "dashboard", label: t('sidebar.dashboard'), icon: TrendingUp, path: base },
 
       {
         id: "departments",
-        label: "Departments Management",
+        label: t('sidebar.departments'),
         icon: Building,
         path: `${base}/department-management`,
         feature: "DEPARTMENTS_MANAGEMENT",   // <-- feature name in DB
@@ -147,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {
         id: "employees",
-        label: "Employees Management",
+        label: t('sidebar.employees'),
         icon: Users,
         path: `${base}/employee-management`,
         feature: "EMPLOYEES_MANAGEMENT",
@@ -156,23 +157,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {
         id: "clients",
-        label: "Clients Management",
+        label: t('sidebar.clients'),
         icon: User2,
         path: `${base}/client-management`,
         feature: "CLIENTS_MANAGEMENT",
       },
-
-      {
-        id: "stock-alerts",
-        label: "Stock Alerts",
-        icon: AlertTriangle,
-        path: `${base}/stock-alerts`,
-        // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
-        allowedRoles: ["admin"],
-      },
       {
         id: "category",
-        label: "Category Management",
+        label: t('sidebar.categories'),
         icon: Tags,
         path: `${base}/category-management`,
         feature: "CATEGORY_MANAGEMENT",
@@ -181,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
       {
         id: "supplier",
-        label: "Supplier Management",
+        label: t('sidebar.suppliers'),
         icon: Truck,
         path: `${base}/supplier-management`,
         feature: "SUPPLIER_MANAGEMENT",
@@ -189,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       },
       {
         id: "stockin",
-        label: "StockIn Management",
+        label: t('sidebar.stockIn'),
         icon: ArrowUp,
         path: `${base}/stockin-management`,
         feature: "STOCKIN_MANAGEMENT",
@@ -197,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       },
       {
         id: "stockout",
-        label: "StockOut Management",
+        label: t('sidebar.stockOut'),
         icon: ArrowDown,
         path: `${base}/stockout-management`,
         feature: "STOCKOUT_MANAGEMENT",
@@ -205,56 +197,50 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
       },
       {
         id: "Sales-Return",
-        label: "Sales Return Management",
+        label: t('sidebar.salesReturn'),
         icon: Loader,
         path: `${base}/sales-return-management`,
         feature: "SALES_RETURN_MANAGEMENT",
         allowedRoles: ["admin"],
       },
-      {
-        id: "purchase-orders",
-        label: "Purchase Orders",
-        icon: ShoppingCart,
-        path: `${base}/purchase-order-management`,
-        // feature: "PURCHASE_ORDER_MANAGEMENT", // Removed feature guard as per request
-        allowedRoles: ["admin"],
-      },
-      {
-        id: "grn",
-        label: "GRN Management",
-        icon: ClipboardCheck,
-        path: `${base}/grn-management`,
-        // feature: "GRN_MANAGEMENT", // Removed feature guard as per request
-        allowedRoles: ["admin"],
-      },
+    
 
       /* ------------------------------------------------------------------ */
       /*  Example of a dropdown that is guarded by a single feature        */
       /* ------------------------------------------------------------------ */
       {
         id: "reports",
-        label: "Reports",
+        label: t('sidebar.reports'),
         icon: TrendingUp,
         feature: "VIEW_REPORTS",               // whole group hidden if missing
         items: [
           {
             id: "sales-report",
-            label: "Sales Report",
+            label: t('sidebar.salesReport'),
             icon: TrendingUp,
             path: `${base}/reports/sales`,
           },
+
           {
             id: "inventory-report",
-            label: "Inventory Report",
+            label: t('sidebar.inventoryReport'),
             icon: FolderTree,
             path: `${base}/reports/inventory`,
           },
           {
             id: "stock-history",
-            label: "Stock History",
+            label: t('sidebar.stockHistory'),
             icon: ArrowUp,
             path: `${base}/stock-history`,
           },
+              {
+        id: "stock-alerts",
+        label: t('sidebar.stockAlerts'),
+        icon: AlertTriangle,
+        path: `${base}/stock-alerts`,
+        // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
+        allowedRoles: ["admin"],
+      },
         ],
       },
     ];
@@ -319,19 +305,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
   const displayName =
     role === "admin"
-      ? user?.adminName || "Admin User"
-      : `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || "Employee User";
+      ? user?.adminName || t('sidebar.adminUser')
+      : `${user?.first_name || ""} ${user?.last_name || ""}`.trim() || t('sidebar.employeeUser');
 
-  const displayEmail =
-    role === "admin"
-      ? user?.adminEmail || "admin@example.com"
-      : user?.email || "employee@example.com";
   const displayImage =
     role === "admin"
-      ? user?.profileImage || "admin@example.com"
-      : user?.email || "employee@example.com";
+      ? user?.profileImage || ""
+      : user?.profileImage || "";
 
-  const portalTitle = `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
+  const portalTitle = t('sidebar.portal', { role: role.charAt(0).toUpperCase() + role.slice(1) });
 
   const isDropdownActive = (dropdown: DropdownGroup) =>
     dropdown.items.some((i) => location.pathname === i.path);
@@ -486,15 +468,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           {isCollapsed ? (
             <img
               src={`${API_URL}${displayImage}`}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-cover cursor-pointer"
               alt=""
               title={displayName}
+              onClick={handleNavigateProfile}
             />
           ) : (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer group" onClick={handleNavigateProfile}>
               <img src={`${API_URL}${displayImage}`} className="w-10 h-10 rounded-full object-cover" alt="" />
               <div>
-                <h2 className="font-bold text-base text-primary-800">{displayName}</h2>
+                <h2 className="font-bold text-base text-primary-800 group-hover:text-primary-600 transition-colors">{displayName}</h2>
                 <p className="text-xs text-primary-500">{portalTitle}</p>
               </div>
             </div>
@@ -512,7 +495,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
           <button
             onClick={toggleCollapse}
             className="p-1.5 rounded-lg hover:bg-theme-bg-tertiary transition-colors text-theme-text-secondary hover:text-primary-600"
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           >
             {isCollapsed ? (
               <PanelLeft className="w-5 h-5" />
@@ -529,7 +512,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
               navlinks.map((it) => ("items" in it ? renderDropdown(it) : renderMenuItem(it)))
             ) : (
               <div className="text-center py-4">
-                <p className="text-theme-text-secondary text-xs">No menu items available</p>
+                <p className="text-theme-text-secondary text-xs">{t('sidebar.noMenu')}</p>
               </div>
             )}
           </nav>

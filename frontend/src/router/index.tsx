@@ -715,6 +715,14 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'stock-alerts',
+                element: (
+                  <SuspenseWrapper>
+                    <StockAlertsPage role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'ParentFish-Feeding',
                 element: (
                   <SuspenseWrapper>

@@ -102,14 +102,14 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                        <FileSpreadsheet className="w-5 h-5 mr-2 text-primary-600" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-theme-bg-primary rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-theme-border animate-in fade-in zoom-in duration-200">
+                <div className="flex items-center justify-between p-6 border-b border-theme-border">
+                    <h2 className="text-xl font-black text-theme-text-primary flex items-center uppercase tracking-widest">
+                        <FileSpreadsheet className="w-6 h-6 mr-3 text-primary-600" />
                         Import Stock
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                    <button onClick={onClose} className="p-2 hover:bg-theme-bg-tertiary rounded-xl transition-colors text-theme-text-secondary hover:text-theme-text-primary">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -117,12 +117,14 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
                 <div className="p-6 overflow-y-auto flex-1">
                     {!file ? (
                         <div
-                            className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-gray-50 transition cursor-pointer"
+                            className="border-2 border-dashed border-theme-border rounded-2xl p-12 text-center hover:bg-theme-bg-tertiary transition-all cursor-pointer group"
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-600 font-medium">Click to upload Excel file</p>
-                            <p className="text-gray-400 text-sm mt-1">.xlsx, .xls, .csv</p>
+                            <div className="w-16 h-16 bg-theme-bg-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                <Upload className="w-8 h-8 text-theme-text-secondary group-hover:text-primary-500 transition-colors" />
+                            </div>
+                            <p className="text-[11px] font-black text-theme-text-primary uppercase tracking-widest">Click to upload Excel file</p>
+                            <p className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest mt-2">.xlsx, .xls, .csv</p>
                             <input
                                 type="file"
                                 ref={fileInputRef}
@@ -133,45 +135,45 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between bg-blue-50 p-3 rounded text-sm text-blue-700">
-                                <span className="flex items-center">
-                                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                            <div className="flex items-center justify-between bg-primary-500/10 border border-primary-500/20 p-4 rounded-xl text-primary-600">
+                                <span className="flex items-center text-[10px] font-black uppercase tracking-widest">
+                                    <FileSpreadsheet className="w-4 h-4 mr-3" />
                                     {file.name}
                                 </span>
                                 <button
                                     onClick={() => { setFile(null); setPreviewData([]); setError(null); }}
-                                    className="text-blue-600 hover:text-blue-800 font-medium"
+                                    className="text-[10px] font-black uppercase tracking-widest hover:underline"
                                 >
                                     Change
                                 </button>
                             </div>
 
                             {previewData.length > 0 && (
-                                <div className="mt-4">
-                                    <p className="text-sm text-gray-600 mb-2">Preview ({previewData.length} items found):</p>
-                                    <div className="bg-gray-50 border border-gray-200 rounded max-h-60 overflow-auto">
-                                        <table className="w-full text-xs text-left">
-                                            <thead className="bg-gray-100 font-medium text-gray-600 sticky top-0">
+                                <div className="mt-6">
+                                    <p className="text-[10px] font-black text-theme-text-secondary uppercase tracking-widest mb-2.5">Preview ({previewData.length} items found):</p>
+                                    <div className="bg-theme-bg-tertiary border border-theme-border rounded-xl max-h-60 overflow-auto overflow-x-hidden">
+                                        <table className="w-full text-[10px] text-left">
+                                            <thead className="bg-theme-bg-secondary font-black text-theme-text-secondary uppercase tracking-widest sticky top-0">
                                                 <tr>
-                                                    <th className="p-2 border-b">Item Name</th>
-                                                    <th className="p-2 border-b">Category</th>
-                                                    <th className="p-2 border-b">Qty</th>
-                                                    <th className="p-2 border-b">Cost</th>
+                                                    <th className="p-3 border-b border-theme-border">Item Name</th>
+                                                    <th className="p-3 border-b border-theme-border">Category</th>
+                                                    <th className="p-3 border-b border-theme-border">Qty</th>
+                                                    <th className="p-3 border-b border-theme-border">Cost</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-200">
+                                            <tbody className="divide-y divide-theme-border">
                                                 {previewData.slice(0, 5).map((row, i) => (
-                                                    <tr key={i}>
-                                                        <td className="p-2">{row.ItemName || row.itemName || '-'}</td>
-                                                        <td className="p-2">{row.Category || row.category || '-'}</td>
-                                                        <td className="p-2">{row.Quantity || row.quantity || row.receivedQuantity || '-'}</td>
-                                                        <td className="p-2">{row.UnitCost || row.unitCost || '-'}</td>
+                                                    <tr key={i} className="text-theme-text-primary font-black uppercase tracking-tighter">
+                                                        <td className="p-3 truncate">{row.ItemName || row.itemName || '-'}</td>
+                                                        <td className="p-3 truncate">{row.Category || row.category || '-'}</td>
+                                                        <td className="p-3">{row.Quantity || row.quantity || row.receivedQuantity || '-'}</td>
+                                                        <td className="p-3">{row.UnitCost || row.unitCost || '-'}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                         {previewData.length > 5 && (
-                                            <div className="p-2 text-center text-xs text-gray-500 border-t">
+                                            <div className="p-3 text-center text-[10px] font-black text-theme-text-secondary uppercase tracking-widest border-t border-theme-border bg-theme-bg-secondary/50">
                                                 ...and {previewData.length - 5} more
                                             </div>
                                         )}
@@ -180,15 +182,15 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
                             )}
 
                             {error && (
-                                <div className="p-3 bg-red-50 text-red-700 rounded text-sm flex items-start">
-                                    <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-start">
+                                    <AlertCircle className="w-4 h-4 mr-3 mt-0.5 flex-shrink-0" />
                                     <span>{error}</span>
                                 </div>
                             )}
 
                             {successMessage && (
-                                <div className="p-3 bg-green-50 text-green-700 rounded text-sm flex items-center">
-                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center">
+                                    <CheckCircle className="w-4 h-4 mr-3" />
                                     <span>{successMessage}</span>
                                 </div>
                             )}
@@ -196,10 +198,10 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
                     )}
                 </div>
 
-                <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+                <div className="p-6 border-t border-theme-border bg-theme-bg-tertiary flex justify-end space-x-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded text-sm font-medium"
+                        className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded-xl transition-all"
                         disabled={loading}
                     >
                         Cancel
@@ -207,10 +209,10 @@ const ImportStockModal: React.FC<ImportStockModalProps> = ({ isOpen, onClose, on
                     {file && !successMessage && (
                         <button
                             onClick={handleImport}
-                            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded text-sm font-medium flex items-center disabled:opacity-50"
+                            className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center disabled:opacity-50 shadow-lg shadow-primary-600/20 transition-all"
                             disabled={loading}
                         >
-                            {loading && <Loader className="w-4 h-4 mr-2 animate-spin" />}
+                            {loading && <Loader className="w-4 h-4 mr-3 animate-spin" />}
                             Import Stock
                         </button>
                     )}

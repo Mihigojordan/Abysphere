@@ -382,12 +382,12 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
               <Package className="w-4 h-4 text-teal-600" /> Stock Health Overview
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
+                  <div className="p-2 bg-primary-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
                   <div><p className="text-xs font-medium text-theme-text-primary">Healthy Stock</p><p className="text-[10px] text-theme-text-secondary">Above reorder level</p></div>
                 </div>
-                <p className="text-lg font-bold text-green-700 dark:text-green-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
               </div>
               <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center gap-3">
@@ -411,12 +411,12 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
               <DollarSign className="w-4 h-4 text-green-600" /> Financial Summary
             </h3>
             <div className="space-y-3">
-              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-xs font-medium text-theme-text-primary">Total Revenue (Month)</p>
-                  <TrendingUp className="w-4 h-4 text-green-600" />
+                  <TrendingUp className="w-4 h-4 text-primary-600" />
                 </div>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-400">{formatCurrency(stats.monthSales)}</p>
+                <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.monthSales)}</p>
                 <p className="text-[10px] text-theme-text-secondary mt-1">Last 30 days performance</p>
               </div>
               <div className="grid grid-cols-2 gap-3">

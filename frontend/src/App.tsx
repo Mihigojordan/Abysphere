@@ -1,7 +1,8 @@
-import { type FC} from 'react';
-import { RouterProvider} from 'react-router-dom';
+import { type FC } from 'react';
+import { RouterProvider } from 'react-router-dom';
 import routes from './router';
 import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 
 /**
@@ -12,7 +13,9 @@ import { ThemeProvider } from './context/ThemeContext';
 const App: FC = () => {
   return (
     <ThemeProvider>
-      <RouterProvider router={routes} />
+      <LanguageProvider>
+        <RouterProvider router={routes} />
+      </LanguageProvider>
     </ThemeProvider>
   );
 };
