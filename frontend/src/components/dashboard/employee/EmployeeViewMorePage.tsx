@@ -14,7 +14,6 @@ import {
   Clock,
   X,
   File,
-  DollarSign,
   UserPlus,
   Download,
   Trash2,
@@ -101,7 +100,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
       setLoading(true);
       const employeeData = await employeeService.getEmployeeById(id);
       if (employeeData) {
-        setEmployee(employeeData);
+        setEmployee(employeeData as any);
       } else {
         setError('Employee not found');
       }
@@ -229,7 +228,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
     if (!selectedContract) return;
 
     try {
-      await contractService.updateContract(selectedContract.id, formData);
+      await contractService.updateContract(selectedContract.id, formData as any);
       await fetchEmployee();
       showNotification('Contract updated successfully', 'success');
       handleCloseUpdateModal();
@@ -265,10 +264,10 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
 
   if (loading) {
     return (
-      <div className="min-h-[90vh] bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[90vh] bg-theme-bg-secondary flex items-center justify-center">
         <div className="flex items-center space-x-2">
-          <Activity className="w-5 h-5 animate-spin text-blue-600" />
-          <span className="text-xs text-gray-600">Loading employee details...</span>
+          <Activity className="w-5 h-5 animate-spin text-primary-600" />
+          <span className="text-xs text-theme-text-secondary">Loading employee details...</span>
         </div>
       </div>
     );
@@ -276,11 +275,11 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
 
   if (error) {
     return (
-      <div className="min-h-[90vh] bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[90vh] bg-theme-bg-secondary flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Error</h2>
-          <p className="text-xs text-gray-600">{error}</p>
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Error</h2>
+          <p className="text-xs text-theme-text-secondary">{error}</p>
         </div>
       </div>
     );
@@ -288,11 +287,11 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
 
   if (!employee) {
     return (
-      <div className="min-h-[90vh] bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[90vh] bg-theme-bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <User className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Employee Not Found</h2>
-          <p className="text-xs text-gray-600">The requested employee record could not be found.</p>
+          <User className="w-10 h-10 text-theme-text-secondary/50 mx-auto mb-3" />
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Employee Not Found</h2>
+          <p className="text-xs text-theme-text-secondary">The requested employee record could not be found.</p>
         </div>
       </div>
     );
@@ -315,7 +314,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
           <div className="bg-theme-bg-primary rounded-2xl shadow-xl border border-theme-border p-3 max-w-3xl w-full max-h-[90vh] overflow-auto relative">
             <button
               onClick={closePreview}
-              className="absolute top-1 right-1 text-gray-600 hover:text-gray-900"
+              className="absolute top-1 right-1 text-theme-text-secondary hover:text-theme-text-primary transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -449,7 +448,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
             setContractToDelete(null);
           }}
           onConfirm={confirmDeleteContract}
-          contract={contractToDelete}
+          contract={contractToDelete as any}
           getEmployeeName={getEmployeeName}
         />
       )}
@@ -665,8 +664,8 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                             onClick={() => handleDownloadContractPDF(contract.id)}
                             disabled={downloadLoading === contract.id}
                             className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${downloadLoading === contract.id
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              ? 'bg-theme-bg-tertiary text-theme-text-secondary cursor-not-allowed'
+                              : 'bg-primary-600 text-white hover:bg-primary-700'
                               }`}
                           >
                             <Download className="w-3 h-3 mr-1.5" />
@@ -683,7 +682,7 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                             onClick={() => handleDeleteContract(contract)}
                             disabled={deleteLoading === contract.id}
                             className={`flex items-center px-3 py-1.5 rounded text-xs font-medium ${deleteLoading === contract.id
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                              ? 'bg-theme-bg-tertiary text-theme-text-secondary cursor-not-allowed'
                               : 'bg-red-600 text-white hover:bg-red-700'
                               }`}
                           >
@@ -699,8 +698,8 @@ const ViewEmployee: React.FC<{ role: string }> = ({ role }) => {
                           onClick={() => paginate(currentPage - 1)}
                           disabled={currentPage === 1}
                           className={`px-3 py-1.5 rounded text-xs ${currentPage === 1
-                            ? 'bg-gray-200 text-gray-500'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            ? 'bg-theme-bg-tertiary text-theme-text-secondary'
+                            : 'bg-primary-600 text-white hover:bg-primary-700'
                             }`}
                         >
                           Previous
