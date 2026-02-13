@@ -36,7 +36,7 @@ export class StockoutService {
         if (!item.stockinId) return null;
         const stock = await this.prisma.stock.findUnique({
           where: { id: item.stockinId },
-          select: { itemName: true, sku: true },
+          select: { itemName: true, sku: true, unitCost: true },
         });
         return {
           ...stock,

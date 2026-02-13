@@ -9,6 +9,7 @@ import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivate
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
 import logo from "../assets/tran.jpeg";
 import StockAnalyticsPage from "../pages/dashboard/StockAnalyticsPage";
+
 // Dashboard Pages
 const FeedstockDashboard = lazy(() => import("../pages/dashboard/FeedstockDashboard"));
 const ParentFishPoolManagement = lazy(() => import("../pages/dashboard/ParentFishPoolManagement"));
@@ -113,6 +114,7 @@ const EggFishMedicationManagement = lazy(() => import('../pages/dashboard/EggFis
 const BoxWaterChangingManagement = lazy(() => import('../pages/dashboard/BoxWaterChangingManagement'))
 const PondWaterChangingManagement = lazy(() => import('../pages/dashboard/PondWaterChangingManagment'))
 const PondMedicationManagement = lazy(() => import('../pages/dashboard/PondMedicationManagement'))
+const ExpenseManagement = lazy(() => import('../pages/dashboard/ExpenseManagement'))
 /**
  * Loading spinner component for Suspense fallback
  */
@@ -523,10 +525,10 @@ const routes = createBrowserRouter([
                 ),
               },
               {
-                path: 'site-management',
+                path: 'expense-management',
                 element: (
                   <SuspenseWrapper>
-                    <SiteManagement role='admin' />
+                    <ExpenseManagement role='admin' />
                   </SuspenseWrapper>
                 )
               },
@@ -647,6 +649,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <CategoryDashboard role="admin" />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'expense-management',
+                element: (
+                  <SuspenseWrapper>
+                    <ExpenseManagement />
                   </SuspenseWrapper>
                 ),
               },

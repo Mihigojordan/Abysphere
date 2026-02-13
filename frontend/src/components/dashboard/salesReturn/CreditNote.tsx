@@ -5,11 +5,13 @@ import { X, Printer, Download, RefreshCw } from 'lucide-react';
 import salesReturnService from '../../../services/salesReturnService';
 import stockOutService from '../../../services/stockoutService';
 import CompanyLogo from '../../../assets/tran.png';
+import useAdminAuth from '../../../context/AdminAuthContext';
+import { API_URL } from '../../../api/api';
 
 interface CreditNoteProps {
   isOpen: boolean;
   onClose: () => void;
-  salesReturnId: string;
+  salesReturnId: string | null;
 }
 
 const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, salesReturnId }) => {
@@ -19,6 +21,7 @@ const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, sales
     print: false,
     pdf: false,
   });
+  const { user: adminUser } = useAdminAuth();
 
   // Fetch credit note directly from API
   useEffect(() => {
@@ -46,11 +49,13 @@ const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, sales
   }, [isOpen, salesReturnId]);
 
   const companyInfo = {
-    logo: CompanyLogo,
-    companyName: 'ZUBA SYSTEMS LTD',
+    logo: adminUser?.profileImage
+      ? (adminUser.profileImage.startsWith('http') ? adminUser.profileImage : `${API_URL}/uploads/profiles/${adminUser.profileImage}`)
+      : CompanyLogo,
+    companyName: adminUser?.adminName || 'ZUBA SYSTEMS LTD',
     address: 'KIGALI, RWANDA',
-    phone: '+250 787 487 953',
-    // email: 'umusingihardware7@gmail.com',
+    phone: adminUser?.phone || '+250 787 487 953',
+    email: adminUser?.adminEmail || 'support@izubagen.rw',
   };
 
   // Extract client info
@@ -329,7 +334,8 @@ const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, sales
 
                 <div className="border-t border-dashed border-gray-300 my-4"></div>
                 <div className="font-black text-gray-900 uppercase tracking-widest text-[10px]">Thank You!</div>
-                <div className="text-[9px] italic">Goods returned successfully</div>
+                <div className="text-[9px] italic mb-1">Goods returned successfully</div>
+                <div className="text-[9px] font-medium text-gray-500 mt-2">Powered by My system</div>
               </div>
             </div>
           </div>

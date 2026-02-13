@@ -20,6 +20,9 @@ import {
   FileUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
+import { Download, ChevronDown } from 'lucide-react';
 
 import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
@@ -58,7 +61,7 @@ interface StockOut {
     itemName: string;
     sku: string;
     product?: { productName: string; brand?: string };
-  } | null;
+  };
   externalItemName?: string; // Add external fields
   externalSku?: string;
 }
@@ -98,6 +101,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
@@ -323,6 +327,140 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   };
 
   // Unified Create & Edit Handler
+  const handleExportPDF = async () => {
+    try {
+      setIsLoading(true);
+      const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
+      const filename = `stockout_export_${date}.pdf`;
+
+      const tableRows = filteredStockOuts.map((item) => {
+        return `
+          <tr>
+            <td style="font-size:10px;">${formatDate(item.createdAt)}</td>
+            <td style="font-size:10px;">${item.transactionId || '—'}</td>
+            <td style="font-size:10px;">${item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}</td>
+            <td style="font-size:10px;">${item.clientName || 'Walk-In'}</td>
+            <td style="font-size:10px;">${item.quantity}</td>
+            <td style="font-size:10px;">${item.soldPrice}</td>
+            <td style="font-size:10px;">${item.soldPrice * item.quantity}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const htmlContent = `
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 10px; font-size: 10px; }
+            h1 { font-size: 14px; margin-bottom: 5px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            th, td { border: 1px solid #ddd; padding: 4px; text-align: left; }
+            th { background-color: #2563eb; color: white; }
+          </style>
+        </head>
+        <body>
+          <h1>Stock Out Report</h1>
+          <p>Exported on: ${new Date().toLocaleString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Transaction ID</th>
+                <th>Product</th>
+                <th>Client</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      const opt = {
+        margin: 0.5,
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      };
+
+      await html2pdf().from(htmlContent).set(opt).save();
+      showNotification('PDF exported successfully', 'success');
+    } catch (err: any) {
+      console.error('Error generating PDF:', err);
+      showNotification('Failed to export PDF', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      setIsLoading(true);
+      const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
+      const filename = `stockout_export_${date}.xlsx`;
+
+      const data = filteredStockOuts.map((item) => ({
+        'Date': formatDate(item.createdAt),
+        'Transaction ID': item.transactionId || 'N/A',
+        'Product': item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName,
+        'Client': item.clientName || 'Walk-In',
+        'Quantity': item.quantity,
+        'Price': item.soldPrice,
+        'Total': item.soldPrice * item.quantity
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Stock Out Report");
+      XLSX.writeFile(wb, filename);
+
+      showNotification('Excel exported successfully', 'success');
+    } catch (err) {
+      showNotification('Failed to export Excel', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    try {
+      setIsLoading(true);
+      const date = new Date().toLocaleDateString('en-CA').replace(/\//g, '');
+      const filename = `stockout_export_${date}.csv`;
+
+      const data = filteredStockOuts.map((item) => ({
+        'Date': formatDate(item.createdAt),
+        'Transaction ID': item.transactionId || 'N/A',
+        'Product': item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName,
+        'Client': item.clientName || 'Walk-In',
+        'Quantity': item.quantity,
+        'Price': item.soldPrice,
+        'Total': item.soldPrice * item.quantity
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.click();
+
+      showNotification('CSV exported successfully', 'success');
+    } catch (err) {
+      showNotification('Failed to export CSV', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (data: any) => {
     setIsLoading(true);
     try {
@@ -604,6 +742,40 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
                 <span>{t('stockOut.refresh')}</span>
               </button>
+              <div className="relative">
+                <button
+                  onClick={() => setIsExportOpen(!isExportOpen)}
+                  className="flex items-center space-x-1 px-4 py-2 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary disabled:opacity-50 transition-all font-medium"
+                  title={t('stockOut.export')}
+                >
+                  <Download className="w-3 h-3" />
+                  <span>{t('stockOut.export')}</span>
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isExportOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {isExportOpen && (
+                    <>
+                      <div className="fixed inset-0 z-[60]" onClick={() => setIsExportOpen(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 top-full mt-2 w-40 bg-theme-bg-primary border border-theme-border rounded shadow-xl py-2 z-[70] transition-all"
+                      >
+                        <button onClick={() => { handleExportPDF(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 transition-colors text-theme-text-primary">
+                          <div className="w-2 h-2 rounded-full bg-red-500" /> {t('stockIn.pdf') || 'PDF'}
+                        </button>
+                        <button onClick={() => { handleExportExcel(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 transition-colors text-theme-text-primary">
+                          <div className="w-2 h-2 rounded-full bg-green-500" /> {t('stockIn.excel') || 'Excel'}
+                        </button>
+                        <button onClick={() => { handleExportCSV(); setIsExportOpen(false); }} className="w-full text-left px-4 py-2.5 text-xs hover:bg-theme-bg-tertiary flex items-center gap-2 transition-colors text-theme-text-primary">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" /> {t('stockIn.csv') || 'CSV'}
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
               <button
                 onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
                 className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"

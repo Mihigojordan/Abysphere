@@ -98,6 +98,7 @@ model Admin {
   category              Category[]
   client                Client[]
   suppliers             Supplier[]
+  expenses              Expense[]
   store                 Store[]
   employee              Employee[]
 
@@ -120,6 +121,7 @@ model Admin {
   documentsUploaded      DocumentAttachment[] @relation("DocUploadedByAdmin")
   alertsAcknowledged     AlertNotification[]  @relation("AlertAcknowledgedByAdmin")
   debitsCreated          Debit[]
+
 }
 
 enum AdminStatus {
@@ -1809,4 +1811,26 @@ enum AlertSeverity {
   WARNING
   CRITICAL
   URGENT
+}
+
+enum ExpenseType {
+  DEBIT
+  CREDIT
+}
+
+model Expense {
+  id            String      @id @unique @default(uuid())
+  title         String
+  description   String?     @db.Text
+  amount        Decimal     @db.Decimal(10, 2)
+  category      String?
+  date          DateTime
+  paymentMethod String?
+  type          ExpenseType @default(DEBIT)
+  
+  adminId       String
+  admin         Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }

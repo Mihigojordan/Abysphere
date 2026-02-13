@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users, Package, DollarSign, TrendingUp, AlertCircle,
-  Truck, RefreshCw,
-  ShoppingCart, TrendingDown, Activity, Layers, ArrowUpRight, ArrowDownRight,
+  RefreshCw,
+  TrendingDown, Activity, ArrowUpRight, ArrowDownRight,
   Calendar, ChevronDown, X
 } from 'lucide-react';
 
@@ -116,11 +116,10 @@ const DateFilter: React.FC<{
             <button
               key={option.value}
               onClick={() => handleFilterSelect(option.value)}
-              className={`w-full px-4 py-2 text-left text-sm hover:bg-theme-bg-tertiary transition-colors ${
-                selectedFilter === option.value
-                  ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20 font-medium'
-                  : 'text-theme-text-primary'
-              }`}
+              className={`w-full px-4 py-2 text-left text-sm hover:bg-theme-bg-tertiary transition-colors ${selectedFilter === option.value
+                ? 'text-primary-600 bg-primary-50 dark:bg-primary-900/20 font-medium'
+                : 'text-theme-text-primary'
+                }`}
             >
               {option.label}
             </button>
@@ -253,7 +252,8 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
     totalReturnsValue: 0,
     profitMargin: 0,
     totalAssets: 0,
-    totalProfit: 0  // ADD THIS LINE
+    totalProfit: 0,
+    totalStockRecords: 0 // Track distinct stock request items for accurate counts
   });
 
 
@@ -378,6 +378,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
       totalSuppliers: filteredSuppliers.length,
       totalStockValue: Math.round(totalStockValue),
       totalStockItems: Math.round(totalStockItems),
+      totalStockRecords: filteredStockIns.length,
       todaySales: Math.round(todayRevenue),
       weekSales: Math.round(weekRevenue),
       monthSales: Math.round(monthRevenue),
@@ -428,8 +429,29 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
       <div className="p-4 space-y-4">
 
-        {/* KPI ROW 1 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* KPI ROW - 12 CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* BLUE CARDS (Total 9: 4 existing + 5 new/moved) */}
+          <StatCard
+            title={t('dashboard.todaySales')}
+            value={`${formatCurrency(stats.todaySales)}`}
+            change={18}
+            trend="up"
+            icon={DollarSign}
+            color="bg-primary-500"
+            subtitle={t('dashboard.dailyRevenue')}
+            link="/admin/dashboard/stockout-management"
+          />
+          <StatCard
+            title={t('dashboard.weekSales')}
+            value={`${formatCurrency(stats.weekSales)}`}
+            change={15}
+            trend="up"
+            icon={TrendingUp}
+            color="bg-primary-500"
+            subtitle={t('dashboard.weeklyRevenue')}
+            link="/admin/dashboard/stockout-management"
+          />
           <StatCard
             title={t('dashboard.clients')}
             value={stats.totalClients}
@@ -440,12 +462,20 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             link="/admin/dashboard/client-management"
           />
           <StatCard
+            title={t('dashboard.stockItems')}
+            value={stats.totalStockItems.toLocaleString()}
+            icon={Package}
+            color="bg-primary-500"
+            subtitle={t('dashboard.totalUnits')}
+            link="/admin/dashboard/stock-alerts"
+          />
+          <StatCard
             title={t('dashboard.employees')}
             value={stats.totalEmployees}
             change={5}
             trend="up"
             icon={Users}
-            color="bg-indigo-500"
+            color="bg-primary-500"
             link="/admin/dashboard/employee-management"
           />
           <StatCard
@@ -453,107 +483,16 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             value={stats.totalSuppliers}
             change={8}
             trend="up"
-            icon={Truck}
-            color="bg-orange-500"
+            icon={TrendingUp}
+            color="bg-primary-500"
             link="/admin/dashboard/supplier-management"
           />
-        </div>
-
-        {/* KPI ROW 2 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
-            title={t('dashboard.todaySales')}
-            value={`${formatCurrency(stats.todaySales)}`}
-            change={18}
-            trend="up"
+            title={t('dashboard.totalAssets')} // Ensure translation key or fallback
+            value={`${formatCurrency(stats.totalAssets)}`}
             icon={DollarSign}
-            color="bg-green-500"
-            subtitle={t('dashboard.dailyRevenue')}
-            link="/admin/dashboard/stockout-management"
-          />
-          <StatCard
-            title={t('dashboard.weekSales')}
-            value={`${formatCurrency(stats.weekSales)}`}
-            change={15}
-            trend="up"
-            icon={TrendingUp}
-            color="bg-emerald-500"
-            subtitle={t('dashboard.weeklyRevenue')}
-            link="/admin/dashboard/stockout-management"
-          />
-          <StatCard
-            title={t('dashboard.monthSales')}
-            value={`${formatCurrency(stats.monthSales)}`}
-            change={22}
-            trend="up"
-            icon={Activity}
-            color="bg-teal-500"
-            subtitle={t('dashboard.monthlyRevenue')}
-            link="/admin/dashboard/reports/sales"
-          />
-          <StatCard
-            title={t('dashboard.avgOrder')}
-            value={`${formatCurrency(stats.avgOrderValue)}`}
-            icon={ShoppingCart}
-            color="bg-cyan-500"
-            subtitle={t('dashboard.perTransaction')}
-            link="/admin/dashboard/stockout-management"
-          />
-        </div>
-
-        {/* KPI ROW 3 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            title={t('dashboard.stockValue')}
-            value={`${formatCurrency(stats.totalStockValue)}`}
-            icon={Package}
-            color="bg-primary-600"
-            subtitle={t('dashboard.totalInventory')}
-            link="/admin/dashboard/stockin-management"
-          />
-          <StatCard
-            title={t('dashboard.stockItems')}
-            value={stats.totalStockItems.toLocaleString()}
-            icon={Layers}
-            color="bg-indigo-600"
-            subtitle={t('dashboard.totalUnits')}
-            link="/admin/dashboard/stockin-management"
-          />
-          <StatCard
-            title={t('dashboard.lowStock')}
-            value={stats.lowStock}
-            icon={AlertCircle}
-            color="bg-yellow-500"
-            subtitle={t('dashboard.needReorder')}
-            link="/admin/dashboard/stockin-management"
-          />
-          <StatCard
-            title={t('dashboard.outOfStock')}
-            value={stats.outOfStock}
-            icon={TrendingDown}
-            color="bg-red-500"
-            subtitle={t('dashboard.zeroInventory')}
-            link="/admin/dashboard/stockin-management"
-          />
-        </div>
-
-        {/* KPI ROW 4 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            title={t('dashboard.returns')}
-            value={stats.pendingReturns}
-            icon={RefreshCw}
-            color="bg-amber-500"
-            subtitle={t('dashboard.pending')}
-            link="/admin/dashboard/sales-return-management"
-          />
-          <StatCard
-            title={t('dashboard.returnsValue')}
-            value={`${formatCurrency(stats.totalReturnsValue)}`}
-            icon={DollarSign}
-            color="bg-orange-600"
-            subtitle={t('dashboard.refunds')}
-            link="/admin/dashboard/sales-return-management"
+            color="bg-primary-500"
+            link="/admin/dashboard/asset-management"
           />
           <StatCard
             title={t('dashboard.totalProfit')}
@@ -561,22 +500,46 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             change={8.5}
             trend="up"
             icon={TrendingUp}
-            color="bg-emerald-600"
-            subtitle={t('dashboard.revenueCost')}
+            color="bg-primary-500"
             link="/admin/dashboard/reports/sales"
+          />
+
+          {/* YELLOW CARD (1) */}
+          <StatCard
+            title={t('dashboard.lowStock')}
+            value={stats.lowStock}
+            icon={AlertCircle}
+            color="bg-yellow-500"
+            subtitle={t('dashboard.needReorder')}
+            link="/admin/dashboard/stock-alerts"
+          />
+
+          {/* RED CARDS (3: 2 existing + 1 new) */}
+          <StatCard
+            title={t('dashboard.outOfStock')}
+            value={stats.outOfStock}
+            icon={TrendingDown}
+            color="bg-red-500"
+            subtitle={t('dashboard.zeroInventory')}
+            link="/admin/dashboard/stock-alerts"
           />
           <StatCard
-            title={t('dashboard.profitMargin')}
-            value={`${stats.profitMargin}%`}
-            change={3.2}
-            trend="up"
-            icon={TrendingUp}
-            color="bg-green-600"
-            subtitle={t('dashboard.overallMargin')}
-            link="/admin/dashboard/reports/sales"
+            title={t('dashboard.returns')}
+            value={stats.pendingReturns}
+            icon={RefreshCw}
+            color="bg-red-500"
+            subtitle={t('dashboard.pending')}
+            link="/admin/dashboard/sales-return-management"
+          />
+          <StatCard
+            title={t('dashboard.returnsValue')}
+            value={`${formatCurrency(stats.totalReturnsValue)}`}
+            icon={DollarSign}
+            color="bg-red-500"
+            subtitle={t('dashboard.refunds')}
+            link="/admin/dashboard/sales-return-management"
           />
         </div>
-
 
         {/* INSIGHTS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -588,21 +551,22 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
               <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary-500 rounded-lg"><Package className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.healthyStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.aboveReorder')}</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Good</p></div>
                 </div>
-                <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{stats.totalStockItems - stats.lowStock - stats.outOfStock}</p>
+                {/* Calculate using total RECORDS not quantity */}
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{Math.max(0, stats.totalStockRecords - stats.lowStock - stats.outOfStock)}</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-yellow-500 rounded-lg"><AlertCircle className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.lowStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.needReorder')}</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Warning</p></div>
                 </div>
                 <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">{stats.lowStock}</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-red-500 rounded-lg"><TrendingDown className="w-4 h-4 text-white" /></div>
-                  <div><p className="text-xs font-medium text-theme-text-primary">{t('dashboard.outOfStock')}</p><p className="text-[10px] text-theme-text-secondary">{t('dashboard.immediateAction')}</p></div>
+                  <div><p className="text-xs font-medium text-theme-text-primary">Critical</p></div>
                 </div>
                 <p className="text-lg font-bold text-red-700 dark:text-red-400">{stats.outOfStock}</p>
               </div>
@@ -611,33 +575,38 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
 
           <div className="bg-theme-bg-primary p-4 rounded-lg shadow-sm border border-theme-border">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-theme-text-primary">
-              <DollarSign className="w-4 h-4 text-green-600" /> {t('dashboard.financialSummary')}
+              <DollarSign className="w-4 h-4 text-primary-600" /> {t('dashboard.financialSummary')}
             </h3>
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-xs font-medium text-theme-text-primary">{t('dashboard.monthSales')}</p>
                   <TrendingUp className="w-4 h-4 text-primary-600" />
                 </div>
-                <p className="text-2xl font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.monthSales)}</p>
+                <p className="text-xl font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.monthSales)}</p>
                 <p className="text-[10px] text-theme-text-secondary mt-1">{t('dashboard.monthlyRevenue')}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.stockValue')}</p>
-                  <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.totalStockValue)}</p>
-                </div>
 
+              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-medium text-theme-text-primary">{t('dashboard.stockValue')}</p>
+                </div>
+                <p className="text-xl font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.totalStockValue)}</p>
+                <p className="text-[10px] text-theme-text-secondary mt-1">{t('dashboard.totalInventory')}</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-teal-50 dark:bg-primary-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.profitMargin')}</p>
-                  <p className="text-lg font-bold text-teal-700 dark:text-teal-400">{stats.profitMargin}%</p>
+
+              <div className="p-3 bg-teal-50 dark:bg-primary-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-medium text-theme-text-secondary">{t('dashboard.profitMargin')}</p>
                 </div>
-                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <p className="text-[10px] font-medium text-theme-text-secondary mb-1">{t('dashboard.avgOrder')}</p>
-                  <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(stats.avgOrderValue)}</p>
+                <p className="text-lg font-bold text-teal-700 dark:text-teal-400">{stats.profitMargin}%</p>
+              </div>
+
+              <div className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-medium text-theme-text-secondary">{t('dashboard.avgOrder')}</p>
                 </div>
+                <p className="text-lg font-bold text-primary-700 dark:text-primary-400">{formatCurrency(stats.avgOrderValue)}</p>
               </div>
             </div>
           </div>
