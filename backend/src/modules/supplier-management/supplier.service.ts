@@ -41,10 +41,13 @@ export class SupplierService {
   /**
    * Generate unique supplier code
    */
-  private async generateSupplierCode(): Promise<string> {
+  private async generateSupplierCode(adminId: string): Promise<string> {
     const lastSupplier = await this.prisma.supplier.findFirst({
       orderBy: { createdAt: 'desc' },
-      where: { code: { startsWith: 'SUP-' } },
+      where: {
+        adminId,
+        code: { startsWith: 'SUP-' }
+      },
     });
 
     if (!lastSupplier || !lastSupplier.code) {
@@ -59,23 +62,18 @@ export class SupplierService {
   /**
    * Create a new supplier
    */
-  async create(data: CreateSupplierDto): Promise<Supplier> {
-    // Check for duplicate email
-    if (data.email) {
-      const existingEmail = await this.prisma.supplier.findUnique({
-        where: { email: data.email },
-      });
-      if (existingEmail) {
-        throw new ConflictException('Supplier with this email already exists');
-      }
-    }
+  async create(data: CreateSupplierDto, adminId: string): Promise<Supplier> {
+
 
     // Generate code if not provided
-    const code = data.code || (await this.generateSupplierCode());
+    const code = data.code || (await this.generateSupplierCode(adminId));
 
     // Check for duplicate code
-    const existingCode = await this.prisma.supplier.findUnique({
-      where: { code },
+    const existingCode = await this.prisma.supplier.findFirst({
+      where: {
+        code,
+        adminId
+      },
     });
     if (existingCode) {
       throw new ConflictException('Supplier code already exists');
@@ -85,6 +83,7 @@ export class SupplierService {
       data: {
         ...data,
         code,
+        adminId, // Link to admin
         country: data.country || 'Rwanda',
         status: data.status || SupplierStatus.ACTIVE,
         rating: data.rating || 0,
@@ -109,7 +108,7 @@ export class SupplierService {
   /**
    * Get all suppliers with filtering and pagination
    */
-  async findAll(filters: SupplierFilterDto = {}) {
+  async findAll(filters: SupplierFilterDto = {}, adminId: string) {
     const {
       search,
       status,
@@ -141,6 +140,7 @@ export class SupplierService {
     if (status) {
       where.status = status;
     }
+    where.adminId = adminId;
 
     // Rating filter
     if (minRating !== undefined) {
@@ -261,20 +261,9 @@ export class SupplierService {
    */
   async update(id: string, data: UpdateSupplierDto): Promise<Supplier> {
     // Check if supplier exists
-    await this.findOne(id);
+    const supplier = await this.findOne(id);
 
-    // Check for email conflict if updating email
-    if (data.email) {
-      const existingEmail = await this.prisma.supplier.findFirst({
-        where: {
-          email: data.email,
-          NOT: { id },
-        },
-      });
-      if (existingEmail) {
-        throw new ConflictException('Supplier with this email already exists');
-      }
-    }
+
 
     return this.prisma.supplier.update({
       where: { id },
@@ -429,13 +418,13 @@ export class SupplierService {
   /**
    * Bulk import suppliers
    */
-  async bulkImport(suppliers: CreateSupplierDto[]): Promise<{ created: number; errors: any[] }> {
+  async bulkImport(suppliers: CreateSupplierDto[], adminId: string): Promise<{ created: number; errors: any[] }> {
     const errors: any[] = [];
     let created = 0;
 
     for (let i = 0; i < suppliers.length; i++) {
       try {
-        await this.create(suppliers[i]);
+        await this.create(suppliers[i], adminId);
         created++;
       } catch (error) {
         errors.push({
@@ -452,8 +441,8 @@ export class SupplierService {
   /**
    * Export suppliers
    */
-  async export(filters: SupplierFilterDto = {}) {
-    const { data } = await this.findAll({ ...filters, limit: 10000 });
+  async export(filters: SupplierFilterDto = {}, adminId: string) {
+    const { data } = await this.findAll({ ...filters, limit: 10000 }, adminId);
     return data;
   }
 }

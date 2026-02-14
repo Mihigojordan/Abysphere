@@ -58,6 +58,8 @@ export const en = {
         listView: 'List View',
         activeStatus: 'Active',
         totalSuppliers: 'Total Suppliers',
+        refresh: 'Refresh',
+        export: 'Export',
     },
     category: {
         title: 'Category Management',
@@ -77,6 +79,8 @@ export const en = {
         noCategoriesSub: 'Try adjusting your search or add a new category',
         totalCategories: 'Total Categories',
         activeCategories: 'Active Categories',
+        refresh: 'Refresh',
+        export: 'Export',
     },
     stockIn: {
         title: 'Stock In Management',
@@ -445,6 +449,8 @@ export const en = {
         totalDebit: 'Total Debit',
         totalCredit: 'Total Credit',
         totalTransactions: 'Total Transactions',
+        refresh: 'Refresh',
+        export: 'Export',
         table: {
             date: 'Date',
             title: 'Title',

@@ -366,7 +366,7 @@ model Client {
   id           String       @id @default(uuid())
   firstname    String
   lastname     String
-  email        String       @unique
+  email        String
   phone        String?
   address      String?
   status       ClientStatus @default(ACTIVE)
@@ -1149,10 +1149,10 @@ model Category {
 // Supplier Management
 model Supplier {
   id            String  @id @default(uuid())
-  code          String  @unique // Supplier code (e.g., SUP-001)
+  code          String // Supplier code (e.g., SUP-001)
   name          String
   contactPerson String?
-  email         String? @unique
+  email         String?
   phone         String?
   address       String? @db.Text
   city          String?
@@ -1172,18 +1172,19 @@ model Supplier {
   status SupplierStatus @default(ACTIVE)
   notes  String?        @db.Text
 
-  // Relations
-  purchaseOrders PurchaseOrder[]
-  grns           GoodsReceivingNote[]
-  documents      DocumentAttachment[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Admin     Admin?   @relation(fields: [adminId], references: [id])
   adminId   String?
 
+  // Relations
+  purchaseOrders PurchaseOrder[]
+  grns           GoodsReceivingNote[] @relation("SupplierGRNs")
+  documents      DocumentAttachment[] @relation("SupplierDocuments")
+
   @@index([code])
   @@index([name])
+  @@unique([code, adminId])
 }
 
 enum SupplierStatus {
@@ -1320,7 +1321,7 @@ model GoodsReceivingNote {
 
   // Supplier
   supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  supplier   Supplier @relation("SupplierGRNs", fields: [supplierId], references: [id])
 
   // Dates
   receivedDate DateTime @default(now())
@@ -1674,7 +1675,7 @@ model DocumentAttachment {
 
   // Supplier
   supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplier   Supplier? @relation("SupplierDocuments", fields: [supplierId], references: [id], onDelete: Cascade)
 
   // Document Info
   documentType DocumentType

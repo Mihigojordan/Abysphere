@@ -11,6 +11,7 @@ import {
     X,
     AlertTriangle,
     RefreshCw,
+    Download,
     CreditCard,
     DollarSign,
     Calendar,
@@ -213,24 +214,44 @@ const ExpenseManagement: React.FC = () => {
                                 <p className="text-[10px] text-theme-text-secondary">{_t('expense.subtitle')}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => {
-                                setFormData({
-                                    title: '',
-                                    description: '',
-                                    amount: undefined,
-                                    category: 'Others',
-                                    type: 'DEBIT',
-                                    paymentMethod: 'CASH',
-                                    date: new Date().toISOString().split('T')[0]
-                                });
-                                setIsAddModalOpen(true);
-                            }}
-                            className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded font-medium text-xs transition-all shadow-sm"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            {_t('expense.addExpense')}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={loadExpenses}
+                                disabled={isLoading}
+                                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                                title={_t('expense.refresh')}
+                            >
+                                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                                <span>{_t('expense.refresh')}</span>
+                            </button>
+                            <button
+                                onClick={() => { }}
+                                disabled={isLoading || filteredExpenses.length === 0}
+                                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                                title={_t('expense.export')}
+                            >
+                                <Download className="w-3 h-3" />
+                                <span>{_t('expense.export')}</span>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setFormData({
+                                        title: '',
+                                        description: '',
+                                        amount: undefined,
+                                        category: 'Others',
+                                        type: 'DEBIT',
+                                        paymentMethod: 'CASH',
+                                        date: new Date().toISOString().split('T')[0]
+                                    });
+                                    setIsAddModalOpen(true);
+                                }}
+                                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded font-medium text-xs transition-all shadow-sm"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                {_t('expense.addExpense')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -30,7 +30,7 @@ export class SalesReturnService {
       throw new BadRequestException('Admin ID is missing');
     }
 
-    const creditnoteId = await generateStockSKU('credit', 'inventory');
+    const creditnoteId = generateStockSKU('CR', 'NOTE');
 
     // Create SalesReturn record
     const salesReturn = await this.prisma.salesReturn.create({
@@ -110,7 +110,7 @@ export class SalesReturnService {
           data: {
             salesReturnId: salesReturn.id,
             stockoutId,
-             
+
             quantity,
           },
         });

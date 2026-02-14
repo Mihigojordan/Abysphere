@@ -31,7 +31,8 @@ const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, sales
       setLoading(true);
       try {
         const response = await salesReturnService.getSalesReturnById(salesReturnId);
-        setCreditNoteData(response);
+        // Backend returns { message, data }, so we need to access response.data
+        setCreditNoteData(response.data || response);
       } catch (error) {
         console.error('Failed to load credit note:', error);
         Swal.fire({
@@ -226,7 +227,6 @@ const CreditNoteComponent: React.FC<CreditNoteProps> = ({ isOpen, onClose, sales
           <div className="p-6 bg-theme-bg-tertiary/30">
             <div id="credit-note-print-section" className="bg-white p-6 shadow-lg rounded-sm text-[11px] text-gray-900 font-mono leading-tight max-w-[80mm] mx-auto border border-gray-100">
               <div className="text-center mb-4">
-                <img src={companyInfo.logo} alt="Logo" className="w-16 h-16 mx-auto mb-2 object-contain grayscale" />
                 <div className="font-bold text-sm tracking-tighter uppercase">{companyInfo.companyName}</div>
                 <div className="text-[10px] text-gray-600">{companyInfo.address}</div>
                 <div className="text-[10px] text-gray-600 font-bold">TEL: {companyInfo.phone}</div>

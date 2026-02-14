@@ -15,6 +15,7 @@ import {
   Info,
 } from 'lucide-react';
 import stockOutService from "../../../services/stockoutService";
+import { motion } from "framer-motion";
 
 // ──────────────────────────────────────────────────────────────
 // Types & Interfaces (Prisma-aligned)

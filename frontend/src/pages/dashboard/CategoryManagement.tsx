@@ -13,6 +13,7 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
+  Download,
   RotateCcw,
   X,
   AlertTriangle,
@@ -607,6 +608,24 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => loadCategories(true)}
+                disabled={isLoading || isRefreshing}
+                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                title={t('category.refresh')}
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoading || isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{t('category.refresh')}</span>
+              </button>
+              <button
+                onClick={() => { }}
+                disabled={isLoading || filteredCategories.length === 0}
+                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                title={t('category.export')}
+              >
+                <Download className="w-3 h-3" />
+                <span>{t('category.export')}</span>
+              </button>
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"

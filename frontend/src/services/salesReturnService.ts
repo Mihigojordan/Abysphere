@@ -28,6 +28,7 @@ export interface SalesReturnResponse {
   reason?: string;
   createdAt: string;
   items: SalesReturnItem[];
+  data?: any; // Backend may wrap response in { message, data }
 }
 
 export interface BulkResult {
@@ -245,15 +246,15 @@ class SalesReturnService {
         quantity: item.quantity,
         stockoutInfo: item.stockout
           ? {
-              id: item.stockout.id,
-              quantity: item.stockout.quantity,
-              stockinInfo: item.stockout.stockin
-                ? {
-                    id: item.stockout.stockin.id,
-                    quantity: item.stockout.stockin.quantity,
-                  }
-                : null,
-            }
+            id: item.stockout.id,
+            quantity: item.stockout.quantity,
+            stockinInfo: item.stockout.stockin
+              ? {
+                id: item.stockout.stockin.id,
+                quantity: item.stockout.stockin.quantity,
+              }
+              : null,
+          }
           : null,
       })),
     };
