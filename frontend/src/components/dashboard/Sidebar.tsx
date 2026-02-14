@@ -123,6 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   /*  Helper – does the current admin have a given feature?                */
   /* ---------------------------------------------------------------------- */
   const hasFeature = (name?: string): boolean => {
+    if (role === 'employee') return true; // Employees see all features they are allowed to see by role
     if (!name) return true;                     // no guard → always visible
     return !!user?.features?.some((f) => f.name === name);
   };
@@ -168,14 +169,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Tags,
         path: `${base}/category-management`,
         feature: "CATEGORY_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
       {
         id: "expense",
         label: t('sidebar.expenseManagement'),
         icon: CreditCard,
         path: `${base}/expense-management`,
-        allowedRoles: ["admin"],
       },
 
       {
@@ -184,7 +183,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Truck,
         path: `${base}/supplier-management`,
         feature: "SUPPLIER_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
       {
         id: "stockin",
@@ -192,7 +190,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: ArrowUp,
         path: `${base}/stockin-management`,
         feature: "STOCKIN_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
       {
         id: "stockout",
@@ -200,7 +197,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: ArrowDown,
         path: `${base}/stockout-management`,
         feature: "STOCKOUT_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
       {
         id: "Sales-Return",
@@ -208,7 +204,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Loader,
         path: `${base}/sales-return-management`,
         feature: "SALES_RETURN_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
 
 
@@ -220,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         id: "reports",
         label: t('sidebar.reports'),
         icon: TrendingUp,
-        feature: "VIEW_REPORTS",               // whole group hidden if missing
+        // feature: "VIEW_REPORTS",               // Removed to allow access
         items: [
           {
             id: "sales-report",
@@ -246,8 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             label: t('sidebar.stockAlerts'),
             icon: AlertTriangle,
             path: `${base}/stock-alerts`,
-            // feature: "STOCK_ALERTS", // Uncomment if you want to feature-gate it later
-            allowedRoles: ["admin"],
+            // feature: "STOCK_ALERTS",
           },
         ],
       },

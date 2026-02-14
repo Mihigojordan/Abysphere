@@ -13,14 +13,6 @@ interface App {
 const ConnectedApps: React.FC = () => {
   const [apps, setApps] = useState<App[]>([
     {
-      id: 'slack',
-      name: 'Slack',
-      description: 'Team communication platform with channels for group discussions and direct messaging.',
-      icon: '💬',
-      isConnected: true,
-      color: 'bg-purple-100',
-    },
-    {
       id: 'gmail',
       name: 'Gmail',
       description: 'Gmail is a free email service by Google that offers robust spam protection & 15GB of storage.',
@@ -35,14 +27,6 @@ const ConnectedApps: React.FC = () => {
       icon: '📅',
       isConnected: true,
       color: 'bg-blue-100',
-    },
-    {
-      id: 'github',
-      name: 'Github',
-      description: 'Github is a web-based platform for version control and collaboration, allowing developers to host & review code.',
-      icon: '🐙',
-      isConnected: true,
-      color: 'bg-gray-100',
     },
   ]);
 
@@ -61,30 +45,30 @@ const ConnectedApps: React.FC = () => {
 
 
   function loginWithGoogle(popup = true) {
-  const redirectUri = 'http://localhost:5173/admin/dashboard/profile?tab=security';
-  const stateObj = { redirectUri, popup };
-  const stateParam = encodeURIComponent(JSON.stringify(stateObj));
+    const redirectUri = 'http://localhost:5173/admin/dashboard/profile?tab=security';
+    const stateObj = { redirectUri, popup };
+    const stateParam = encodeURIComponent(JSON.stringify(stateObj));
 
-  const googleUrl = `http://localhost:7000/admin/google?state=${stateParam}`;
+    const googleUrl = `http://localhost:7000/admin/google?state=${stateParam}`;
 
-  if (popup) {
-    const popupWindow = window.open(googleUrl, 'Google Login', 'width=500,height=600');
+    if (popup) {
+      const popupWindow = window.open(googleUrl, 'Google Login', 'width=500,height=600');
 
-    window.addEventListener('message', (event) => {
-      if (event.origin !== 'http://localhost:7000') return;
-      const data = event.data;
+      window.addEventListener('message', (event) => {
+        if (event.origin !== 'http://localhost:7000') return;
+        const data = event.data;
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        window.location.href = data.redirect;
-      } else if (data.redirect) {
-        window.location.href = data.redirect;
-      }
-    });
-  } else {
-    window.location.href = googleUrl;
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          window.location.href = data.redirect;
+        } else if (data.redirect) {
+          window.location.href = data.redirect;
+        }
+      });
+    } else {
+      window.location.href = googleUrl;
+    }
   }
-}
 
   const ToggleSwitch: React.FC<{ isOn: boolean; onToggle: () => void }> = ({
     isOn,
@@ -92,14 +76,12 @@ const ConnectedApps: React.FC = () => {
   }) => (
     <button
       onClick={onToggle}
-      className={`relative inline-flex items-center h-5 rounded-full w-9 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-        isOn ? 'bg-primary-500' : 'bg-gray-300'
-      }`}
+      className={`relative inline-flex items-center h-5 rounded-full w-9 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${isOn ? 'bg-primary-500' : 'bg-gray-300'
+        }`}
     >
       <span
-        className={`inline-block w-3 h-3 transform bg-white rounded-full transition-transform duration-200 ${
-          isOn ? 'translate-x-5' : 'translate-x-1'
-        }`}
+        className={`inline-block w-3 h-3 transform bg-white rounded-full transition-transform duration-200 ${isOn ? 'translate-x-5' : 'translate-x-1'
+          }`}
       />
     </button>
   );
@@ -167,7 +149,7 @@ const ConnectedApps: React.FC = () => {
                   {app.id === 'github' && (
                     <div className="w-6 h-6 flex items-center justify-center">
                       <svg viewBox="0 0 24 24" className="w-4 h-4" fill="#24292e">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                       </svg>
                     </div>
                   )}
@@ -196,7 +178,7 @@ const ConnectedApps: React.FC = () => {
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="text-center">
           <button
-            onClick={()=>loginWithGoogle(true)}
+            onClick={() => loginWithGoogle(true)}
             className="px-4 py-1.5 bg-primary-500 text-white text-xs font-medium rounded hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             Connect New App

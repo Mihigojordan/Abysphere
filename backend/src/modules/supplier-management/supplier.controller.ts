@@ -10,23 +10,37 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { SupplierService, CreateSupplierDto, UpdateSupplierDto, SupplierFilterDto } from './supplier.service';
 import { SupplierStatus } from '../../../generated/prisma';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { Req } from '@nestjs/common';
 
 @Controller('supplier')
 export class SupplierController {
   constructor(private readonly supplierService: SupplierService) { }
 
   @Post()
+  @UseGuards(AdminJwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createDto: CreateSupplierDto) {
-    return this.supplierService.create(createDto);
+  async create(@Req() req: RequestWithAdmin, @Body() createDto: CreateSupplierDto) {
+    const adminId = req.admin?.id;
+    if (!adminId) {
+      throw new BadRequestException('Admin ID not found in request');
+    }
+    return this.supplierService.create(createDto, adminId);
   }
 
   @Get()
-  async findAll(@Query() filters: SupplierFilterDto) {
-    return this.supplierService.findAll(filters);
+  @UseGuards(AdminJwtAuthGuard)
+  async findAll(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdmin) {
+    const adminId = req.admin?.id;
+    if (!adminId) {
+      throw new BadRequestException('Admin ID not found in request');
+    }
+    return this.supplierService.findAll(filters, adminId);
   }
 
   @Get(':id')
@@ -59,12 +73,22 @@ export class SupplierController {
   }
 
   @Post('import')
-  async bulkImport(@Body() suppliers: CreateSupplierDto[]) {
-    return this.supplierService.bulkImport(suppliers);
+  @UseGuards(AdminJwtAuthGuard)
+  async bulkImport(@Req() req: RequestWithAdmin, @Body() suppliers: CreateSupplierDto[]) {
+    const adminId = req.admin?.id;
+    if (!adminId) {
+      throw new BadRequestException('Admin ID not found in request');
+    }
+    return this.supplierService.bulkImport(suppliers, adminId);
   }
 
   @Get('export/all')
-  async export(@Query() filters: SupplierFilterDto) {
-    return this.supplierService.export(filters);
+  @UseGuards(AdminJwtAuthGuard)
+  async export(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdmin) {
+    const adminId = req.admin?.id;
+    if (!adminId) {
+      throw new BadRequestException('Admin ID not found in request');
+    }
+    return this.supplierService.export(filters, adminId);
   }
 }

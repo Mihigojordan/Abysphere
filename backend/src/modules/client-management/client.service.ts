@@ -1,23 +1,15 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EmailService } from 'src/global/email/email.service';
-import { generatePassword } from 'src/common/utils/GeneratePassword.utils';
-import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class ClientService {
   constructor(
     private prisma: PrismaService,
-    private email: EmailService,
-  ) {}
+  ) { }
 
   async create(data: any, adminId: string) {
     try {
       const { id, ...clientData } = data;
-
-      // Generate password for the client
-      const password = generatePassword();
-      const hashedPassword = await bcrypt.hash(password, 10);
 
       const createdClient = await this.prisma.client.create({
         data: {
@@ -26,30 +18,6 @@ export class ClientService {
           adminId,
         },
       });
-
-      // Get admin (company) info for the email
-      const admin = await this.prisma.admin.findUnique({
-        where: { id: adminId },
-      });
-
-      // Send welcome email to the client
-      const currentYear = new Date().getFullYear();
-      const loginUrl = process.env.FRONTEND_URL || 'https://app.mysystem.rw';
-
-      if (createdClient.email) {
-        await this.email.sendEmail(
-          createdClient.email,
-          'Welcome to MySystem – Your Account is Ready',
-          'Client-Account-Created',
-          {
-            clientName: `${createdClient.firstname || ''} ${createdClient.lastname || ''}`.trim() || 'Valued Client',
-            loginUrl: loginUrl,
-            email: createdClient.email,
-            password: password,
-            year: currentYear,
-          },
-        );
-      }
 
       return createdClient;
     } catch (error) {

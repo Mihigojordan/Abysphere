@@ -10,10 +10,7 @@ import {
   CheckCircle,
   AlertCircle,
   Building2 as SupplierIcon,
-  WifiOff,
-  Wifi,
   RefreshCw,
-  RotateCcw,
   X,
   AlertTriangle,
   List,
@@ -25,18 +22,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import supplierService from '../../services/supplierService';
-import { db } from '../../db/database';
-import { useSupplierOfflineSync } from '../../hooks/useSupplierOfflineSync';
-import { useNetworkStatusContext } from '../../context/useNetworkContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
-interface SupplierWithSync {
-  id?: string;
-  localId?: number;
+interface Supplier {
+  id: string;
   name: string;
   email?: string;
   phone?: string;
@@ -44,20 +37,17 @@ interface SupplierWithSync {
   adminId: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  lastModified?: Date | string;
-  synced: boolean;
 }
 
 const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) => {
-  const [suppliers, setSuppliers] = useState<SupplierWithSync[]>([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState<SupplierWithSync[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierWithSync | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
@@ -70,8 +60,6 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const [formError, setFormError] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('table');
 
-  const { isOnline } = useNetworkStatusContext();
-  const { triggerSync, syncError } = useSupplierOfflineSync();
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
   const { t } = useLanguage();
@@ -80,71 +68,31 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Summary Stats (Memoized) */
   /* --------------------------------------------------------------------- */
   const stats = useMemo(() => {
-    const active = suppliers.filter(s => s.synced).length;
-    const pending = suppliers.filter(s => !s.synced).length;
     const total = suppliers.length;
-    return { active, pending, total };
+    const active = total; // All suppliers are considered active
+    return { active, total };
   }, [suppliers]);
 
   /* --------------------------------------------------------------------- */
-  /* Load & Sync */
+  /* Load Suppliers */
   /* --------------------------------------------------------------------- */
-  const loadSuppliers = useCallback(async (showRefreshLoader = false) => {
-    if (showRefreshLoader) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-
+  const loadSuppliers = useCallback(async () => {
+    setIsLoading(true);
     try {
-      if (isOnline) await triggerSync();
-
-      const [allSuppliers, offlineAdds, offlineUpdates, offlineDeletes] = await Promise.all([
-        db.suppliers_all.toArray(),
-        db.suppliers_offline_add.toArray(),
-        db.suppliers_offline_update.toArray(),
-        db.suppliers_offline_delete.toArray(),
-      ]);
-
-      const deleteIds = new Set(offlineDeletes.map(d => d.id));
-      const updateMap = new Map(offlineUpdates.map(u => [u.id, u]));
-
-      const offlineAddsWithType = offlineAdds.map(a => ({ ...a, id: '', synced: false }));
-
-      const combinedSuppliers = (allSuppliers as any[])
-        .filter(s => !deleteIds.has(s.id))
-        .map(s => ({
-          ...s,
-          ...updateMap.get(s.id),
-          synced: true,
-        }))
-        .concat(offlineAddsWithType)
-        .sort((a, b) => (a.synced === b.synced ? 0 : a.synced ? 1 : -1));
-
-      setSuppliers(combinedSuppliers);
-      setFilteredSuppliers(combinedSuppliers);
-
-      if (showRefreshLoader) {
-        showNotification('Suppliers refreshed successfully!');
-      }
-
-      if (!isOnline && combinedSuppliers.length === 0) {
-        showNotification('No offline data available', 'error');
-      }
+      const data = await supplierService.getAllSuppliers();
+      setSuppliers(data);
+      setFilteredSuppliers(data);
     } catch (error) {
       console.error('Error loading suppliers:', error);
       showNotification('Failed to load suppliers', 'error');
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
-  }, [isOnline, triggerSync]);
+  }, []);
 
   useEffect(() => {
     loadSuppliers();
-    if (isOnline) handleManualSync();
-  }, [isOnline, loadSuppliers]);
-
+  }, [loadSuppliers]);
 
   /* --------------------------------------------------------------------- */
   /* Filter */
@@ -185,8 +133,8 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* Notifications */
   /* --------------------------------------------------------------------- */
   const showNotification = (message: string, type: string = 'success') => {
-    // setNotification({ message, type });
-    // setTimeout(() => setNotification(null), 4000);
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
   };
 
   /* --------------------------------------------------------------------- */
@@ -205,40 +153,13 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       if (!validation.isValid) throw new Error(validation.errors.join(', '));
 
       const userId = role === 'admin' ? adminData?.id || '' : employeeData?.id || '';
-      const now = new Date();
-      const newSupplier = {
+
+      await supplierService.createSupplier({
         ...supplierData,
         adminId: userId,
-        lastModified: now.toISOString(),
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
+      });
 
-      const localId = await db.suppliers_offline_add.add(newSupplier);
-
-      if (isOnline) {
-        try {
-          const response: any = await supplierService.createSupplier({
-            ...supplierData,
-            adminId: userId,
-          });
-          const serverId = response.id || response.supplier?.id || response.supplierId;
-          await db.suppliers_all.put({
-            id: serverId,
-            ...supplierData,
-            adminId: userId,
-            createdAt: now.toISOString(),
-            updatedAt: response.updatedAt || now.toISOString(),
-          });
-          await db.suppliers_offline_add.delete(localId as number);
-          showNotification('Supplier added successfully!');
-        } catch {
-          showNotification('Supplier saved offline (will sync when online)', 'warning');
-        }
-      } else {
-        showNotification('Supplier saved offline (will sync when online)', 'warning');
-      }
-
+      showNotification('Supplier added successfully!');
       await loadSuppliers();
       setIsAddModalOpen(false);
       setFormData({ name: '', email: '', phone: '', address: '' });
@@ -262,45 +183,19 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     setIsLoading(true);
     setFormError('');
     try {
+      if (!selectedSupplier?.id) throw new Error('No supplier selected');
+
       const validation = supplierService.validateSupplierData(supplierData);
       if (!validation.isValid) throw new Error(validation.errors.join(', '));
 
       const userId = role === 'admin' ? adminData?.id || '' : employeeData?.id || '';
-      const now = new Date();
-      const updatedData = {
-        id: selectedSupplier?.id || '',
-        name: supplierData.name,
-        email: supplierData.email,
-        phone: supplierData.phone,
-        address: supplierData.address,
+
+      await supplierService.updateSupplier(selectedSupplier.id, {
+        ...supplierData,
         adminId: userId,
-        lastModified: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
+      });
 
-      if (isOnline && selectedSupplier?.id) {
-        try {
-          const response: any = await supplierService.updateSupplier(
-            selectedSupplier.id,
-            { ...supplierData, adminId: userId }
-          );
-          await db.suppliers_all.put({
-            id: selectedSupplier.id,
-            ...supplierData,
-            adminId: userId,
-            updatedAt: response.updatedAt || now.toISOString(),
-          });
-          await db.suppliers_offline_update.delete(selectedSupplier.id);
-          showNotification('Supplier updated successfully!');
-        } catch {
-          await db.suppliers_offline_update.put(updatedData);
-          showNotification('Supplier updated offline (will sync when online)', 'warning');
-        }
-      } else {
-        await db.suppliers_offline_update.put(updatedData);
-        showNotification('Supplier updated offline (will sync when online)', 'warning');
-      }
-
+      showNotification('Supplier updated successfully!');
       await loadSuppliers();
       setIsEditModalOpen(false);
       setSelectedSupplier(null);
@@ -316,52 +211,16 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   /* CRUD: Delete */
   /* --------------------------------------------------------------------- */
   const handleConfirmDelete = async () => {
-    if (!selectedSupplier) return;
+    if (!selectedSupplier?.id) return;
     setIsLoading(true);
     try {
-      const userId = role === 'admin' ? adminData?.id || '' : employeeData?.id || '';
-
-      if (isOnline && selectedSupplier.id) {
-        await supplierService.deleteSupplier(selectedSupplier.id);
-        await db.suppliers_all.delete(selectedSupplier.id);
-        showNotification('Supplier deleted successfully!');
-      } else if (selectedSupplier.id) {
-        await db.suppliers_offline_delete.add({
-          id: selectedSupplier.id,
-          deletedAt: new Date().toISOString(),
-          adminId: userId,
-        });
-        showNotification('Supplier deletion queued (will sync when online)', 'warning');
-      } else {
-        await db.suppliers_offline_add.delete(selectedSupplier.localId as number);
-        showNotification('Supplier deleted!');
-      }
-
+      await supplierService.deleteSupplier(selectedSupplier.id);
+      showNotification('Supplier deleted successfully!');
       await loadSuppliers();
       setIsDeleteModalOpen(false);
       setSelectedSupplier(null);
     } catch (error: any) {
       showNotification(`Failed to delete supplier: ${error.message}`, 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /* --------------------------------------------------------------------- */
-  /* Sync */
-  /* --------------------------------------------------------------------- */
-  const handleManualSync = async () => {
-    if (!isOnline) {
-      showNotification('No internet connection', 'error');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await triggerSync();
-      await loadSuppliers();
-      showNotification('Sync completed successfully!');
-    } catch {
-      showNotification('Sync failed – will retry automatically.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -401,7 +260,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           </thead>
           <tbody className="divide-y divide-theme-border">
             {currentItems.map((sup) => (
-              <tr key={sup.id || sup.localId} className="hover:bg-gray-50/50 transition-colors">
+              <tr key={sup.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-4 py-2.5">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 bg-primary-50 rounded-full flex items-center justify-center text-[10px] font-bold text-primary-600 border border-primary-100">
@@ -409,7 +268,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                     </div>
                     <div>
                       <div className="font-semibold text-gray-900">{sup.name}</div>
-                      <div className="text-[10px] text-gray-400">ID: {sup.id?.substring(0, 8) || 'LOCAL'}</div>
+                      <div className="text-[10px] text-gray-400">ID: {sup.id?.substring(0, 8)}</div>
                     </div>
                   </div>
                 </td>
@@ -483,7 +342,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {currentItems.map((sup) => (
         <motion.div
-          key={sup.localId || sup.id}
+          key={sup.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border p-4 hover:shadow-lg transition-all hover:border-primary-500/30 group"
@@ -495,7 +354,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               </div>
               <div className="min-w-0">
                 <div className="font-bold text-theme-text-primary text-sm truncate">{sup.name}</div>
-                <div className="text-[10px] text-theme-text-secondary font-medium tracking-wide truncate">ID: {sup.id?.substring(0, 8) || 'LOCAL'}</div>
+                <div className="text-[10px] text-theme-text-secondary font-medium tracking-wide truncate">ID: {sup.id?.substring(0, 8)}</div>
               </div>
             </div>
           </div>
@@ -517,7 +376,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
           <div className="flex items-center justify-between pt-3 border-t border-gray-50">
             <span className="text-[10px] text-gray-400 italic">
-              Since: {formatDate(sup.createdAt || sup.lastModified)}
+              Since: {formatDate(sup.createdAt)}
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -555,7 +414,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     <div className="bg-theme-bg-primary rounded-xl shadow-lg border border-theme-border divide-y divide-theme-border overflow-hidden">
       {currentItems.map((sup) => (
         <motion.div
-          key={sup.localId || sup.id}
+          key={sup.id}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           className="px-6 py-4 hover:bg-theme-bg-tertiary transition-all flex items-center justify-between group"
@@ -745,7 +604,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         </div>
 
         {/* Loading / Empty */}
-        {isLoading && !isRefreshing ? (
+        {isLoading ? (
           <div className="text-center py-12">
             <RefreshCw className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-2" />
             <p>{t('common.loading')}</p>

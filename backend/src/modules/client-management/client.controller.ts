@@ -37,23 +37,21 @@ export class ClientController {
 
         const existingClient = await this.prisma.client.findFirst({
             where: {
-                OR: [
-                    { phone: body.phone },
-                    { email: body.email },
-                ],
+                adminId,
+                phone: body.phone,
             },
         });
 
         if (existingClient) {
             throw new ConflictException(
-                'Client already exists with provided phone, email, or national ID',
+                'Client already exists with provided phone',
             );
         }
 
         if (files?.profileImg?.[0]?.filename) {
             body.profileImage = `/uploads/profile_images/${files.profileImg[0].filename}`;
         }
-        const createdClient = await this.clientService.create(body,adminId);
+        const createdClient = await this.clientService.create(body, adminId);
         this.clientGateway.emitClientCreated(createdClient);
         return createdClient;
     }
@@ -67,13 +65,13 @@ export class ClientController {
 
     @Get(':id')
     @UseGuards(AdminJwtAuthGuard)
-    async findOne(@Req() req: RequestWithAdmin,@Param('id') id: string) {
+    async findOne(@Req() req: RequestWithAdmin, @Param('id') id: string) {
         const adminId = req.admin!.id;
-        return await this.clientService.findOne(id,adminId);
+        return await this.clientService.findOne(id, adminId);
     }
 
     @Put(':id')
-     @UseInterceptors(
+    @UseInterceptors(
         FileFieldsInterceptor(ClientFileFields, ClientUploadConfig)
     )
     async update(
