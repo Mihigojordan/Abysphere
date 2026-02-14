@@ -222,6 +222,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             label: t('sidebar.salesReport'),
             icon: TrendingUp,
             path: `${base}/reports/sales`,
+            feature: "VIEW_REPORTS",
           },
 
           {
