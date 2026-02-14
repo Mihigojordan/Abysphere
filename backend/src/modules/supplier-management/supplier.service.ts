@@ -41,29 +41,29 @@ export class SupplierService {
   /**
    * Generate unique supplier code
    */
- private async generateSupplierCode(adminId: string): Promise<string> {
-  const maxAttempts = 10;
-  
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Generate random 6-digit number
-    const randomNumber = Math.floor(100000 + Math.random() * 900000);
-    const code = `SUP-${randomNumber}`;
-    
-    // Check if this code already exists
-    const existingSupplier = await this.prisma.supplier.findUnique({
-      where: { code }
-    });
-    
-    if (!existingSupplier) {
-      return code;
+  private async generateSupplierCode(adminId: string): Promise<string> {
+    const maxAttempts = 10;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Generate random 6-digit number
+      const randomNumber = Math.floor(100000 + Math.random() * 900000);
+      const code = `SUP-${randomNumber}`;
+
+      // Check if this code already exists
+      const existingSupplier = await this.prisma.supplier.findFirst({
+        where: { code }
+      });
+
+      if (!existingSupplier) {
+        return code;
+      }
     }
+
+    // Fallback: if all random attempts failed, use timestamp + random
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000);
+    return `SUP-${timestamp}${random}`;
   }
-  
-  // Fallback: if all random attempts failed, use timestamp + random
-  const timestamp = Date.now().toString().slice(-6);
-  const random = Math.floor(Math.random() * 1000);
-  return `SUP-${timestamp}${random}`;
-}
   /**
    * Create a new supplier
    */
