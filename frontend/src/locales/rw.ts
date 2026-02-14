@@ -58,6 +58,8 @@ export const rw = {
         listView: 'Reba ku Rutonde',
         activeStatus: 'Akora',
         totalSuppliers: 'Abagemura Bose',
+        refresh: 'Vugurura',
+        export: 'Sohora',
     },
     category: {
         title: 'Gucunga Ibyiciro',
@@ -77,6 +79,8 @@ export const rw = {
         noCategoriesSub: 'Gerageza gushakisha ukundi cyangwa ongeraho icyiciro gishya',
         totalCategories: 'Ibyiciro Byose',
         activeCategories: 'Ibyiciro Bikora',
+        refresh: 'Vugurura',
+        export: 'Sohora',
     },
     stockIn: {
         title: 'Gucunga Kwinjiza Ububiko',
@@ -441,6 +445,8 @@ export const rw = {
         totalDebit: 'Yose Yasohotse',
         totalCredit: 'Yose Yinjiye',
         totalTransactions: 'Ibikorwa Byose',
+        refresh: 'Vugurura',
+        export: 'Sohora',
         table: {
             date: 'Itariki',
             title: 'Izina',

@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Building2 as SupplierIcon,
   RefreshCw,
+  Download,
   X,
   AlertTriangle,
   List,
@@ -523,6 +524,24 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={loadSuppliers}
+                disabled={isLoading}
+                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                title={t('supplier.refresh')}
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>{t('supplier.refresh')}</span>
+              </button>
+              <button
+                onClick={() => { }}
+                disabled={isLoading || filteredSuppliers.length === 0}
+                className="flex items-center space-x-1 px-4 py-1.5 text-theme-text-secondary hover:text-theme-text-primary border border-theme-border rounded hover:bg-theme-bg-tertiary transition-colors disabled:opacity-50 text-[10px]"
+                title={t('supplier.export')}
+              >
+                <Download className="w-3 h-3" />
+                <span>{t('supplier.export')}</span>
+              </button>
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg shadow-primary-600/20 transition-all active:scale-95"

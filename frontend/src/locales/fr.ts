@@ -58,6 +58,8 @@ export const fr = {
         listView: 'Vue Liste',
         activeStatus: 'Actif',
         totalSuppliers: 'Total Fournisseurs',
+        refresh: 'Actualiser',
+        export: 'Exporter',
     },
     category: {
         title: 'Gestion des Catégories',
@@ -77,6 +79,8 @@ export const fr = {
         noCategoriesSub: 'Essayez d\'ajuster votre recherche ou ajoutez une nouvelle catégorie',
         totalCategories: 'Total Catégories',
         activeCategories: 'Catégories Actives',
+        refresh: 'Actualiser',
+        export: 'Exporter',
     },
     stockIn: {
         title: 'Gestion des Entrées de Stock',
@@ -445,6 +449,8 @@ export const fr = {
         totalDebit: 'Débit Total',
         totalCredit: 'Crédit Total',
         totalTransactions: 'Total des Transactions',
+        refresh: 'Actualiser',
+        export: 'Exporter',
         table: {
             date: 'Date',
             title: 'Titre',
