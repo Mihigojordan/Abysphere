@@ -60,9 +60,6 @@ export class StockoutService {
       externalSku?: string;
       quantity: number;
       soldPrice?: number;
-      hasDebit?: boolean;
-      debitAmount?: number;
-      debitDescription?: string;
     }[];
     clientName?: string;
     clientEmail?: string;
@@ -94,7 +91,7 @@ export class StockoutService {
 
     return await this.prisma.$transaction(async (tx) => {
       for (const sale of sales) {
-        const { stockinId, quantity, soldPrice: overrideSoldPrice, externalItemName, externalSku, hasDebit, debitAmount, debitDescription } = sale;
+        const { stockinId, quantity, soldPrice: overrideSoldPrice, externalItemName, externalSku } = sale;
 
         let soldPrice = overrideSoldPrice;
         let createdRecord;
@@ -200,25 +197,6 @@ export class StockoutService {
         }
 
         createdStockouts.push(createdRecord);
-
-        // Create Debit record if hasDebit is true
-        if (hasDebit && createdRecord) {
-          const totalDebitAmount = debitAmount || (soldPrice ? soldPrice * quantity : 0);
-
-          if (totalDebitAmount > 0) {
-            await tx.debit.create({
-              data: {
-                description: debitDescription || `Debit for ${externalItemName || 'stock sale'}`,
-                totalAmount: totalDebitAmount,
-                stockOutId: createdRecord.id,
-                adminId,
-                employeeId: employeeId || null,
-                status: 'PENDING',
-                payments: [],
-              },
-            });
-          }
-        }
       }
 
       // Generate barcode for transaction
@@ -243,7 +221,6 @@ export class StockoutService {
         stockin: true, // includes all stock details
         admin: true,
         employee: true,
-        Debit: true, // includes debit if exists
       },
     });
   }
@@ -255,7 +232,6 @@ export class StockoutService {
         stockin: true,
         admin: true,
         employee: true,
-        Debit: true,
       },
     });
 
@@ -277,7 +253,6 @@ export class StockoutService {
         stockin: true,
         admin: true,
         employee: true,
-        Debit: true,
       },
     });
   }
