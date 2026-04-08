@@ -22,6 +22,8 @@ async function bootstrap() {
       'https://system.izubagen.rw',
       'https://www.system.izubagen.rw',
       'http://localhost:5173',
+      'https://pms-ltd.onrender.com',
+      'https://www.pms-ltd.onrender.com'
     ],
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],

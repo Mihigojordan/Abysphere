@@ -3,9 +3,9 @@ import emailjs from '@emailjs/browser';
 import { MapPin, Clock, Phone, Mail, Send, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
 
 // ─── EmailJS credentials (replace with your real ones) ────────────────────────
-const EMAILJS_SERVICE_ID = 'service_vzv4oyv';
-const EMAILJS_TEMPLATE_ID = 'template_2gjr1gf';
-const EMAILJS_PUBLIC_KEY = 'xQeMlZ4Zk9FTeRK9W';
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '';
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '';
 
 // ─── Status type ───────────────────────────────────────────────────────────────
 type Status = 'idle' | 'sending' | 'success' | 'error';

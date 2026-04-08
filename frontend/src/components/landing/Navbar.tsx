@@ -188,15 +188,15 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Login */}
+          {/* Contact */}
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/contact')}
             className="font-worksans"
             style={{ background: 'var(--aby-dark)', color: 'white', border: 'none', padding: '0.6rem 1.4rem', fontSize: '0.85rem', fontWeight: 400, letterSpacing: '0.04em', cursor: 'pointer', transition: 'background 0.3s ease' }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-accent)')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-dark)')}
           >
-            Sign In
+            Contact Us
           </button>
         </div>
 
@@ -372,11 +372,11 @@ const Navbar = () => {
                 )}
               </button>
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => { navigate('/contact'); setIsOpen(false); }}
                 className="font-worksans"
                 style={{ background: 'var(--aby-dark)', color: 'white', border: 'none', padding: '0.5rem 1.2rem', fontSize: '0.85rem', cursor: 'pointer' }}
               >
-                Sign In
+                Contact Us
               </button>
             </div>
           </div>

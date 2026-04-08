@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Calendar, X } from 'lucide-react';
 import Modal from '../common/Modal';
 import SupplierSelector from '../common/SupplierSelector';
-import POItemForm, { POItem } from './POItemForm';
+import POItemForm, { type POItem } from './POItemForm';
 import purchaseOrderService, { type CreatePODto } from '../../services/purchaseOrderService';
 import useAdminAuth from '../../context/AdminAuthContext';
 // import useEmployeeAuth from '../../context/EmployeeAuthContext'; // If needed for employee creation

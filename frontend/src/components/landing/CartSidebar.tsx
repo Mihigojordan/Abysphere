@@ -4,7 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 const CartSidebar = () => {
-  const { items, isOpen, closeCart, removeFromCart, updateQty, subtotal, totalItems } = useCart();
+  const { items, isOpen, closeCart, removeFromCart, updateQty, subtotal, totalItems, clearCart } = useCart();
   const [removingId, setRemovingId] = useState<number | null>(null);
   const navigate = useNavigate();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -305,6 +305,10 @@ const CartSidebar = () => {
                   `\n\nPlease confirm availability and delivery details. Thank you!`;
                 const waUrl = `https://wa.me/250723683518?text=${encodeURIComponent(message)}`;
                 window.open(waUrl, '_blank', 'noopener,noreferrer');
+                setTimeout(() => {
+                  clearCart();
+                  closeCart();
+                }, 500);
               }}
               className="font-worksans"
               style={{

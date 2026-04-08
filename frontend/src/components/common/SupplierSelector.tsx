@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronDown, Check, Loader2 } from 'lucide-react';
-import supplierService, { Supplier } from '../../services/supplierService';
+import supplierService, { type Supplier } from '../../services/supplierService';
 
 interface SupplierSelectorProps {
     value: string;
