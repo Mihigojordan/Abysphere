@@ -16,6 +16,7 @@ export interface Stock {
   receivedDate: string;
   reorderLevel: number;
   description?: string;
+  stockImg?: string;
   adminId: string;
   expiryDate?: string | Date;
   categoryName?: string;
@@ -36,6 +37,7 @@ export interface StockData {
   receivedDate: Date;
   reorderLevel: number;
   description?: string;
+  stockImg?: string;
   expiryDate?: Date | string;
   adminId: string;
 }
@@ -64,6 +66,32 @@ export interface StockHistoryRecord {
 class StockService {
   async createStock(data: StockData): Promise<Stock> {
     const res: AxiosResponse<Stock> = await api.post('/stock/create', data);
+    return res.data;
+  }
+
+  async createStockWithImage(data: StockData, imageFile?: File): Promise<Stock> {
+    if (!imageFile) return this.createStock(data);
+    const form = new FormData();
+    (Object.entries(data) as [string, unknown][]).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.append(k, v instanceof Date ? v.toISOString() : String(v));
+    });
+    form.append('stockImg', imageFile);
+    const res: AxiosResponse<Stock> = await api.post('/stock/create', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  }
+
+  async updateStockWithImage(id: string, data: Partial<StockData>, imageFile?: File): Promise<Stock> {
+    if (!imageFile) return this.updateStock(id, data);
+    const form = new FormData();
+    (Object.entries(data) as [string, unknown][]).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.append(k, v instanceof Date ? v.toISOString() : String(v));
+    });
+    form.append('stockImg', imageFile);
+    const res: AxiosResponse<Stock> = await api.put(`/stock/update/${id}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return res.data;
   }
 

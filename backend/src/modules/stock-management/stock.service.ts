@@ -32,7 +32,7 @@ export class StockService {
       const unitCost = data.unitCost !== undefined ? Number(data.unitCost) : Number(existingStock.unitCost);
       const totalValue = newQuantity * unitCost;
 
-      const updated = await this.prisma.stock.update({
+      const updated = await (this.prisma.stock.update as any)({
         where: { id: existingStock.id },
         data: {
           receivedQuantity: newQuantity,
@@ -43,6 +43,8 @@ export class StockService {
           receivedDate: data.receivedDate ? new Date(data.receivedDate) : existingStock.receivedDate,
           reorderLevel: data.reorderLevel !== undefined ? Number(data.reorderLevel) : existingStock.reorderLevel,
           expiryDate: data.expiryDate ? new Date(data.expiryDate) : existingStock.expiryDate,
+          description: data.description !== undefined ? data.description : (existingStock as any).description,
+          stockImg: data.stockImg || (existingStock as any).stockImg,
         },
       });
 
@@ -81,10 +83,12 @@ export class StockService {
       receivedDate: data.receivedDate ? new Date(data.receivedDate) : new Date(),
       reorderLevel: Number(data.reorderLevel) || 0,
       expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+      description: data.description || null,
+      stockImg: data.stockImg || null,
       adminId,
     };
 
-    const created = await this.prisma.stock.create({ data: stockData });
+    const created = await this.prisma.stock.create({ data: stockData as any });
 
     // Record stock history — IN (new stock)
     await this.prisma.stockHistory.create({
@@ -109,6 +113,105 @@ export class StockService {
       where: { adminId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async findAllPublic(params?: {
+    search?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sort?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const {
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      sort = 'default',
+      page = 1,
+      limit = 8,
+    } = params || {};
+
+    // Build where clause — cast to any to allow MySQL-compatible contains without mode
+    const where: any = {
+      receivedQuantity: { gt: 0 },
+    };
+
+    // Search filter across multiple fields
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { itemName: { contains: q } },
+            { sku: { contains: q } },
+            { supplier: { contains: q } },
+            { description: { contains: q } },
+            { category: { name: { contains: q } } },
+          ],
+        },
+      ];
+    }
+
+    // Category filter: match by categoryId (UUID) or category.name
+    if (category) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { categoryId: category },
+            { category: { name: { contains: category } } },
+          ],
+        },
+      ];
+    }
+
+    // Price range
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.unitCost = {
+        ...(minPrice !== undefined ? { gte: new Prisma.Decimal(minPrice) } : {}),
+        ...(maxPrice !== undefined ? { lte: new Prisma.Decimal(maxPrice) } : {}),
+      };
+    }
+
+    // Sort
+    let orderBy: any = { createdAt: 'desc' };
+    if (sort === 'price-asc') orderBy = { unitCost: 'asc' };
+    else if (sort === 'price-desc') orderBy = { unitCost: 'desc' };
+    else if (sort === 'name-asc') orderBy = { itemName: 'asc' };
+    else if (sort === 'name-desc') orderBy = { itemName: 'desc' };
+
+    const skip = (page - 1) * limit;
+
+    const [rawData, total] = await Promise.all([
+      this.prisma.stock.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: { category: { select: { id: true, name: true } } },
+      }),
+      this.prisma.stock.count({ where }),
+    ]);
+
+    // Flatten categoryName onto each record for the frontend
+    const data = rawData.map((s: any) => ({
+      ...s,
+      categoryName: s.category?.name ?? null,
+    }));
+
+    return { data, total };
+  }
+
+  async findOnePublic(id: number) {
+    const stock = await this.prisma.stock.findFirst({
+      where: { id, receivedQuantity: { gt: 0 } },
+    });
+    if (!stock) throw new NotFoundException('Stock item not found');
+    return stock;
   }
 
   async getStockAlerts(adminId: string) {

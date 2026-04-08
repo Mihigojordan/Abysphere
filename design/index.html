@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umucyo — Curated Rwanda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">Umucyo</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">Makers</a>
+                <a href="#" class="nav-link">Stories</a>
+                <a href="#" class="nav-link">About</a>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-icon search-btn" aria-label="Search">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="13" y1="13" x2="18" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="nav-icon cart-btn" aria-label="Cart">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M3 3H4.5L6.5 13.5H16.5L18.5 6H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="8" cy="17" r="1" fill="currentColor"/>
+                        <circle cx="15" cy="17" r="1" fill="currentColor"/>
+                    </svg>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-label">Spring Collection 2024</div>
+            <h1 class="hero-title">
+                Crafted with<br>
+                Purpose & Pride
+            </h1>
+            <p class="hero-subtitle">
+                Authentic Rwandan craftsmanship meets contemporary design.<br>
+                Every piece tells a story of heritage, skill, and sustainability.
+            </p>
+            <div class="hero-actions">
+                <button class="btn btn-primary">Explore Collection</button>
+                <button class="btn btn-secondary">Watch Our Story</button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-image-wrapper">
+                <div class="hero-image placeholder-image">
+                    <div class="image-pattern"></div>
+                </div>
+                <div class="hero-badge">
+                    <span class="badge-text">Handmade in Rwanda</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="categories">
+        <div class="section-header">
+            <h2 class="section-title">Browse by Category</h2>
+        </div>
+        <div class="categories-grid">
+            <div class="category-card" data-category="baskets">
+                <div class="category-image placeholder-image">
+                    <div class="image-pattern pattern-1"></div>
+                </div>
+                <div class="category-info">
+                    <h3 class="category-name">Woven Baskets</h3>
+                    <span class="category-count">24 items</span>
+                </div>
+            </div>
+            <div class="category-card" data-category="textiles">
+                <div class="category-image placeholder-image">
+                    <div class="image-pattern pattern-2"></div>
+                </div>
+                <div class="category-info">
+                    <h3 class="category-name">Textiles</h3>
+                    <span class="category-count">18 items</span>
+                </div>
+            </div>
+            <div class="category-card" data-category="ceramics">
+                <div class="category-image placeholder-image">
+                    <div class="image-pattern pattern-3"></div>
+                </div>
+                <div class="category-info">
+                    <h3 class="category-name">Ceramics</h3>
+                    <span class="category-count">12 items</span>
+                </div>
+            </div>
+            <div class="category-card" data-category="jewelry">
+                <div class="category-image placeholder-image">
+                    <div class="image-pattern pattern-4"></div>
+                </div>
+                <div class="category-info">
+                    <h3 class="category-name">Jewelry</h3>
+                    <span class="category-count">32 items</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="products">
+        <div class="section-header">
+            <h2 class="section-title">Featured Items</h2>
+            <button class="view-all">View All →</button>
+        </div>
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-image placeholder-image">
+                    <div class="image-pattern pattern-5"></div>
+                    <button class="wishlist-btn" aria-label="Add to wishlist">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 17L3 10C1 8 1 5 3 3C5 1 8 1 10 3C12 1 15 1 17 3C19 5 19 8 17 10L10 17Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Agaseke Peace Basket</h3>
+                    <p class="product-maker">by Uwera Collective</p>
+                    <div class="product-footer">
+                        <span class="product-price">45,000 RWF</span>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image placeholder-image">
+                    <div class="image-pattern pattern-6"></div>
+                    <button class="wishlist-btn" aria-label="Add to wishlist">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 17L3 10C1 8 1 5 3 3C5 1 8 1 10 3C12 1 15 1 17 3C19 5 19 8 17 10L10 17Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Indigo Dyed Scarf</h3>
+                    <p class="product-maker">by Keza Studio</p>
+                    <div class="product-footer">
+                        <span class="product-price">28,000 RWF</span>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image placeholder-image">
+                    <div class="image-pattern pattern-7"></div>
+                    <button class="wishlist-btn" aria-label="Add to wishlist">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 17L3 10C1 8 1 5 3 3C5 1 8 1 10 3C12 1 15 1 17 3C19 5 19 8 17 10L10 17Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Clay Coffee Set</h3>
+                    <p class="product-maker">by Inema Pottery</p>
+                    <div class="product-footer">
+                        <span class="product-price">62,000 RWF</span>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image placeholder-image">
+                    <div class="image-pattern pattern-8"></div>
+                    <button class="wishlist-btn" aria-label="Add to wishlist">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 17L3 10C1 8 1 5 3 3C5 1 8 1 10 3C12 1 15 1 17 3C19 5 19 8 17 10L10 17Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Beaded Necklace</h3>
+                    <p class="product-maker">by Amahoro Artisans</p>
+                    <div class="product-footer">
+                        <span class="product-price">18,000 RWF</span>
+                        <button class="add-to-cart-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Section -->
+    <section class="impact">
+        <div class="impact-content">
+            <div class="impact-stats">
+                <div class="stat-item">
+                    <div class="stat-number">250+</div>
+                    <div class="stat-label">Artisans Supported</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Cooperatives</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Fair Trade</div>
+                </div>
+            </div>
+            <div class="impact-text">
+                <h2 class="impact-title">Empowering Communities<br>Through Craft</h2>
+                <p class="impact-description">
+                    Every purchase directly supports local artisans and their families. We work with cooperatives 
+                    across Rwanda to preserve traditional techniques while creating sustainable livelihoods. 
+                    Our commitment to fair trade ensures makers receive 70% of every sale.
+                </p>
+                <button class="btn btn-outline">Learn About Our Impact</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="section-header">
+            <h2 class="section-title">What Our Customers Say</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "The quality is outstanding. You can feel the care and skill in every piece. 
+                    I'm proud to support Rwandan artisans."
+                </p>
+                <div class="testimonial-author">
+                    <strong>Marie K.</strong>
+                    <span>Kigali</span>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "Beautiful products with a meaningful story. The basket I ordered is now 
+                    the centerpiece of my living room."
+                </p>
+                <div class="testimonial-author">
+                    <strong>James M.</strong>
+                    <span>Nairobi</span>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">★★★★★</div>
+                <p class="testimonial-text">
+                    "Fast shipping, excellent packaging, and the craftsmanship exceeded my expectations. 
+                    Will definitely order again."
+                </p>
+                <div class="testimonial-author">
+                    <strong>Sophie L.</strong>
+                    <span>Brussels</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2 class="newsletter-title">Stay Connected</h2>
+            <p class="newsletter-subtitle">
+                Get updates on new collections, artisan stories, and exclusive offers.
+            </p>
+            <form class="newsletter-form" id="newsletterForm">
+                <input 
+                    type="email" 
+                    placeholder="Enter your email address" 
+                    class="newsletter-input"
+                    required
+                >
+                <button type="submit" class="newsletter-btn">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-heading">Umucyo</h3>
+                <p class="footer-text">
+                    Connecting global customers with Rwanda's finest artisans. 
+                    Authentic, sustainable, and beautifully crafted.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-title">Shop</h4>
+                <ul class="footer-links">
+                    <li><a href="#">All Products</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">Gift Sets</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-title">Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Our Artisans</a></li>
+                    <li><a href="#">Sustainability</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-title">Support</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Track Order</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Umucyo. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="#" aria-label="Instagram">IG</a>
+                <a href="#" aria-label="Facebook">FB</a>
+                <a href="#" aria-label="Twitter">TW</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

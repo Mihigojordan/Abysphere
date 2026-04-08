@@ -286,6 +286,8 @@ const StockInForm: React.FC<{
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isManualSupplier, setIsManualSupplier] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<StockInFormData>({
     sku: '',
@@ -393,9 +395,9 @@ const StockInForm: React.FC<{
       let result: Stock;
       if (stockId) {
         const { categoryId, ...updateData } = payload;
-        result = await stockService.updateStock(stockId, updateData as any);
+        result = await stockService.updateStockWithImage(stockId, updateData as any, imageFile ?? undefined);
       } else {
-        result = await stockService.createStock(payload);
+        result = await stockService.createStockWithImage(payload, imageFile ?? undefined);
       }
 
       onSuccess?.(result);
@@ -610,6 +612,51 @@ const StockInForm: React.FC<{
                   onChange={(e) => handleChange('expiryDate', e.target.value)}
                   className="w-full px-3 py-2.5 text-xs border border-theme-border rounded-lg bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+              </div>
+            </div>
+
+            {/* Product Image */}
+            <div>
+              <label className="block text-xs font-medium text-theme-text-secondary mb-1.5">
+                Product Image (Optional)
+              </label>
+              <div className="flex items-start gap-4">
+                {imagePreview && (
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-24 h-24 object-cover rounded-lg border border-theme-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setImageFile(null); setImagePreview(null); }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-theme-border rounded-lg cursor-pointer bg-theme-bg-secondary hover:bg-theme-bg-tertiary transition-colors">
+                  <span className="text-xs text-theme-text-secondary">
+                    {imageFile ? imageFile.name : 'Click to upload image (JPG, PNG, WebP)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      setImageFile(file);
+                      if (file) {
+                        const url = URL.createObjectURL(file);
+                        setImagePreview(url);
+                      } else {
+                        setImagePreview(null);
+                      }
+                    }}
+                  />
+                </label>
               </div>
             </div>
 

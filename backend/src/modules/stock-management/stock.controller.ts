@@ -7,11 +7,15 @@ import {
   Post,
   Put,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { StockService } from './stock.service';
 import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
 import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { StockFileFields, StockUploadConfig } from 'src/common/utils/file-upload.utils';
 
 @Controller('stock')
 export class StockController {
@@ -20,8 +24,16 @@ export class StockController {
   // ✅ Create Stock
   @Post('create')
   @UseGuards(AdminJwtAuthGuard)
-  async createStock(@Req() req: RequestWithAdmin, @Body() data) {
+  @UseInterceptors(FileFieldsInterceptor(StockFileFields, StockUploadConfig))
+  async createStock(
+    @Req() req: RequestWithAdmin,
+    @Body() data,
+    @UploadedFiles() files?: { stockImg?: Express.Multer.File[] },
+  ) {
     const adminId = req.admin!.id;
+    if (files?.stockImg?.[0]?.filename) {
+      data.stockImg = `/uploads/stock_images/${files.stockImg[0].filename}`;
+    }
     return await this.stockService.createStock(data, adminId);
   }
 
@@ -59,8 +71,17 @@ export class StockController {
   // ✅ Update Stock
   @Put('update/:id')
   @UseGuards(AdminJwtAuthGuard)
-  async updateStock(@Req() req: RequestWithAdmin, @Param('id') id: string, @Body() data) {
+  @UseInterceptors(FileFieldsInterceptor(StockFileFields, StockUploadConfig))
+  async updateStock(
+    @Req() req: RequestWithAdmin,
+    @Param('id') id: string,
+    @Body() data,
+    @UploadedFiles() files?: { stockImg?: Express.Multer.File[] },
+  ) {
     const adminId = req.admin!.id;
+    if (files?.stockImg?.[0]?.filename) {
+      data.stockImg = `/uploads/stock_images/${files.stockImg[0].filename}`;
+    }
     return await this.stockService.update(Number(id), data, adminId);
   }
 

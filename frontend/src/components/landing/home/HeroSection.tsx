@@ -1,201 +1,289 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, TrendingUp, Award, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const HRExcellenceHero = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+interface HeroSectionProps {
+  onExplore?: () => void;
+}
+
+const HeroSection = ({ onExplore }: HeroSectionProps) => {
+  const [visible, setVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    setIsVisible(true);
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(interval);
+    const t = setTimeout(() => setVisible(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
-  const slides = [
-    {
-      title: "Stop Losing Money to Stock Errors",
-      subtitle: "Manual tracking is costing you sales. Get real-time visibility into every item, eliminate stockouts, and boost profits with automated inventory management.",
-      stat: "99.5%",
-      statLabel: "Accuracy Rate",
-      image: "/stock.png",
-    },
-    {
-      title: "Manage Inventory Like a Pro",
-      subtitle: "From one location to nationwide operations — track stock movements, set smart alerts, and make data-driven decisions that grow your business.",
-      stat: "75%",
-      statLabel: "Time Saved",
-      image: "/stock.png",
-    },
-    {
-      title: "Your Business Deserves Better Than Spreadsheets",
-      subtitle: "Join 500+ businesses using Mysystem to automate stock tracking, reduce waste, and scale effortlessly across multiple branches.",
-      stat: "500+",
-      statLabel: "Happy Businesses",
-      image: "/stock.png",
-    },
-    // {
-    //   title: "Transform Your Workforce.",
-    //   subtitle: "Strategic talent management solutions designed to elevate your organization's performance and drive sustainable growth.",
-    //   stat: "500+",
-    //   statLabel: "Clients Served",
-    //   image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070",
-    // },
-    // {
-    //   title: "Recruit With Confidence.",
-    //   subtitle: "Find the perfect candidates faster with our data-driven recruitment platform and expert HR consulting services.",
-    //   stat: "1000+",
-    //   statLabel: "Placements Made",
-    //   image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=2069",
-    // },
-  ];
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
   return (
-    <div className="relative h-screen overflow-hidden">
-      {/* Background Image with transitions */}
-      {slides.map((slide, index) => (
-        <div
-          key={`bg-${index}`}
-          className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === index ? "opacity-100" : "opacity-0"
-            }`}
-        >
-          <img
-            src={slide.image}
-            alt={slide.title}
-            className="w-full h-full object-cover"
+    <section
+      id="home"
+      style={{
+        minHeight: '100vh',
+        background: 'var(--aby-bg)',
+        display: 'flex',
+        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Subtle background pattern */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: 'radial-gradient(circle at 70% 50%, rgba(30,58,138,0.04) 0%, transparent 60%)',
+        pointerEvents: 'none',
+      }} />
+
+      <div
+        style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '6rem 2rem 4rem',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '5rem',
+          alignItems: 'center',
+          width: '100%',
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0)' : 'translateY(24px)',
+          transition: 'opacity 0.9s ease, transform 0.9s ease',
+        }}
+        className="hero-grid"
+      >
+        {/* Text Content */}
+        <div>
+          <div
+            className="font-worksans"
+            style={{
+              fontSize: '0.75rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'var(--aby-accent)',
+              fontWeight: 600,
+              marginBottom: '1.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}
+          >
+            <span style={{ display: 'inline-block', width: '32px', height: '1px', background: 'var(--aby-accent)' }} />
+            Premium Stationery &amp; Office Supplies
+          </div>
+
+          <h1
+            className="font-cormorant"
+            style={{
+              fontSize: 'clamp(2.8rem, 5vw, 5rem)',
+              fontWeight: 300,
+              lineHeight: 1.08,
+              letterSpacing: '-0.02em',
+              color: 'var(--aby-dark)',
+              marginBottom: '1.75rem',
+            }}
+          >
+            Your Trusted
+            <br />
+            <em style={{ fontStyle: 'italic', color: 'var(--aby-accent)' }}>Stationery</em>
+            <br />
+            Partner
+          </h1>
+
+          <p
+            className="font-worksans"
+            style={{
+              fontSize: '1.05rem',
+              color: 'var(--aby-muted)',
+              lineHeight: 1.85,
+              marginBottom: '2.5rem',
+              maxWidth: '460px',
+            }}
+          >
+            From premium notebooks and writing instruments to office essentials
+            and custom packaging — Papeterie Messanger Supplier Ltd. delivers
+            quality stationery solutions for businesses and individuals across Rwanda.
+          </p>
+
+          {/* Trust badges */}
+          <div
+            className="font-worksans"
+            style={{
+              display: 'flex',
+              gap: '2rem',
+              marginBottom: '2.5rem',
+              flexWrap: 'wrap',
+            }}
+          >
+            {['Fast Delivery', 'Bulk Orders Welcome', 'Quality Guaranteed'].map((badge) => (
+              <div key={badge} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ color: 'var(--aby-accent)', fontSize: '1rem' }}>✓</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--aby-muted)', fontWeight: 500 }}>{badge}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={onExplore}
+              className="font-worksans"
+              style={{
+                background: 'var(--aby-dark)',
+                color: 'white',
+                border: 'none',
+                padding: '1rem 2.2rem',
+                fontSize: '0.88rem',
+                fontWeight: 500,
+                letterSpacing: '0.06em',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textTransform: 'uppercase',
+              }}
+              onMouseEnter={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = 'var(--aby-accent)';
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 8px 24px rgba(30,58,138,0.2)';
+              }}
+              onMouseLeave={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = 'var(--aby-dark)';
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = 'none';
+              }}
+            >
+              Shop Now
+            </button>
+
+            <button
+              onClick={() => navigate('/contact')}
+              className="font-worksans"
+              style={{
+                background: 'transparent',
+                color: 'var(--aby-dark)',
+                border: '1px solid var(--aby-border)',
+                padding: '1rem 2.2rem',
+                fontSize: '0.88rem',
+                fontWeight: 500,
+                letterSpacing: '0.06em',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textTransform: 'uppercase',
+              }}
+              onMouseEnter={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.borderColor = 'var(--aby-accent)';
+                btn.style.color = 'var(--aby-accent)';
+              }}
+              onMouseLeave={(e) => {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.borderColor = 'var(--aby-border)';
+                btn.style.color = 'var(--aby-dark)';
+              }}
+            >
+              Request a Quote
+            </button>
+          </div>
+        </div>
+
+        {/* Visual */}
+        <div style={{ position: 'relative' }}>
+          {/* Main image */}
+          <div
+            style={{
+              width: '100%',
+              aspectRatio: '4/5',
+              overflow: 'hidden',
+              position: 'relative',
+              border: '1px solid var(--aby-border)',
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?w=900&h=1125&fit=crop&q=80"
+              alt="Premium stationery and office supplies by Papeterie Messanger"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transition: 'transform 0.7s ease',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
+            />
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(30,58,138,0.18) 0%, transparent 55%)',
+              pointerEvents: 'none',
+            }} />
+          </div>
+
+          {/* Floating stat card */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-24px',
+              left: '-24px',
+              background: 'white',
+              border: '1px solid var(--aby-border)',
+              boxShadow: '0 12px 40px rgba(30,58,138,0.12)',
+              padding: '1.25rem 1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.2rem',
+            }}
+          >
+            <span className="font-cormorant" style={{ fontSize: '2.2rem', fontWeight: 400, lineHeight: 1, color: 'var(--aby-accent)' }}>500+</span>
+            <span className="font-worksans" style={{ fontSize: '0.78rem', color: 'var(--aby-muted)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Products in Stock</span>
+          </div>
+
+          {/* Floating badge */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '24px',
+              right: '-16px',
+              background: 'var(--aby-accent)',
+              color: 'white',
+              padding: '0.85rem 1.25rem',
+              boxShadow: '0 8px 24px rgba(30,58,138,0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.1rem',
+            }}
+          >
+            <span className="font-cormorant" style={{ fontSize: '1.4rem', lineHeight: 1 }}>Since</span>
+            <span className="font-worksans" style={{ fontSize: '0.75rem', letterSpacing: '0.06em' }}>2015</span>
+          </div>
+
+          {/* Dot grid decoration */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '-20px',
+              right: '-20px',
+              width: '90px',
+              height: '90px',
+              backgroundImage: 'radial-gradient(circle, var(--aby-accent) 1px, transparent 1px)',
+              backgroundSize: '12px 12px',
+              opacity: 0.25,
+              pointerEvents: 'none',
+            }}
           />
         </div>
-      ))}
-
-      {/* Overlay for text visibility */}
-      <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
-
-      {/* Vertical "Scroll To Explore" Text */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2 z-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="writing-mode-vertical text-sm tracking-widest text-slate-600 font-medium transform -rotate-180">
-            Scroll To Explore
-          </div>
-          <div className="w-px h-16 bg-slate-300"></div>
-
-          <div className="relative">
-            <div
-              className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer hover:bg-emerald-600 hover:text-white transition-all
-              before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-emerald-700/40 before:animate-[ping_1s_ease-in-out_infinite]"
-            >
-              ↓
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative h-full">
-        {slides.map((slide, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === index ? "opacity-100" : "opacity-0"
-              }`}
-          >
-            <div className="flex items-center justify-center h-full w-full">
-              {/* Centered Content Section */}
-              <div className="flex flex-col items-center justify-center px-6 lg:px-24 py-16 text-center max-w-5xl">
-                {/* Logo/Brand Tag */}
-                <div
-                  className={`mb-8 transition-all duration-700 delay-100 ${currentSlide === index && isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                    }`}
-                >
-                  <div className="flex flex-col items-center gap-2 text-emerald-600 mb-8">
-                    <div className="flex justify-center gap-1">
-                      <div className="w-2 h-2 bg-emerald-600 rounded-full"></div>
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                      <div className="w-2 h-2 bg-emerald-300 rounded-full"></div>
-                    </div>
-                    <span className="text-xs tracking-widest uppercase font-semibold">Make Your Vision To Reality</span>
-                  </div>
-                </div>
-
-                {/* Main Heading */}
-                <h1
-                  className={`text-5xl lg:text-5xl xl:text-7xl font-bold text-emerald-900 mb-6 leading-tight transition-all duration-700 delay-200 ${currentSlide === index && isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                    }`}
-                >
-                  {slide.title}
-                </h1>
-
-                {/* Subtitle */}
-                <p
-                  className={`text-lg text-emerald-800 mb-10 max-w-2xl leading-relaxed transition-all duration-700 delay-300 mx-auto ${currentSlide === index && isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                    }`}
-                >
-                  {slide.subtitle}
-                </p>
-
-                {/* CTA Buttons */}
-                <div
-                  className={`transition-all duration-700 delay-400 flex flex-wrap justify-center gap-4 ${currentSlide === index && isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                    }`}
-                >
-                  <button className="group px-8 py-4 bg-emerald-700 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-all duration-300 flex items-center gap-2 shadow-lg">
-                    Get Started
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <button className="px-8 py-4 bg-white/80 backdrop-blur-sm text-emerald-900 font-semibold rounded-lg border-2 border-emerald-700 hover:bg-emerald-700 hover:text-white transition-all duration-300 shadow-lg">
-                    Request a Demo
-                  </button>
-                </div>
-
-                {/* Phone Number */}
-                <div
-                  className={`mt-16 flex items-center gap-4 transition-all duration-700 delay-500 ${currentSlide === index && isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-                    }`}
-                >
-                  <div className="w-12 h-px bg-emerald-400"></div>
-                  <a href="tel:+250791813289" className="text-xl font-semibold text-emerald-900 hover:text-emerald-600 transition-colors">
-                    +(250) 791-813-289
-                  </a>
-                  <div className="w-12 h-px bg-emerald-400"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation Arrows */}
-            <div className="absolute bottom-12 right-12 flex gap-3 z-50">
-              <button
-                onClick={prevSlide}
-                className="w-12 h-12 rounded-full bg-emerald-600/80 text-white flex items-center justify-center hover:bg-emerald-700 transition-all shadow-lg backdrop-blur-sm"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="w-12 h-12 rounded-full bg-emerald-600/80 text-white flex items-center justify-center hover:bg-emerald-700 transition-all shadow-lg backdrop-blur-sm"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-        ))}
       </div>
 
       <style>{`
-        .writing-mode-vertical {
-          writing-mode: vertical-rl;
+        @media (max-width: 900px) {
+          .hero-grid {
+            grid-template-columns: 1fr !important;
+            gap: 3rem !important;
+            padding: 5rem 1.5rem 3rem !important;
+          }
         }
       `}</style>
-    </div>
+    </section>
   );
 };
 
-export default HRExcellenceHero;
+export default HeroSection;

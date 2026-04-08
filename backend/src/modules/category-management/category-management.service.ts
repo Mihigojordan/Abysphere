@@ -63,6 +63,17 @@ export class CategoryManagementService {
     }
   }
 
+  async findAllPublic() {
+    try {
+      return await this.prismaService.category.findMany({
+        orderBy: { name: 'asc' },
+      });
+    } catch (error) {
+      console.error('Error getting public categories:', error);
+      throw new Error(error.message);
+    }
+  }
+
   async getCategoryById(id: string) {
     try {
       if (!id) throw new BadRequestException('Category ID is required');

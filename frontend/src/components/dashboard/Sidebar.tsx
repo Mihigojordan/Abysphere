@@ -139,22 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
 
 
 
-      {
-        id: "departments",
-        label: t('sidebar.departments'),
-        icon: Building,
-        path: `${base}/department-management`,
-        feature: "DEPARTMENTS_MANAGEMENT",
-        allowedRoles: ["admin"],
-      },
-      {
-        id: "employees",
-        label: t('sidebar.employees'),
-        icon: Users,
-        path: `${base}/employee-management`,
-        feature: "EMPLOYEES_MANAGEMENT",
-        allowedRoles: ["admin"],
-      },
+     
 
       {
         id: "clients",
@@ -222,7 +207,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             label: t('sidebar.salesReport'),
             icon: TrendingUp,
             path: `${base}/reports/sales`,
-            feature: "VIEW_REPORTS",
+            feature: "VIEW_SALES_REPORTS",
           },
 
           {
@@ -230,19 +215,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
             label: t('sidebar.inventoryReport'),
             icon: FolderTree,
             path: `${base}/reports/inventory`,
+            feature: "VIEW_INVENTORY_REPORTS",
           },
           {
             id: "stock-history",
             label: t('sidebar.stockHistory'),
             icon: ArrowUp,
             path: `${base}/stock-history`,
+            feature: "VIEW_INVENTORY_REPORTS",
           },
           {
             id: "stock-alerts",
             label: t('sidebar.stockAlerts'),
             icon: AlertTriangle,
             path: `${base}/stock-alerts`,
-            // feature: "STOCK_ALERTS",
+            feature: "VIEW_INVENTORY_REPORTS",
           },
         ],
       },

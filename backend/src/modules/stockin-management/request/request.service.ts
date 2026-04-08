@@ -692,7 +692,7 @@ if (Array.isArray(request.attachments as any)) {
 
   await this.prisma.request.update({
     where: { id: requestId },
-    data: { attachments },
+    data: { attachments: JSON.stringify(attachments) },
   });
 
   return { success: true, attachments };
@@ -732,7 +732,7 @@ if (Array.isArray(request.comments as any)) {
 
   await this.prisma.request.update({
     where: { id: requestId },
-    data: { comments },
+    data: { comments: JSON.stringify(comments) },
   });
 
   return { success: true, comments };

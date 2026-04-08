@@ -55,6 +55,36 @@
 
   /* Transition speed for theme changes */
   --theme-transition: 0.2s ease-in-out;
+
+  /* ── Abysphere Landing Page Design System ── */
+  --aby-dark:    #1e3a8a;   /* blue-900 — nav bg, headings, buttons */
+  --aby-accent:  #2563eb;   /* blue-600 — CTAs, highlights, badges */
+  --aby-bg:      #f0f6ff;   /* very light blue-tinted off-white */
+  --aby-surface: #ffffff;
+  --aby-border:  #bfdbfe;   /* blue-200 */
+  --aby-muted:   #64748b;   /* slate-500 */
+  --aby-shadow-sm: 0 1px 3px rgba(29,78,216,0.08);
+  --aby-shadow-md: 0 4px 12px rgba(29,78,216,0.12);
+  --aby-shadow-lg: 0 8px 24px rgba(29,78,216,0.18);
+}
+
+/* Abysphere landing typography helpers */
+.font-cormorant {
+  font-family: 'Cormorant Garamond', serif;
+}
+.font-worksans {
+  font-family: 'Work Sans', sans-serif;
+}
+
+/* Scroll-reveal animation classes */
+.aby-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.aby-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 body {
@@ -62,6 +92,7 @@ body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   transition: background-color var(--theme-transition), color var(--theme-transition);
+  overflow-x: hidden;
 }
 
 /* Smooth transitions for theme-aware elements */

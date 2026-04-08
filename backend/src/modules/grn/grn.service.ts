@@ -162,7 +162,9 @@ export class GRNService {
                             landedCost,
                             lineTotal: item.acceptedQty * landedCost,
                             batchNumber: item.batchNumber,
-                            serialNumbers: item.serialNumbers,
+                            serialNumbers: item.serialNumbers
+                                ? JSON.stringify(item.serialNumbers)
+                                : undefined,
                             manufacturingDate: item.manufacturingDate,
                             expiryDate: item.expiryDate,
                             locationId: item.locationId,

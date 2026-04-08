@@ -53,6 +53,11 @@ const InventoryReportPage = lazy(() => import("../pages/dashboard/InventoryRepor
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
+const ShopPage = lazy(() => import("../pages/landing/ShopPage"));
+const ProductPage = lazy(() => import("../pages/landing/ProductPage"));
+const ContactPage = lazy(() => import("../pages/landing/ContactUs"));
+const FAQPage = lazy(() => import("../pages/landing/FAQPage"));
+const NotFoundPage = lazy(() => import("../pages/landing/NotFoundPage"));
 const BlogsPage = lazy(() => import("../pages/landing/BlogsPage"));
 const BlogViewPage = lazy(() => import("../components/landing/BlogViewPage"));
 const AdminLogin = lazy(() => import("../pages/auth/admin/Login"));
@@ -146,7 +151,45 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '',
-        element: <Navigate to={'/auth/admin/login'} />
+        element: <MainLayout></MainLayout>,
+        children: [
+          {
+            path: '',
+            element: <Home />
+          },
+          {
+            path: 'shop',
+            element: (
+              <SuspenseWrapper>
+                <ShopPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'product/:id',
+            element: (
+              <SuspenseWrapper>
+                <ProductPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'contact',
+            element: (
+              <SuspenseWrapper>
+                <ContactPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'faq',
+            element: (
+              <SuspenseWrapper>
+                <FAQPage />
+              </SuspenseWrapper>
+            ),
+          },
+        ]
 
       },
       {
@@ -1210,6 +1253,14 @@ const routes = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: '*',
+    element: (
+      <SuspenseWrapper>
+        <NotFoundPage />
+      </SuspenseWrapper>
+    ),
   },
 ]);
 

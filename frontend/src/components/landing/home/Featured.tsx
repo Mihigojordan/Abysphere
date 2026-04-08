@@ -1,215 +1,352 @@
-import React from 'react';
-import { Check, Star, ArrowUpRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Heart, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { resolveImgUrl } from '../../../utils/imageUtils';
+import publicStockService, { type Stock } from '../../../services/publicStockService';
+import { useCart } from '../../../context/CartContext';
 
-export default function WhoCanUseSection() {
-  const sectors = [
-    {
-      image: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=2073",
-      title: "Retail & Supermarkets",
-      description: "Track products, expiry dates, and daily stock usage with automated alerts and real-time inventory updates.",
-      benefits: ["Product tracking", "Expiry monitoring", "Daily stock reports"]
-    },
-    {
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070",
-      title: "Restaurants & Bars",
-      description: "Manage ingredients, recipes, kitchen usage, and wastage to reduce costs and optimize menu planning.",
-      benefits: ["Recipe management", "Ingredient tracking", "Wastage control"]
-    },
-    {
-      image: "https://images.unsplash.com/photo-1576602976047-174e57a47881?q=80&w=2068",
-      title: "Pharmacies",
-      description: "Track batch numbers, expiry alerts, and medicine inventory with compliance-ready reporting systems.",
-      benefits: ["Batch tracking", "Expiry alerts", "Medicine inventory"]
-    },
-    {
-      image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053",
-      title: "Clinics & Medical Centers",
-      description: "Monitor medicine, medical equipment, and consumables to ensure continuous patient care supply.",
-      benefits: ["Equipment tracking", "Medicine stock", "Consumables monitoring"]
-    },
-    {
-      image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=2070",
-      title: "Hardware & Construction",
-      description: "Manage tools, building materials, and supplier orders with project-based inventory allocation.",
-      benefits: ["Tools management", "Materials tracking", "Supplier orders"]
-    },
-    {
-      image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=2070",
-      title: "Fashion & Boutique",
-      description: "Track sizes, colors, and product variations with visual inventory management for apparel businesses.",
-      benefits: ["Size tracking", "Color variants", "Style management"]
-    }
-  ];
+const CARD_GRADIENTS = [
+  'linear-gradient(145deg, #f0e8dd, #e2d3be)',
+  'linear-gradient(145deg, #e8ddd4, #d6c8b0)',
+  'linear-gradient(145deg, #ede6dc, #dccfb8)',
+  'linear-gradient(145deg, #f2ebe1, #e5d6c0)',
+  'linear-gradient(145deg, #ede0d0, #d6bfa0)',
+  'linear-gradient(145deg, #f0e4d4, #dcc4a0)',
+  'linear-gradient(145deg, #e5d8c8, #c8a878)',
+  'linear-gradient(145deg, #f5e6d3, #e0c9a8)',
+];
+
+interface FeaturedProps {
+  onAddToCart?: () => void;
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const SkeletonCard = () => (
+  <div>
+    <div
+      style={{
+        width: '100%',
+        aspectRatio: '3/4',
+        background: 'linear-gradient(90deg, #f0ede8 25%, #e8e3dc 50%, #f0ede8 75%)',
+        backgroundSize: '200% 100%',
+        border: '1px solid var(--aby-border)',
+        marginBottom: '1rem',
+        animation: 'shimmer 1.5s infinite',
+      }}
+    />
+    <div style={{ padding: '0 0.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ height: '16px', width: '70%', background: '#f0ede8', borderRadius: '2px', animation: 'shimmer 1.5s infinite' }} />
+      <div style={{ height: '12px', width: '45%', background: '#f0ede8', borderRadius: '2px', animation: 'shimmer 1.5s infinite' }} />
+    </div>
+    <style>{`@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`}</style>
+  </div>
+);
+
+// ─── Product Card ─────────────────────────────────────────────────────────────
+
+const ProductCard = ({
+  stock,
+  gradientIndex,
+  onAddToCart,
+}: {
+  stock: Stock;
+  gradientIndex: number;
+  onAddToCart?: () => void;
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [added, setAdded] = useState(false);
+  const bg = CARD_GRADIENTS[gradientIndex % CARD_GRADIENTS.length];
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: stock.id,
+      sku: stock.sku,
+      name: stock.itemName,
+      price: stock.unitCost,
+      unitOfMeasure: stock.unitOfMeasure,
+      categoryName: stock.categoryName,
+      supplier: stock.supplier,
+      maxQuantity: stock.receivedQuantity,
+    });
+    setAdded(true);
+    onAddToCart?.();
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   return (
-    <div className="bg-gray-50 p-8 md:p-16 py-8">
-      <div className=" mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center gap-2 text-primary-600 mb-4">
-            <div className="flex gap-1">
-              <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
-              <div className="w-2 h-2 bg-primary-400 rounded-full"></div>
-              <div className="w-2 h-2 bg-primary-300 rounded-full"></div>
-            </div>
-            <span className="text-sm tracking-widest uppercase font-semibold">Solutions for Every Sector</span>
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Who Can Use Mysystem?
-          </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Mysystem supports businesses of all sectors with tailored inventory management solutions designed to meet your unique operational needs.
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate(`/product/${stock.id}`)}
+      style={{ transform: hovered ? 'translateY(-4px)' : 'translateY(0)', transition: 'transform 0.3s ease', cursor: 'pointer' }}
+    >
+      {/* Image */}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '3/4',
+          background: bg,
+          border: '1px solid var(--aby-border)',
+          marginBottom: '1rem',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {resolveImgUrl(stock.stockImg) ? (
+          <img
+            src={resolveImgUrl(stock.stockImg)!}
+            alt={stock.itemName}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <Package size={32} color="rgba(139,111,71,0.25)" />
+        )}
+
+        {/* Low stock / out of stock badge */}
+        {stock.receivedQuantity === 0 ? (
+          <span
+            className="font-worksans"
+            style={{
+              position: 'absolute', top: '10px', left: '10px',
+              background: '#dc2626', color: 'white',
+              fontSize: '0.62rem', fontWeight: 500,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              padding: '0.18rem 0.5rem',
+            }}
+          >
+            Out of Stock
+          </span>
+        ) : stock.receivedQuantity <= stock.reorderLevel ? (
+          <span
+            className="font-worksans"
+            style={{
+              position: 'absolute', top: '10px', left: '10px',
+              background: '#d97706', color: 'white',
+              fontSize: '0.62rem', fontWeight: 500,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+              padding: '0.18rem 0.5rem',
+            }}
+          >
+            Low Stock
+          </span>
+        ) : null}
+
+        {/* Wishlist button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setWishlisted(!wishlisted); }}
+          aria-label="Toggle wishlist"
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            background: wishlisted ? 'var(--aby-accent)' : 'white',
+            border: 'none',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--aby-shadow-sm)',
+            color: wishlisted ? 'white' : 'var(--aby-dark)',
+            opacity: hovered ? 1 : 0,
+            transform: hovered ? 'scale(1)' : 'scale(0.8)',
+            transition: 'opacity 0.3s ease, transform 0.2s ease, background 0.2s ease',
+          } as React.CSSProperties}
+        >
+          <Heart size={16} fill={wishlisted ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+
+      {/* Info */}
+      <div style={{ padding: '0 0.25rem' }}>
+        {stock.categoryName && (
+          <p
+            className="font-worksans"
+            style={{ fontSize: '0.7rem', color: 'var(--aby-accent)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.2rem' }}
+          >
+            {stock.categoryName}
           </p>
-        </div>
+        )}
+        <h3
+          className="font-cormorant"
+          style={{ fontSize: '1.15rem', fontWeight: 400, color: 'var(--aby-dark)', marginBottom: '0.2rem' }}
+        >
+          {stock.itemName}
+        </h3>
+        {stock.supplier && (
+          <p className="font-worksans" style={{ fontSize: '0.82rem', color: 'var(--aby-muted)', marginBottom: '0.9rem' }}>
+            by {stock.supplier}
+          </p>
+        )}
 
-        {/* Sectors Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {sectors.map((sector, index) => (
-            <div
-              key={index}
-              className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-            >
-              {/* Image */}
-              <div className="relative h-56 overflow-hidden">
-                <img
-                  src={sector.image}
-                  alt={sector.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span className="font-worksans" style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--aby-accent)' }}>
+            RWF {Number(stock.unitCost).toLocaleString()}
+          </span>
 
-              <div className="p-8">
-                {/* Title */}
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  {sector.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                  {sector.description}
-                </p>
-
-                {/* Benefits List */}
-                <div className="space-y-2">
-                  {sector.benefits.map((benefit, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Check className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                      <span className="text-sm text-gray-700">{benefit}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Summary Card */}
-        <div className="bg-gradient-to-br from-primary-800 to-primary-900 rounded-3xl p-12 shadow-2xl">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-3xl font-bold text-white mb-4">
-                Ready to Transform Your Business?
-              </h3>
-              <p className="text-white/90 text-lg mb-6 leading-relaxed">
-                No matter what sector you're in, Mysystem adapts to your workflow. Say goodbye to stock errors, manual tracking, and spreadsheet chaos.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-sm font-semibold">
-                  ✓ Real-time tracking
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-sm font-semibold">
-                  ✓ Multi-branch support
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-sm font-semibold">
-                  ✓ Automated alerts
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-white text-sm font-semibold">
-                  ✓ Easy reporting
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center md:text-right">
-              {/* Trustpilot-style Rating */}
-              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6">
-                <div className="flex gap-2">
-                  <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-white">
-                    <img
-                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
-                      alt="User 1"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-white -ml-3">
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
-                      alt="User 2"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-white -ml-3">
-                    <img
-                      src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop"
-                      alt="User 3"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                <div className="text-left">
-                  <div className="flex gap-0.5 mb-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 text-secondary-400 fill-secondary-400" />
-                    ))}
-                  </div>
-                  <div className="text-white text-sm font-semibold">500+ Happy Businesses</div>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <button className="w-full md:w-auto bg-secondary-400 hover:bg-secondary-500 text-gray-900 font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl mx-auto md:mx-0 md:ml-auto">
-                Get Started Now
-                <ArrowUpRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* About Summary Section */}
-        <div className="mt-16 bg-white rounded-3xl p-12 shadow-sm">
-          <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-3xl font-bold text-gray-900 mb-6">
-              About Mysystem
-            </h3>
-            <p className="text-lg text-gray-600 leading-relaxed mb-6">
-              Mysystem is a comprehensive stock management solution built for businesses that want to move beyond Excel sheets and manual tracking. Whether you run a small boutique or manage multiple warehouse locations, our platform provides real-time visibility, automated alerts, and powerful reporting tools.
-            </p>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              With support for unlimited products, multi-branch operations, and role-based access control, Mysystem scales with your business. Our system integrates seamlessly into your existing workflow, helping you reduce waste, prevent stockouts, and make data-driven decisions that drive growth.
-            </p>
-
-            {/* Key Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">7+</div>
-                <div className="text-sm text-gray-600 font-semibold">Sectors Supported</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">500+</div>
-                <div className="text-sm text-gray-600 font-semibold">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">24/7</div>
-                <div className="text-sm text-gray-600 font-semibold">Support Available</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">99.9%</div>
-                <div className="text-sm text-gray-600 font-semibold">Uptime Guarantee</div>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
+            disabled={stock.receivedQuantity === 0}
+            className="font-worksans"
+            style={{
+              background: added ? 'var(--aby-accent)' : 'none',
+              border: '1px solid',
+              borderColor: stock.receivedQuantity === 0 ? 'var(--aby-border)' : added ? 'var(--aby-accent)' : 'var(--aby-border)',
+              color: stock.receivedQuantity === 0 ? 'var(--aby-muted)' : added ? 'white' : 'var(--aby-dark)',
+              padding: '0.45rem 0.9rem',
+              fontSize: '0.8rem',
+              cursor: stock.receivedQuantity === 0 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              letterSpacing: '0.02em',
+              opacity: stock.receivedQuantity === 0 ? 0.5 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!added && stock.receivedQuantity > 0) {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = 'var(--aby-dark)';
+                btn.style.color = 'white';
+                btn.style.borderColor = 'var(--aby-dark)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!added && stock.receivedQuantity > 0) {
+                const btn = e.currentTarget as HTMLButtonElement;
+                btn.style.background = 'none';
+                btn.style.color = 'var(--aby-dark)';
+                btn.style.borderColor = 'var(--aby-border)';
+              }
+            }}
+          >
+            {added ? 'Added!' : stock.receivedQuantity === 0 ? 'Unavailable' : 'Add to Cart'}
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+// ─── Featured ─────────────────────────────────────────────────────────────────
+
+const Featured = ({ onAddToCart }: FeaturedProps) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    publicStockService.getAllStocks().then((data) => {
+      const arr = Array.isArray(data) ? data : [data];
+      // Show up to 8 items; prioritise in-stock items
+      const inStock = arr.filter((s) => s.receivedQuantity > 0);
+      const rest = arr.filter((s) => s.receivedQuantity === 0);
+      setStocks([...inStock, ...rest].slice(0, 8));
+    }).catch(() => {
+      // Silently fail on home page — just show nothing
+    }).finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <section
+      id="shop"
+      ref={sectionRef}
+      style={{
+        padding: '5rem 2rem 7rem',
+        background: 'var(--aby-bg)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(30px)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
+      }}
+    >
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '3rem',
+          }}
+        >
+          <h2
+            className="font-cormorant"
+            style={{
+              fontSize: 'clamp(2rem, 3vw, 2.8rem)',
+              fontWeight: 300,
+              color: 'var(--aby-dark)',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Featured Items
+          </h2>
+          <button
+            onClick={() => navigate('/shop')}
+            className="font-worksans"
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '0.9rem',
+              color: 'var(--aby-muted)',
+              cursor: 'pointer',
+              transition: 'color 0.3s ease',
+              letterSpacing: '0.02em',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-muted)')}
+          >
+            View All →
+          </button>
+        </div>
+
+        {/* Grid */}
+        <div
+          className="products-grid"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2.5rem' }}
+        >
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+            : stocks.length === 0
+            ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--aby-muted)' }}>
+                <Package size={40} color="var(--aby-border)" style={{ marginBottom: '1rem' }} />
+                <p className="font-worksans" style={{ fontSize: '0.9rem' }}>No products available right now.</p>
+              </div>
+            )
+            : stocks.map((stock, i) => (
+              <ProductCard key={stock.id} stock={stock} gradientIndex={i} onAddToCart={onAddToCart} />
+            ))
+          }
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 1024px) {
+          .products-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 480px) {
+          .products-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </section>
+  );
+};
+
+export default Featured;

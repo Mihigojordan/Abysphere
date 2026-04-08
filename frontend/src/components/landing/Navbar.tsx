@@ -1,145 +1,388 @@
-import { useState, useEffect } from 'react';
-import {
-  Menu,
-  X
-} from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, ShoppingBag, X, Menu, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import publicStockService, { type Stock } from '../../services/publicStockService';
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 
 const Navbar = () => {
+  const { totalItems, openCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Stock[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const links = [
+    { name: 'Shop', path: '/shop' },
+    { name: 'Categories', path: '#categories' },
+    { name: 'About', path: '#about' },
+    { name: 'Stories', path: '#stories' },
+  ];
 
   const handleNavigate = (path: string) => {
     setIsOpen(false);
     if (!path) return;
-
-    // Check if it's a hash link (section on home page)
     if (path.startsWith('#')) {
-      // If not on home page, navigate to home first
       if (location.pathname !== '/') {
         navigate('/');
-        // Wait for navigation then scroll
         setTimeout(() => {
-          const element = document.querySelector(path);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          const el = document.querySelector(path);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
       } else {
-        // Already on home page, just scroll
-        const element = document.querySelector(path);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        const el = document.querySelector(path);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } else {
-      // Regular navigation for other pages
       navigate(path);
     }
   };
 
-  const links = [
-    { name: 'Home', path: "#home" },
-    { name: 'About', path: "#about" },
-    { name: 'Features', path: "#features" },
-    { name: 'Pricing', path: "#pricing" },
-    { name: 'Blogs', path: "/blogs" },
-    { name: 'Contact', path: "#contact" },
-  ];
-
-  // Scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Focus input when search panel opens
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 80);
+    }
+  }, [searchOpen]);
+
+  // Debounced backend suggestions while user types
+  useEffect(() => {
+    if (!query.trim()) { setSuggestions([]); return; }
+    setSuggestionsLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await publicStockService.searchStocks({
+          search: query.trim(),
+          limit: 6,
+          page: 1,
+        });
+        setSuggestions(result.data);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const handleSearch = (q = query) => {
+    if (!q.trim()) return;
+    setSearchOpen(false);
+    setQuery('');
+    setSuggestions([]);
+    navigate(`/shop?search=${encodeURIComponent(q.trim())}`);
+  };
+
+  const toggleSearch = () => {
+    setSearchOpen((v) => !v);
+    if (searchOpen) { setQuery(''); setSuggestions([]); }
+  };
+
+
+  // Close search on ESC
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSearchOpen(false); setQuery(''); setSuggestions([]); } };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
+
   return (
-    <>
-      {/* Top bar removed - contact info now in footer */}
-
-      {/* Main Navigation */}
-      <nav
-        className={`bg-white sticky top-0 z-50 overflow-hidden transition-all duration-300 ${scrolled ? 'shadow-xl bg-white/98 backdrop-blur-sm' : 'shadow-md'
-          }`}
+    <nav
+      style={{
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        borderBottom: (scrolled || searchOpen) ? '1px solid var(--aby-border)' : '1px solid transparent',
+        backgroundColor: (scrolled || searchOpen) ? 'rgba(255,255,255,0.97)' : 'transparent',
+        backdropFilter: (scrolled || searchOpen) ? 'blur(10px)' : 'none',
+        transition: 'all 0.3s ease',
+      }}
+    >
+      {/* Main bar */}
+      <div
+        style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '1.25rem 2rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
       >
-        <div className="w-full mx-auto px-1 sm:px-10 lg:px-4">
-          <div className="flex justify-between items-center h-24">
-            {/* Logo */}
-            <div className="flex-shrink-0 cursor-pointer" onClick={() => handleNavigate('#home')}>
-              <img src="/logo.jpg" className='w-20 h-20  object-contain ' alt="ZubaSystem Logo" />
-            </div>
+        {/* Logo */}
+        <button
+          onClick={() => navigate('/')}
+          className="font-cormorant"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.6rem', fontWeight: 500, letterSpacing: '0.04em', color: 'var(--aby-dark)' }}
+        >
+          Papeterie Messanger Supplier Ltd.
+        </button>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:block">
-              <div className="flex items-center space-x-1">
-                {links.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleNavigate(item.path)}
-                    className="relative px-4 py-2 text-gray-700 hover:text-primary-600 font-bold text-lg transition-all duration-300 rounded-lg group"
-                  >
-                    <span className="relative z-10">{item.name}</span>
-                    <div className="absolute inset-0 bg-primary-50 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                    <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-primary-600 group-hover:w-3/4 group-hover:left-1/8 transition-all duration-300"></div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button
-                className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-2.5 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
-                onClick={() => handleNavigate('/demo-request')}
-              >
-                Request Demo
-              </button>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="lg:hidden">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-300"
-              >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-          </div>
+        {/* Desktop Links */}
+        <div className="hidden md:flex" style={{ gap: '2.5rem' }}>
+          {links.map((link) => (
+            <button
+              key={link.name}
+              onClick={() => handleNavigate(link.path)}
+              className="font-worksans"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 400, letterSpacing: '0.02em', color: 'var(--aby-dark)', padding: '0.25rem 0', transition: 'color 0.3s ease' }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-accent)')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-dark)')}
+            >
+              {link.name}
+            </button>
+          ))}
         </div>
 
-        {/* Mobile Navigation */}
-        <div className={`lg:hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-          } overflow-hidden bg-white border-t border-gray-100`}>
-          <div className="px-4 py-6 space-y-3">
-            {links.map((item, index) => (
+        {/* Desktop Actions */}
+        <div className="hidden md:flex" style={{ gap: '1.25rem', alignItems: 'center' }}>
+          {/* Search icon */}
+          <button
+            onClick={toggleSearch}
+            aria-label="Search"
+            style={{
+              background: searchOpen ? 'var(--aby-bg)' : 'none',
+              border: searchOpen ? '1px solid var(--aby-border)' : 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              color: searchOpen ? 'var(--aby-accent)' : 'var(--aby-dark)',
+              padding: '0.35rem',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => { if (!searchOpen) (e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-accent)'; }}
+            onMouseLeave={(e) => { if (!searchOpen) (e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-dark)'; }}
+          >
+            {searchOpen ? <X size={20} /> : <Search size={20} />}
+          </button>
+
+          {/* Cart */}
+          <button
+            onClick={openCart}
+            aria-label="Cart"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--aby-dark)', position: 'relative', padding: '0.25rem', transition: 'color 0.3s ease' }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-dark)')}
+          >
+            <ShoppingBag size={20} />
+            {totalItems > 0 && (
+              <span style={{ position: 'absolute', top: '-6px', right: '-8px', background: 'var(--aby-accent)', color: 'white', fontSize: '0.65rem', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontFamily: "'Work Sans', sans-serif" }}>
+                {totalItems}
+              </span>
+            )}
+          </button>
+
+          {/* Login */}
+          <button
+            onClick={() => navigate('/login')}
+            className="font-worksans"
+            style={{ background: 'var(--aby-dark)', color: 'white', border: 'none', padding: '0.6rem 1.4rem', fontSize: '0.85rem', fontWeight: 400, letterSpacing: '0.04em', cursor: 'pointer', transition: 'background 0.3s ease' }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-accent)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-dark)')}
+          >
+            Sign In
+          </button>
+        </div>
+
+        {/* Mobile Toggle */}
+        <button
+          className="flex md:hidden"
+          onClick={() => setIsOpen(!isOpen)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--aby-dark)' }}
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* ── Search Drop-down ────────────────────────────────────────────────── */}
+      <div
+        style={{
+          overflow: 'hidden',
+          maxHeight: searchOpen ? '400px' : '0',
+          transition: 'max-height 0.35s cubic-bezier(0.4,0,0.2,1)',
+          borderTop: searchOpen ? '1px solid var(--aby-border)' : 'none',
+        }}
+      >
+        <div style={{ padding: '1.25rem 2rem 1rem', maxWidth: '1400px', margin: '0 auto' }}>
+          {/* Input row */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Search size={18} color="var(--aby-muted)" style={{ position: 'absolute', left: '1rem', pointerEvents: 'none' }} />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+              placeholder="Search products, categories, suppliers…"
+              className="font-worksans"
+              style={{
+                width: '100%',
+                padding: '0.85rem 3rem 0.85rem 2.75rem',
+                border: '1px solid var(--aby-border)',
+                background: 'var(--aby-bg)',
+                fontSize: '0.95rem',
+                color: 'var(--aby-dark)',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--aby-accent)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--aby-border)')}
+            />
+            {query && (
               <button
-                key={index}
-                onClick={() => handleNavigate(item.path)}
-                className="block w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg font-bold text-lg transition-all duration-300 transform hover:translate-x-2"
+                onClick={() => { setQuery(''); setSuggestions([]); searchInputRef.current?.focus(); }}
+                style={{ position: 'absolute', right: '3.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--aby-muted)', display: 'flex', alignItems: 'center' }}
               >
-                {item.name}
+                <X size={16} />
+              </button>
+            )}
+            <button
+              onClick={() => handleSearch()}
+              className="font-worksans"
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                background: 'var(--aby-dark)',
+                color: 'white',
+                border: 'none',
+                padding: '0 1.25rem',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-accent)')}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-dark)')}
+            >
+              <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Suggestions */}
+          {suggestions.length > 0 && (
+            <div style={{ marginTop: '0.5rem', border: '1px solid var(--aby-border)', background: 'var(--aby-surface)' }}>
+              {suggestions.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => { navigate(`/product/${s.id}`); setSearchOpen(false); setQuery(''); setSuggestions([]); }}
+                  className="font-worksans"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '0.7rem 1rem',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: '1px solid var(--aby-border)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-bg)')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+                >
+                  <div>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--aby-dark)', fontWeight: 500, display: 'block' }}>{s.itemName}</span>
+                    {s.categoryName && <span style={{ fontSize: '0.75rem', color: 'var(--aby-muted)' }}>{s.categoryName}</span>}
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--aby-accent)', fontWeight: 500, flexShrink: 0, marginLeft: '1rem' }}>
+                    RWF {Number(s.unitCost).toLocaleString()}
+                  </span>
+                </button>
+              ))}
+              <button
+                onClick={() => handleSearch()}
+                className="font-worksans"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.7rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.82rem', color: 'var(--aby-accent)' }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--aby-bg)')}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+              >
+                <Search size={13} />
+                See all results for "{query}"
+              </button>
+            </div>
+          )}
+
+          {query.trim() && suggestions.length === 0 && !suggestionsLoading && (
+            <p className="font-worksans" style={{ fontSize: '0.85rem', color: 'var(--aby-muted)', padding: '0.75rem 0' }}>
+              No products found for "{query}" — <button onClick={() => handleSearch()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--aby-accent)', fontSize: '0.85rem' }}>search in shop</button>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div style={{ background: 'var(--aby-surface)', borderTop: '1px solid var(--aby-border)', padding: '1.5rem 2rem 2rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Mobile search */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--aby-border)', padding: '0.6rem 0.75rem', background: 'var(--aby-bg)' }}>
+              <Search size={16} color="var(--aby-muted)" />
+              <input
+                type="text"
+                placeholder="Search products…"
+                className="font-worksans"
+                style={{ flex: 1, border: 'none', background: 'none', outline: 'none', fontSize: '0.9rem', color: 'var(--aby-dark)' }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { handleSearch((e.target as HTMLInputElement).value); setIsOpen(false); } }}
+              />
+            </div>
+            {links.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => handleNavigate(link.path)}
+                className="font-worksans"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 400, color: 'var(--aby-dark)', textAlign: 'left', letterSpacing: '0.02em', padding: '0.25rem 0' }}
+              >
+                {link.name}
               </button>
             ))}
-
-            {/* Mobile Action Button */}
-            <div className="pt-4 border-t border-gray-100">
+            <div style={{ borderTop: '1px solid var(--aby-border)', paddingTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <button
-                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 shadow-lg font-semibold"
-                onClick={() => handleNavigate('/demo-request')}
+                onClick={openCart}
+                aria-label="Cart"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--aby-dark)', position: 'relative' }}
               >
-                Request Demo
+                <ShoppingBag size={20} />
+                {totalItems > 0 && (
+                  <span style={{ position: 'absolute', top: '-6px', right: '-8px', background: 'var(--aby-accent)', color: 'white', fontSize: '0.65rem', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="font-worksans"
+                style={{ background: 'var(--aby-dark)', color: 'white', border: 'none', padding: '0.5rem 1.2rem', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                Sign In
               </button>
             </div>
           </div>
         </div>
-      </nav>
-    </>
+      )}
+    </nav>
   );
 };
 

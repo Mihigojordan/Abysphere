@@ -54,6 +54,7 @@ CREATE TABLE `AdminFeature` (
     `featureId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `AdminFeature_featureId_fkey`(`featureId`),
     PRIMARY KEY (`adminId`, `featureId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -75,12 +76,12 @@ CREATE TABLE `Admin` (
     `message` VARCHAR(191) NULL,
     `messageExpiry` DATETIME(3) NULL,
     `isMessage` BOOLEAN NULL DEFAULT false,
-    `messageTextColor` VARCHAR(191) NULL,
-    `messageBgColor` VARCHAR(191) NULL,
     `is2FA` BOOLEAN NULL DEFAULT false,
     `isLocked` BOOLEAN NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `messageBgColor` VARCHAR(191) NULL,
+    `messageTextColor` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Admin_id_key`(`id`),
     UNIQUE INDEX `Admin_adminEmail_key`(`adminEmail`),
@@ -116,7 +117,6 @@ CREATE TABLE `Employee` (
     `national_id` VARCHAR(191) NULL,
     `profile_picture` VARCHAR(191) NULL,
     `position` VARCHAR(191) NULL,
-    `department` VARCHAR(191) NULL,
     `date_hired` DATETIME(3) NULL,
     `status` ENUM('ACTIVE', 'TERMINATED', 'RESIGNED', 'PROBATION') NOT NULL DEFAULT 'ACTIVE',
     `emergency_contact_name` VARCHAR(191) NULL,
@@ -128,11 +128,14 @@ CREATE TABLE `Employee` (
     `siteId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `department` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Employee_id_key`(`id`),
     UNIQUE INDEX `Employee_email_key`(`email`),
     UNIQUE INDEX `Employee_national_id_key`(`national_id`),
     UNIQUE INDEX `Employee_google_id_key`(`google_id`),
+    INDEX `Employee_adminId_fkey`(`adminId`),
+    INDEX `Employee_siteId_fkey`(`siteId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -153,6 +156,7 @@ CREATE TABLE `Contract` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `Contract_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -170,13 +174,15 @@ CREATE TABLE `Stock` (
     `warehouseLocation` VARCHAR(191) NOT NULL,
     `receivedDate` DATETIME(3) NOT NULL,
     `reorderLevel` INTEGER NOT NULL,
-    `expiryDate` DATETIME(3) NULL,
     `adminId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `expiryDate` DATETIME(3) NULL,
 
     UNIQUE INDEX `Stock_sku_key`(`sku`),
     INDEX `Stock_sku_idx`(`sku`),
+    INDEX `Stock_adminId_fkey`(`adminId`),
+    INDEX `Stock_categoryId_fkey`(`categoryId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -189,7 +195,7 @@ CREATE TABLE `Job` (
     `employment_type` ENUM('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP') NOT NULL,
     `experience_level` ENUM('ENTRY', 'MID', 'SENIOR', 'EXECUTIVE') NOT NULL,
     `industry` VARCHAR(191) NULL,
-    `skills_required` JSON NOT NULL,
+    `skills_required` LONGTEXT NOT NULL,
     `status` ENUM('OPEN', 'CLOSED') NOT NULL DEFAULT 'OPEN',
     `posted_at` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
     `expiry_date` DATETIME(3) NULL,
@@ -207,15 +213,16 @@ CREATE TABLE `Applicant` (
     `email` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NULL,
     `cvUrl` VARCHAR(191) NULL,
-    `skills` JSON NULL,
+    `skills` LONGTEXT NULL,
     `experienceYears` INTEGER NULL,
-    `education` JSON NULL,
+    `education` LONGTEXT NULL,
     `coverLetter` TEXT NULL,
     `start_date` DATETIME(3) NULL,
     `stage` ENUM('APPLIED', 'SHORTLISTED', 'INTERVIEWED', 'HIRED', 'REJECTED') NOT NULL DEFAULT 'APPLIED',
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
+    INDEX `Applicant_jobId_fkey`(`jobId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -229,11 +236,11 @@ CREATE TABLE `Client` (
     `address` VARCHAR(191) NULL,
     `status` ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     `profileImage` VARCHAR(191) NULL,
-    `adminId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `adminId` VARCHAR(191) NULL,
 
-    UNIQUE INDEX `Client_email_key`(`email`),
+    INDEX `Client_adminId_fkey`(`adminId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -247,6 +254,8 @@ CREATE TABLE `Activity` (
     `adminId` VARCHAR(191) NULL,
     `employeeId` VARCHAR(191) NULL,
 
+    INDEX `Activity_adminId_fkey`(`adminId`),
+    INDEX `Activity_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -283,6 +292,8 @@ CREATE TABLE `Store` (
     `updated_at` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Store_code_key`(`code`),
+    INDEX `Store_adminId_fkey`(`adminId`),
+    INDEX `Store_managerId_fkey`(`managerId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -299,6 +310,8 @@ CREATE TABLE `Site` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Site_siteCode_key`(`siteCode`),
+    INDEX `Site_manager_fkey`(`managerId`),
+    INDEX `Site_supervisor_fkey`(`supervisorId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -335,6 +348,9 @@ CREATE TABLE `Medication` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `Medication_administeredByAdmin_fkey`(`administeredByAdmin`),
+    INDEX `Medication_administeredByEmployee_fkey`(`administeredByEmployee`),
+    INDEX `Medication_cageId_fkey`(`cageId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -351,6 +367,7 @@ CREATE TABLE `FeedCage` (
 
     INDEX `FeedCage_cageId_idx`(`cageId`),
     INDEX `FeedCage_employeeId_idx`(`employeeId`),
+    INDEX `FeedCage_feedId_fkey`(`feedId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -378,23 +395,25 @@ CREATE TABLE `StockIn` (
     `supplier` VARCHAR(191) NULL,
     `location` VARCHAR(191) NULL,
     `description` VARCHAR(191) NULL,
-    `expiryDate` DATETIME(3) NULL,
-    `grnItemId` VARCHAR(191) NULL,
-    `batchNumber` VARCHAR(191) NULL,
-    `serialNumbers` JSON NULL,
-    `manufacturingDate` DATETIME(3) NULL,
-    `landedCost` DECIMAL(10, 2) NULL,
-    `valuationMethod` ENUM('FIFO', 'LIFO', 'WEIGHTED_AVERAGE') NULL DEFAULT 'WEIGHTED_AVERAGE',
-    `inspectionStatus` ENUM('PENDING', 'INSPECTED', 'APPROVED', 'REJECTED') NULL DEFAULT 'APPROVED',
-    `qualityNotes` TEXT NULL,
     `stockcategoryId` VARCHAR(191) NOT NULL,
     `storeId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `expiryDate` DATETIME(3) NULL,
+    `batchNumber` VARCHAR(191) NULL,
+    `grnItemId` VARCHAR(191) NULL,
+    `inspectionStatus` ENUM('PENDING', 'INSPECTED', 'APPROVED', 'REJECTED') NULL DEFAULT 'APPROVED',
+    `landedCost` DECIMAL(10, 2) NULL,
+    `manufacturingDate` DATETIME(3) NULL,
+    `qualityNotes` TEXT NULL,
+    `serialNumbers` LONGTEXT NULL,
+    `valuationMethod` ENUM('FIFO', 'LIFO', 'WEIGHTED_AVERAGE') NULL DEFAULT 'WEIGHTED_AVERAGE',
 
     UNIQUE INDEX `StockIn_sku_key`(`sku`),
     UNIQUE INDEX `StockIn_grnItemId_key`(`grnItemId`),
     INDEX `StockIn_batchNumber_idx`(`batchNumber`),
+    INDEX `StockIn_stockcategoryId_fkey`(`stockcategoryId`),
+    INDEX `StockIn_storeId_fkey`(`storeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -411,11 +430,14 @@ CREATE TABLE `StockOut` (
     `clientEmail` VARCHAR(191) NULL,
     `clientPhone` VARCHAR(191) NULL,
     `paymentMethod` ENUM('MOMO', 'CARD', 'CASH') NULL,
-    `externalItemName` VARCHAR(191) NULL,
-    `externalSku` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `externalItemName` VARCHAR(191) NULL,
+    `externalSku` VARCHAR(191) NULL,
 
+    INDEX `StockOut_adminId_fkey`(`adminId`),
+    INDEX `StockOut_employeeId_fkey`(`employeeId`),
+    INDEX `StockOut_stockinId_fkey`(`stockinId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -438,6 +460,8 @@ CREATE TABLE `SalesReturnItem` (
     `stockoutId` VARCHAR(191) NOT NULL,
     `quantity` INTEGER NOT NULL,
 
+    INDEX `SalesReturnItem_salesReturnId_fkey`(`salesReturnId`),
+    INDEX `SalesReturnItem_stockoutId_fkey`(`stockoutId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -460,12 +484,21 @@ CREATE TABLE `Request` (
     `rejectedAt` DATETIME(3) NULL,
     `rejectedByAdminId` VARCHAR(191) NULL,
     `rejectedByEmployeeId` VARCHAR(191) NULL,
-    `comments` JSON NULL,
-    `attachments` JSON NULL,
+    `comments` LONGTEXT NULL,
+    `attachments` LONGTEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Request_ref_no_key`(`ref_no`),
+    INDEX `Request_closedByAdminId_fkey`(`closedByAdminId`),
+    INDEX `Request_closedByEmployeeId_fkey`(`closedByEmployeeId`),
+    INDEX `Request_issuedByAdminId_fkey`(`issuedByAdminId`),
+    INDEX `Request_issuedByEmployeeId_fkey`(`issuedByEmployeeId`),
+    INDEX `Request_rejectedByAdminId_fkey`(`rejectedByAdminId`),
+    INDEX `Request_rejectedByEmployeeId_fkey`(`rejectedByEmployeeId`),
+    INDEX `Request_requestedByAdminId_fkey`(`requestedByAdminId`),
+    INDEX `Request_requestedByEmployeeId_fkey`(`requestedByEmployeeId`),
+    INDEX `Request_siteId_fkey`(`siteId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -475,12 +508,14 @@ CREATE TABLE `RequestItem` (
     `requestId` VARCHAR(191) NOT NULL,
     `stockInId` VARCHAR(191) NOT NULL,
     `qtyRequested` DECIMAL(12, 3) NOT NULL,
-    `qtyIssued` DECIMAL(12, 3) NOT NULL DEFAULT 0,
-    `qtyRemaining` DECIMAL(12, 3) NOT NULL DEFAULT 0,
-    `qtyReceived` DECIMAL(12, 3) NULL DEFAULT 0,
+    `qtyIssued` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
+    `qtyRemaining` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
+    `qtyReceived` DECIMAL(12, 3) NULL DEFAULT 0.000,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `RequestItem_requestId_fkey`(`requestId`),
+    INDEX `RequestItem_stockInId_fkey`(`stockInId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -493,6 +528,7 @@ CREATE TABLE `AssetRequest` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `AssetRequest_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -508,6 +544,8 @@ CREATE TABLE `AssetRequestItem` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `AssetRequestItem_assetId_fkey`(`assetId`),
+    INDEX `AssetRequestItem_requestId_fkey`(`requestId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -515,9 +553,6 @@ CREATE TABLE `AssetRequestItem` (
 CREATE TABLE `StockHistory` (
     `id` VARCHAR(191) NOT NULL,
     `stockInId` VARCHAR(191) NULL,
-    `stockId` INTEGER NULL,
-    `grnId` VARCHAR(191) NULL,
-    `batchNumber` VARCHAR(191) NULL,
     `movementType` ENUM('IN', 'OUT', 'ADJUSTMENT') NOT NULL,
     `sourceType` ENUM('GRN', 'ISSUE', 'ADJUSTMENT', 'RECEIPT') NOT NULL,
     `sourceId` VARCHAR(191) NULL,
@@ -525,14 +560,23 @@ CREATE TABLE `StockHistory` (
     `qtyChange` DECIMAL(12, 3) NOT NULL,
     `qtyAfter` DECIMAL(12, 3) NOT NULL,
     `unitPrice` DECIMAL(12, 2) NULL,
-    `costAtTransaction` DECIMAL(12, 2) NULL,
-    `valuationMethod` ENUM('FIFO', 'LIFO', 'WEIGHTED_AVERAGE') NULL,
     `notes` TEXT NULL,
     `createdByAdminId` VARCHAR(191) NULL,
     `createdByEmployeeId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `stockId` INTEGER NULL,
+    `batchNumber` VARCHAR(191) NULL,
+    `costAtTransaction` DECIMAL(12, 2) NULL,
+    `grnId` VARCHAR(191) NULL,
+    `valuationMethod` ENUM('FIFO', 'LIFO', 'WEIGHTED_AVERAGE') NULL,
 
+    INDEX `StockHistory_createdByAdminId_fkey`(`createdByAdminId`),
+    INDEX `StockHistory_createdByEmployeeId_fkey`(`createdByEmployeeId`),
+    INDEX `StockHistory_grnId_fkey`(`grnId`),
+    INDEX `StockHistory_sourceId_fkey`(`sourceId`),
+    INDEX `StockHistory_stockId_fkey`(`stockId`),
+    INDEX `StockHistory_stockInId_fkey`(`stockInId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -547,6 +591,7 @@ CREATE TABLE `ParentFishPool` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `ParentFishPool_name_key`(`name`),
+    INDEX `ParentFishPool_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -566,6 +611,7 @@ CREATE TABLE `Medicine` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `Medicine_addedById_fkey`(`addedById`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -591,6 +637,9 @@ CREATE TABLE `ParentFishFeeding` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `ParentFishFeeding_employeeId_fkey`(`employeeId`),
+    INDEX `ParentFishFeeding_feedId_fkey`(`feedId`),
+    INDEX `ParentFishFeeding_parentFishPoolId_fkey`(`parentFishPoolId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -605,6 +654,8 @@ CREATE TABLE `ParentWaterChanging` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `ParentWaterChanging_employeeId_fkey`(`employeeId`),
+    INDEX `ParentWaterChanging_parentPoolId_fkey`(`parentPoolId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -617,6 +668,9 @@ CREATE TABLE `ParentFishMedication` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `ParentFishMedication_employeeId_fkey`(`employeeId`),
+    INDEX `ParentFishMedication_medicationId_fkey`(`medicationId`),
+    INDEX `ParentFishMedication_parentFishPoolId_fkey`(`parentFishPoolId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -645,6 +699,9 @@ CREATE TABLE `ParentEggMigration` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `ParentEggMigration_employeeId_fkey`(`employeeId`),
+    INDEX `ParentEggMigration_laboratoryBoxId_fkey`(`laboratoryBoxId`),
+    INDEX `ParentEggMigration_parentPoolId_fkey`(`parentPoolId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -657,6 +714,9 @@ CREATE TABLE `EggFishFeeding` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `EggFishFeeding_employeeId_fkey`(`employeeId`),
+    INDEX `EggFishFeeding_feedId_fkey`(`feedId`),
+    INDEX `EggFishFeeding_parentEggMigrationId_fkey`(`parentEggMigrationId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -669,6 +729,9 @@ CREATE TABLE `EggFishMedication` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `EggFishMedication_employeeId_fkey`(`employeeId`),
+    INDEX `EggFishMedication_medicationId_fkey`(`medicationId`),
+    INDEX `EggFishMedication_parentEggMigrationId_fkey`(`parentEggMigrationId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -681,6 +744,8 @@ CREATE TABLE `LaboratoryBoxWaterChanging` (
     `description` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `LaboratoryBoxWaterChanging_boxId_fkey`(`boxId`),
+    INDEX `LaboratoryBoxWaterChanging_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -696,6 +761,9 @@ CREATE TABLE `EggToPondMigration` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `EggToPondMigration_employeeId_fkey`(`employeeId`),
+    INDEX `EggToPondMigration_parentEggMigrationId_fkey`(`parentEggMigrationId`),
+    INDEX `EggToPondMigration_pondId_fkey`(`pondId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -708,6 +776,8 @@ CREATE TABLE `PondWaterChanging` (
     `description` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `PondWaterChanging_EggtoPondId_fkey`(`EggtoPondId`),
+    INDEX `PondWaterChanging_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -720,6 +790,9 @@ CREATE TABLE `PondMedication` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `PondMedication_eggtoPondId_fkey`(`eggtoPondId`),
+    INDEX `PondMedication_employeeId_fkey`(`employeeId`),
+    INDEX `PondMedication_medicationId_fkey`(`medicationId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -746,6 +819,9 @@ CREATE TABLE `GrownEggPondFeeding` (
     `quantity` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `GrownEggPondFeeding_eggToPondMigrationId_fkey`(`eggToPondMigrationId`),
+    INDEX `GrownEggPondFeeding_employeeId_fkey`(`employeeId`),
+    INDEX `GrownEggPondFeeding_feedId_fkey`(`feedId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -758,36 +834,38 @@ CREATE TABLE `Category` (
     `employeeId` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    INDEX `Category_adminId_fkey`(`adminId`),
+    INDEX `Category_employeeId_fkey`(`employeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Supplier` (
     `id` VARCHAR(191) NOT NULL,
-    `code` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `contactPerson` VARCHAR(191) NULL,
     `email` VARCHAR(191) NULL,
     `phone` VARCHAR(191) NULL,
     `address` TEXT NULL,
-    `city` VARCHAR(191) NULL,
-    `country` VARCHAR(191) NULL DEFAULT 'Rwanda',
-    `paymentTerms` VARCHAR(191) NULL,
-    `creditLimit` DECIMAL(14, 2) NULL,
-    `taxId` VARCHAR(191) NULL,
-    `rating` DOUBLE NULL DEFAULT 0,
-    `onTimeDeliveryPct` DOUBLE NULL DEFAULT 0,
-    `qualityScore` DOUBLE NULL DEFAULT 0,
-    `status` ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
-    `notes` TEXT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
     `adminId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `city` VARCHAR(191) NULL,
+    `code` VARCHAR(191) NOT NULL,
+    `contactPerson` VARCHAR(191) NULL,
+    `country` VARCHAR(191) NULL DEFAULT 'Rwanda',
+    `creditLimit` DECIMAL(14, 2) NULL,
+    `notes` TEXT NULL,
+    `onTimeDeliveryPct` DOUBLE NULL DEFAULT 0,
+    `paymentTerms` VARCHAR(191) NULL,
+    `qualityScore` DOUBLE NULL DEFAULT 0,
+    `rating` DOUBLE NULL DEFAULT 0,
+    `status` ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
+    `taxId` VARCHAR(191) NULL,
 
-    UNIQUE INDEX `Supplier_code_key`(`code`),
-    UNIQUE INDEX `Supplier_email_key`(`email`),
     INDEX `Supplier_code_idx`(`code`),
     INDEX `Supplier_name_idx`(`name`),
+    INDEX `Supplier_adminId_fkey`(`adminId`),
+    UNIQUE INDEX `Supplier_code_adminId_key`(`code`, `adminId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -799,11 +877,11 @@ CREATE TABLE `PurchaseOrder` (
     `orderDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `expectedDeliveryDate` DATETIME(3) NULL,
     `status` ENUM('DRAFT', 'PENDING_APPROVAL', 'APPROVED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CLOSED', 'CANCELLED') NOT NULL DEFAULT 'DRAFT',
-    `subtotal` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `taxAmount` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `shippingCost` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `otherCharges` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `grandTotal` DECIMAL(14, 2) NOT NULL DEFAULT 0,
+    `subtotal` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `taxAmount` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `shippingCost` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `otherCharges` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `grandTotal` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
     `paymentTerms` VARCHAR(191) NULL,
     `deliveryTerms` VARCHAR(191) NULL,
     `notes` TEXT NULL,
@@ -823,6 +901,10 @@ CREATE TABLE `PurchaseOrder` (
     INDEX `PurchaseOrder_poNumber_idx`(`poNumber`),
     INDEX `PurchaseOrder_supplierId_idx`(`supplierId`),
     INDEX `PurchaseOrder_status_idx`(`status`),
+    INDEX `PurchaseOrder_approvedByAdminId_fkey`(`approvedByAdminId`),
+    INDEX `PurchaseOrder_approvedByEmployeeId_fkey`(`approvedByEmployeeId`),
+    INDEX `PurchaseOrder_createdByAdminId_fkey`(`createdByAdminId`),
+    INDEX `PurchaseOrder_createdByEmployeeId_fkey`(`createdByEmployeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -834,15 +916,15 @@ CREATE TABLE `PurchaseOrderItem` (
     `productSku` VARCHAR(191) NULL,
     `description` TEXT NULL,
     `orderedQty` DECIMAL(12, 3) NOT NULL,
-    `receivedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0,
-    `remainingQty` DECIMAL(12, 3) NOT NULL DEFAULT 0,
+    `receivedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
+    `remainingQty` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     `unit` VARCHAR(191) NOT NULL,
     `unitPrice` DECIMAL(12, 2) NOT NULL,
-    `discountPct` DECIMAL(5, 2) NOT NULL DEFAULT 0,
-    `discountAmount` DECIMAL(12, 2) NOT NULL DEFAULT 0,
-    `taxPct` DECIMAL(5, 2) NOT NULL DEFAULT 0,
-    `taxAmount` DECIMAL(12, 2) NOT NULL DEFAULT 0,
-    `lineTotal` DECIMAL(14, 2) NOT NULL DEFAULT 0,
+    `discountPct` DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    `discountAmount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    `taxPct` DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    `taxAmount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    `lineTotal` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
     `status` ENUM('PENDING', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -878,6 +960,10 @@ CREATE TABLE `GoodsReceivingNote` (
     INDEX `GoodsReceivingNote_grnNumber_idx`(`grnNumber`),
     INDEX `GoodsReceivingNote_purchaseOrderId_idx`(`purchaseOrderId`),
     INDEX `GoodsReceivingNote_supplierId_idx`(`supplierId`),
+    INDEX `GoodsReceivingNote_approvedByAdminId_fkey`(`approvedByAdminId`),
+    INDEX `GoodsReceivingNote_approvedByEmployeeId_fkey`(`approvedByEmployeeId`),
+    INDEX `GoodsReceivingNote_receivedByAdminId_fkey`(`receivedByAdminId`),
+    INDEX `GoodsReceivingNote_receivedByEmployeeId_fkey`(`receivedByEmployeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -892,10 +978,10 @@ CREATE TABLE `GRNItem` (
     `orderedQty` DECIMAL(12, 3) NOT NULL,
     `receivedQty` DECIMAL(12, 3) NOT NULL,
     `acceptedQty` DECIMAL(12, 3) NOT NULL,
-    `rejectedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0,
+    `rejectedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     `unit` VARCHAR(191) NOT NULL,
     `batchNumber` VARCHAR(191) NULL,
-    `serialNumbers` JSON NULL,
+    `serialNumbers` LONGTEXT NULL,
     `manufacturingDate` DATETIME(3) NULL,
     `expiryDate` DATETIME(3) NULL,
     `unitCost` DECIMAL(12, 2) NOT NULL,
@@ -912,6 +998,8 @@ CREATE TABLE `GRNItem` (
     UNIQUE INDEX `GRNItem_stockInId_key`(`stockInId`),
     INDEX `GRNItem_grnId_idx`(`grnId`),
     INDEX `GRNItem_batchNumber_idx`(`batchNumber`),
+    INDEX `GRNItem_locationId_fkey`(`locationId`),
+    INDEX `GRNItem_poItemId_fkey`(`poItemId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -920,7 +1008,7 @@ CREATE TABLE `BatchTracking` (
     `id` VARCHAR(191) NOT NULL,
     `batchNumber` VARCHAR(191) NOT NULL,
     `lotNumber` VARCHAR(191) NULL,
-    `serialNumbers` JSON NULL,
+    `serialNumbers` LONGTEXT NULL,
     `productName` VARCHAR(191) NOT NULL,
     `productSku` VARCHAR(191) NULL,
     `grnItemId` VARCHAR(191) NULL,
@@ -929,7 +1017,7 @@ CREATE TABLE `BatchTracking` (
     `receivedDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `initialQty` DECIMAL(12, 3) NOT NULL,
     `currentQty` DECIMAL(12, 3) NOT NULL,
-    `consumedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0,
+    `consumedQty` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     `unit` VARCHAR(191) NOT NULL,
     `status` ENUM('ACTIVE', 'EXPIRED', 'RECALLED', 'DEPLETED', 'QUARANTINED') NOT NULL DEFAULT 'ACTIVE',
     `supplierBatchRef` VARCHAR(191) NULL,
@@ -941,6 +1029,8 @@ CREATE TABLE `BatchTracking` (
     UNIQUE INDEX `BatchTracking_batchNumber_key`(`batchNumber`),
     INDEX `BatchTracking_batchNumber_idx`(`batchNumber`),
     INDEX `BatchTracking_expiryDate_idx`(`expiryDate`),
+    INDEX `BatchTracking_grnItemId_fkey`(`grnItemId`),
+    INDEX `BatchTracking_locationId_fkey`(`locationId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -949,11 +1039,11 @@ CREATE TABLE `CostBreakdown` (
     `id` VARCHAR(191) NOT NULL,
     `grnId` VARCHAR(191) NOT NULL,
     `baseCost` DECIMAL(14, 2) NOT NULL,
-    `shippingCost` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `customsDuties` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `insurance` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `handlingCharges` DECIMAL(14, 2) NOT NULL DEFAULT 0,
-    `otherFees` DECIMAL(14, 2) NOT NULL DEFAULT 0,
+    `shippingCost` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `customsDuties` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `insurance` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `handlingCharges` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
+    `otherFees` DECIMAL(14, 2) NOT NULL DEFAULT 0.00,
     `totalLandedCost` DECIMAL(14, 2) NOT NULL,
     `costPerUnit` DECIMAL(12, 2) NOT NULL,
     `totalQuantity` DECIMAL(12, 3) NOT NULL,
@@ -973,7 +1063,7 @@ CREATE TABLE `StockLocation` (
     `type` ENUM('WAREHOUSE', 'STORE', 'AISLE', 'SHELF', 'BIN', 'ZONE') NOT NULL,
     `parentId` VARCHAR(191) NULL,
     `capacityLimit` DECIMAL(12, 3) NULL,
-    `currentUtilization` DECIMAL(12, 3) NOT NULL DEFAULT 0,
+    `currentUtilization` DECIMAL(12, 3) NOT NULL DEFAULT 0.000,
     `managerId` VARCHAR(191) NULL,
     `status` ENUM('ACTIVE', 'INACTIVE', 'FULL', 'MAINTENANCE') NOT NULL DEFAULT 'ACTIVE',
     `address` TEXT NULL,
@@ -986,6 +1076,8 @@ CREATE TABLE `StockLocation` (
     UNIQUE INDEX `StockLocation_code_key`(`code`),
     INDEX `StockLocation_code_idx`(`code`),
     INDEX `StockLocation_type_idx`(`type`),
+    INDEX `StockLocation_managerId_fkey`(`managerId`),
+    INDEX `StockLocation_parentId_fkey`(`parentId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1006,13 +1098,19 @@ CREATE TABLE `ApprovalWorkflow` (
     `approvedByEmployeeId` VARCHAR(191) NULL,
     `rejectedAt` DATETIME(3) NULL,
     `rejectionReason` TEXT NULL,
-    `approvalHierarchy` JSON NULL,
+    `approvalHierarchy` LONGTEXT NULL,
     `comments` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
     INDEX `ApprovalWorkflow_documentType_documentId_idx`(`documentType`, `documentId`),
     INDEX `ApprovalWorkflow_status_idx`(`status`),
+    INDEX `ApprovalWorkflow_approvedByAdminId_fkey`(`approvedByAdminId`),
+    INDEX `ApprovalWorkflow_approvedByEmployeeId_fkey`(`approvedByEmployeeId`),
+    INDEX `ApprovalWorkflow_grnId_fkey`(`grnId`),
+    INDEX `ApprovalWorkflow_purchaseOrderId_fkey`(`purchaseOrderId`),
+    INDEX `ApprovalWorkflow_requestedByAdminId_fkey`(`requestedByAdminId`),
+    INDEX `ApprovalWorkflow_requestedByEmployeeId_fkey`(`requestedByEmployeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1038,6 +1136,11 @@ CREATE TABLE `DocumentAttachment` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     INDEX `DocumentAttachment_referenceType_referenceId_idx`(`referenceType`, `referenceId`),
+    INDEX `DocumentAttachment_grnId_fkey`(`grnId`),
+    INDEX `DocumentAttachment_purchaseOrderId_fkey`(`purchaseOrderId`),
+    INDEX `DocumentAttachment_supplierId_fkey`(`supplierId`),
+    INDEX `DocumentAttachment_uploadedByAdminId_fkey`(`uploadedByAdminId`),
+    INDEX `DocumentAttachment_uploadedByEmployeeId_fkey`(`uploadedByEmployeeId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1061,6 +1164,46 @@ CREATE TABLE `AlertNotification` (
 
     INDEX `AlertNotification_alertType_idx`(`alertType`),
     INDEX `AlertNotification_isRead_idx`(`isRead`),
+    INDEX `AlertNotification_acknowledgedByAdminId_fkey`(`acknowledgedByAdminId`),
+    INDEX `AlertNotification_acknowledgedByEmployeeId_fkey`(`acknowledgedByEmployeeId`),
+    INDEX `AlertNotification_grnId_fkey`(`grnId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Expense` (
+    `id` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `description` TEXT NULL,
+    `amount` DECIMAL(10, 2) NOT NULL,
+    `category` VARCHAR(191) NULL,
+    `date` DATETIME(3) NOT NULL,
+    `paymentMethod` VARCHAR(191) NULL,
+    `type` ENUM('DEBIT', 'CREDIT') NOT NULL DEFAULT 'DEBIT',
+    `adminId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `Expense_id_key`(`id`),
+    INDEX `Expense_adminId_fkey`(`adminId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Debit` (
+    `id` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
+    `totalAmount` DOUBLE NOT NULL,
+    `stockOutId` VARCHAR(191) NULL,
+    `payments` LONGTEXT NULL,
+    `status` ENUM('PENDING', 'PARTIALLY_PAID', 'PAID', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    `adminId` VARCHAR(191) NULL,
+    `employeeId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `Debit_adminId_fkey`(`adminId`),
+    INDEX `Debit_employeeId_fkey`(`employeeId`),
+    INDEX `Debit_stockOutId_fkey`(`stockOutId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -1083,10 +1226,10 @@ ALTER TABLE `Employee` ADD CONSTRAINT `Employee_siteId_fkey` FOREIGN KEY (`siteI
 ALTER TABLE `Contract` ADD CONSTRAINT `Contract_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Stock` ADD CONSTRAINT `Stock_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Stock` ADD CONSTRAINT `Stock_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Stock` ADD CONSTRAINT `Stock_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Stock` ADD CONSTRAINT `Stock_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Applicant` ADD CONSTRAINT `Applicant_jobId_fkey` FOREIGN KEY (`jobId`) REFERENCES `Job`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1101,10 +1244,10 @@ ALTER TABLE `Activity` ADD CONSTRAINT `Activity_adminId_fkey` FOREIGN KEY (`admi
 ALTER TABLE `Activity` ADD CONSTRAINT `Activity_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Store` ADD CONSTRAINT `Store_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Store` ADD CONSTRAINT `Store_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Store` ADD CONSTRAINT `Store_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Store` ADD CONSTRAINT `Store_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Site` ADD CONSTRAINT `Site_manager_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1113,22 +1256,22 @@ ALTER TABLE `Site` ADD CONSTRAINT `Site_manager_fkey` FOREIGN KEY (`managerId`) 
 ALTER TABLE `Site` ADD CONSTRAINT `Site_supervisor_fkey` FOREIGN KEY (`supervisorId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Medication` ADD CONSTRAINT `Medication_cageId_fkey` FOREIGN KEY (`cageId`) REFERENCES `Cage`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Medication` ADD CONSTRAINT `Medication_administeredByAdmin_fkey` FOREIGN KEY (`administeredByAdmin`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Medication` ADD CONSTRAINT `Medication_administeredByEmployee_fkey` FOREIGN KEY (`administeredByEmployee`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Medication` ADD CONSTRAINT `Medication_administeredByAdmin_fkey` FOREIGN KEY (`administeredByAdmin`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Medication` ADD CONSTRAINT `Medication_cageId_fkey` FOREIGN KEY (`cageId`) REFERENCES `Cage`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `FeedCage` ADD CONSTRAINT `FeedCage_cageId_fkey` FOREIGN KEY (`cageId`) REFERENCES `Cage`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FeedCage` ADD CONSTRAINT `FeedCage_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `FeedCage` ADD CONSTRAINT `FeedCage_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FeedCage` ADD CONSTRAINT `FeedCage_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `FeedCage` ADD CONSTRAINT `FeedCage_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `StockIn` ADD CONSTRAINT `StockIn_stockcategoryId_fkey` FOREIGN KEY (`stockcategoryId`) REFERENCES `StockCategory`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1137,28 +1280,19 @@ ALTER TABLE `StockIn` ADD CONSTRAINT `StockIn_stockcategoryId_fkey` FOREIGN KEY 
 ALTER TABLE `StockIn` ADD CONSTRAINT `StockIn_storeId_fkey` FOREIGN KEY (`storeId`) REFERENCES `Store`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_stockinId_fkey` FOREIGN KEY (`stockinId`) REFERENCES `Stock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `SalesReturnItem` ADD CONSTRAINT `SalesReturnItem_stockoutId_fkey` FOREIGN KEY (`stockoutId`) REFERENCES `StockOut`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `StockOut` ADD CONSTRAINT `StockOut_stockinId_fkey` FOREIGN KEY (`stockinId`) REFERENCES `Stock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `SalesReturnItem` ADD CONSTRAINT `SalesReturnItem_salesReturnId_fkey` FOREIGN KEY (`salesReturnId`) REFERENCES `SalesReturn`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Request` ADD CONSTRAINT `Request_siteId_fkey` FOREIGN KEY (`siteId`) REFERENCES `Site`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Request` ADD CONSTRAINT `Request_requestedByAdminId_fkey` FOREIGN KEY (`requestedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Request` ADD CONSTRAINT `Request_requestedByEmployeeId_fkey` FOREIGN KEY (`requestedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `SalesReturnItem` ADD CONSTRAINT `SalesReturnItem_stockoutId_fkey` FOREIGN KEY (`stockoutId`) REFERENCES `StockOut`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Request` ADD CONSTRAINT `Request_closedByAdminId_fkey` FOREIGN KEY (`closedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1179,6 +1313,15 @@ ALTER TABLE `Request` ADD CONSTRAINT `Request_rejectedByAdminId_fkey` FOREIGN KE
 ALTER TABLE `Request` ADD CONSTRAINT `Request_rejectedByEmployeeId_fkey` FOREIGN KEY (`rejectedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `Request` ADD CONSTRAINT `Request_requestedByAdminId_fkey` FOREIGN KEY (`requestedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Request` ADD CONSTRAINT `Request_requestedByEmployeeId_fkey` FOREIGN KEY (`requestedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Request` ADD CONSTRAINT `Request_siteId_fkey` FOREIGN KEY (`siteId`) REFERENCES `Site`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `RequestItem` ADD CONSTRAINT `RequestItem_requestId_fkey` FOREIGN KEY (`requestId`) REFERENCES `Request`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1188,22 +1331,10 @@ ALTER TABLE `RequestItem` ADD CONSTRAINT `RequestItem_stockInId_fkey` FOREIGN KE
 ALTER TABLE `AssetRequest` ADD CONSTRAINT `AssetRequest_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `AssetRequestItem` ADD CONSTRAINT `AssetRequestItem_requestId_fkey` FOREIGN KEY (`requestId`) REFERENCES `AssetRequest`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `AssetRequestItem` ADD CONSTRAINT `AssetRequestItem_assetId_fkey` FOREIGN KEY (`assetId`) REFERENCES `Asset`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_stockInId_fkey` FOREIGN KEY (`stockInId`) REFERENCES `StockIn`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `Request`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `AssetRequestItem` ADD CONSTRAINT `AssetRequestItem_requestId_fkey` FOREIGN KEY (`requestId`) REFERENCES `AssetRequest`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_createdByAdminId_fkey` FOREIGN KEY (`createdByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1212,61 +1343,73 @@ ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_createdByAdminId_fkey` F
 ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_createdByEmployeeId_fkey` FOREIGN KEY (`createdByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_sourceId_fkey` FOREIGN KEY (`sourceId`) REFERENCES `Request`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockHistory` ADD CONSTRAINT `StockHistory_stockInId_fkey` FOREIGN KEY (`stockInId`) REFERENCES `StockIn`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `ParentFishPool` ADD CONSTRAINT `ParentFishPool_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Medicine` ADD CONSTRAINT `Medicine_addedById_fkey` FOREIGN KEY (`addedById`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ParentFishFeeding` ADD CONSTRAINT `ParentFishFeeding_parentFishPoolId_fkey` FOREIGN KEY (`parentFishPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ParentFishFeeding` ADD CONSTRAINT `ParentFishFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ParentFishFeeding` ADD CONSTRAINT `ParentFishFeeding_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ParentFishFeeding` ADD CONSTRAINT `ParentFishFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ParentWaterChanging` ADD CONSTRAINT `ParentWaterChanging_parentPoolId_fkey` FOREIGN KEY (`parentPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ParentFishFeeding` ADD CONSTRAINT `ParentFishFeeding_parentFishPoolId_fkey` FOREIGN KEY (`parentFishPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ParentWaterChanging` ADD CONSTRAINT `ParentWaterChanging_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ParentFishMedication` ADD CONSTRAINT `ParentFishMedication_parentFishPoolId_fkey` FOREIGN KEY (`parentFishPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ParentFishMedication` ADD CONSTRAINT `ParentFishMedication_medicationId_fkey` FOREIGN KEY (`medicationId`) REFERENCES `Medicine`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ParentWaterChanging` ADD CONSTRAINT `ParentWaterChanging_parentPoolId_fkey` FOREIGN KEY (`parentPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ParentFishMedication` ADD CONSTRAINT `ParentFishMedication_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ParentEggMigration` ADD CONSTRAINT `ParentEggMigration_parentPoolId_fkey` FOREIGN KEY (`parentPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ParentFishMedication` ADD CONSTRAINT `ParentFishMedication_medicationId_fkey` FOREIGN KEY (`medicationId`) REFERENCES `Medicine`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ParentEggMigration` ADD CONSTRAINT `ParentEggMigration_laboratoryBoxId_fkey` FOREIGN KEY (`laboratoryBoxId`) REFERENCES `LaboratoryBox`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ParentFishMedication` ADD CONSTRAINT `ParentFishMedication_parentFishPoolId_fkey` FOREIGN KEY (`parentFishPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ParentEggMigration` ADD CONSTRAINT `ParentEggMigration_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `EggFishFeeding` ADD CONSTRAINT `EggFishFeeding_parentEggMigrationId_fkey` FOREIGN KEY (`parentEggMigrationId`) REFERENCES `ParentEggMigration`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ParentEggMigration` ADD CONSTRAINT `ParentEggMigration_laboratoryBoxId_fkey` FOREIGN KEY (`laboratoryBoxId`) REFERENCES `LaboratoryBox`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `EggFishFeeding` ADD CONSTRAINT `EggFishFeeding_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `ParentEggMigration` ADD CONSTRAINT `ParentEggMigration_parentPoolId_fkey` FOREIGN KEY (`parentPoolId`) REFERENCES `ParentFishPool`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `EggFishFeeding` ADD CONSTRAINT `EggFishFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `EggFishMedication` ADD CONSTRAINT `EggFishMedication_parentEggMigrationId_fkey` FOREIGN KEY (`parentEggMigrationId`) REFERENCES `ParentEggMigration`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `EggFishFeeding` ADD CONSTRAINT `EggFishFeeding_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `EggFishFeeding` ADD CONSTRAINT `EggFishFeeding_parentEggMigrationId_fkey` FOREIGN KEY (`parentEggMigrationId`) REFERENCES `ParentEggMigration`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `EggFishMedication` ADD CONSTRAINT `EggFishMedication_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `EggFishMedication` ADD CONSTRAINT `EggFishMedication_medicationId_fkey` FOREIGN KEY (`medicationId`) REFERENCES `Medicine`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `EggFishMedication` ADD CONSTRAINT `EggFishMedication_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `EggFishMedication` ADD CONSTRAINT `EggFishMedication_parentEggMigrationId_fkey` FOREIGN KEY (`parentEggMigrationId`) REFERENCES `ParentEggMigration`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `LaboratoryBoxWaterChanging` ADD CONSTRAINT `LaboratoryBoxWaterChanging_boxId_fkey` FOREIGN KEY (`boxId`) REFERENCES `LaboratoryBox`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1275,13 +1418,13 @@ ALTER TABLE `LaboratoryBoxWaterChanging` ADD CONSTRAINT `LaboratoryBoxWaterChang
 ALTER TABLE `LaboratoryBoxWaterChanging` ADD CONSTRAINT `LaboratoryBoxWaterChanging_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `EggToPondMigration` ADD CONSTRAINT `EggToPondMigration_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `EggToPondMigration` ADD CONSTRAINT `EggToPondMigration_parentEggMigrationId_fkey` FOREIGN KEY (`parentEggMigrationId`) REFERENCES `ParentEggMigration`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `EggToPondMigration` ADD CONSTRAINT `EggToPondMigration_pondId_fkey` FOREIGN KEY (`pondId`) REFERENCES `GrownEggPond`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `EggToPondMigration` ADD CONSTRAINT `EggToPondMigration_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PondWaterChanging` ADD CONSTRAINT `PondWaterChanging_EggtoPondId_fkey` FOREIGN KEY (`EggtoPondId`) REFERENCES `EggToPondMigration`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1293,19 +1436,19 @@ ALTER TABLE `PondWaterChanging` ADD CONSTRAINT `PondWaterChanging_employeeId_fke
 ALTER TABLE `PondMedication` ADD CONSTRAINT `PondMedication_eggtoPondId_fkey` FOREIGN KEY (`eggtoPondId`) REFERENCES `EggToPondMigration`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PondMedication` ADD CONSTRAINT `PondMedication_medicationId_fkey` FOREIGN KEY (`medicationId`) REFERENCES `Medicine`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `PondMedication` ADD CONSTRAINT `PondMedication_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PondMedication` ADD CONSTRAINT `PondMedication_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `PondMedication` ADD CONSTRAINT `PondMedication_medicationId_fkey` FOREIGN KEY (`medicationId`) REFERENCES `Medicine`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_eggToPondMigrationId_fkey` FOREIGN KEY (`eggToPondMigrationId`) REFERENCES `EggToPondMigration`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `GrownEggPondFeeding` ADD CONSTRAINT `GrownEggPondFeeding_feedId_fkey` FOREIGN KEY (`feedId`) REFERENCES `FeedStock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Category` ADD CONSTRAINT `Category_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1317,7 +1460,10 @@ ALTER TABLE `Category` ADD CONSTRAINT `Category_employeeId_fkey` FOREIGN KEY (`e
 ALTER TABLE `Supplier` ADD CONSTRAINT `Supplier_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_approvedByAdminId_fkey` FOREIGN KEY (`approvedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_approvedByEmployeeId_fkey` FOREIGN KEY (`approvedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_createdByAdminId_fkey` FOREIGN KEY (`createdByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1326,25 +1472,10 @@ ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_createdByAdminId_fkey`
 ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_createdByEmployeeId_fkey` FOREIGN KEY (`createdByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_approvedByAdminId_fkey` FOREIGN KEY (`approvedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_approvedByEmployeeId_fkey` FOREIGN KEY (`approvedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `PurchaseOrder` ADD CONSTRAINT `PurchaseOrder_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PurchaseOrderItem` ADD CONSTRAINT `PurchaseOrderItem_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_receivedByAdminId_fkey` FOREIGN KEY (`receivedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_receivedByEmployeeId_fkey` FOREIGN KEY (`receivedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_approvedByAdminId_fkey` FOREIGN KEY (`approvedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1353,13 +1484,25 @@ ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_approvedByAd
 ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_approvedByEmployeeId_fkey` FOREIGN KEY (`approvedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_receivedByAdminId_fkey` FOREIGN KEY (`receivedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_receivedByEmployeeId_fkey` FOREIGN KEY (`receivedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `GoodsReceivingNote` ADD CONSTRAINT `GoodsReceivingNote_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_poItemId_fkey` FOREIGN KEY (`poItemId`) REFERENCES `PurchaseOrderItem`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `StockLocation`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `StockLocation`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_poItemId_fkey` FOREIGN KEY (`poItemId`) REFERENCES `PurchaseOrderItem`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `GRNItem` ADD CONSTRAINT `GRNItem_stockInId_fkey` FOREIGN KEY (`stockInId`) REFERENCES `StockIn`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1374,22 +1517,10 @@ ALTER TABLE `BatchTracking` ADD CONSTRAINT `BatchTracking_locationId_fkey` FOREI
 ALTER TABLE `CostBreakdown` ADD CONSTRAINT `CostBreakdown_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `StockLocation` ADD CONSTRAINT `StockLocation_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `StockLocation`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `StockLocation` ADD CONSTRAINT `StockLocation_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_requestedByAdminId_fkey` FOREIGN KEY (`requestedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_requestedByEmployeeId_fkey` FOREIGN KEY (`requestedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `StockLocation` ADD CONSTRAINT `StockLocation_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `StockLocation`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_approvedByAdminId_fkey` FOREIGN KEY (`approvedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1398,10 +1529,22 @@ ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_approvedByAdminI
 ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_approvedByEmployeeId_fkey` FOREIGN KEY (`approvedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_requestedByAdminId_fkey` FOREIGN KEY (`requestedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ApprovalWorkflow` ADD CONSTRAINT `ApprovalWorkflow_requestedByEmployeeId_fkey` FOREIGN KEY (`requestedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_purchaseOrderId_fkey` FOREIGN KEY (`purchaseOrderId`) REFERENCES `PurchaseOrder`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1413,10 +1556,22 @@ ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_uploadedByAd
 ALTER TABLE `DocumentAttachment` ADD CONSTRAINT `DocumentAttachment_uploadedByEmployeeId_fkey` FOREIGN KEY (`uploadedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `AlertNotification` ADD CONSTRAINT `AlertNotification_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `AlertNotification` ADD CONSTRAINT `AlertNotification_acknowledgedByAdminId_fkey` FOREIGN KEY (`acknowledgedByAdminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `AlertNotification` ADD CONSTRAINT `AlertNotification_acknowledgedByEmployeeId_fkey` FOREIGN KEY (`acknowledgedByEmployeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `AlertNotification` ADD CONSTRAINT `AlertNotification_grnId_fkey` FOREIGN KEY (`grnId`) REFERENCES `GoodsReceivingNote`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Expense` ADD CONSTRAINT `Expense_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Debit` ADD CONSTRAINT `Debit_adminId_fkey` FOREIGN KEY (`adminId`) REFERENCES `Admin`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Debit` ADD CONSTRAINT `Debit_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Debit` ADD CONSTRAINT `Debit_stockOutId_fkey` FOREIGN KEY (`stockOutId`) REFERENCES `StockOut`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
