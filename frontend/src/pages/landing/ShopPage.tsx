@@ -9,7 +9,7 @@ import publicCategoryService from '../../services/publicCategoryService';
 import type { Category } from '../../services/categoryService';
 import { useCart } from '../../context/CartContext';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 9;
 
 const CARD_GRADIENTS = [
   'linear-gradient(135deg, #f5e6d3 0%, #e0c9a8 100%)',
