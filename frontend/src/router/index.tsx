@@ -195,6 +195,7 @@ const routes = createBrowserRouter([
             ),
           },
           {
+            
             path: 'faq',
             element: (
               <SuspenseWrapper>
