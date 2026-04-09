@@ -46,7 +46,7 @@ class PurchaseOrderService {
      * Create a new Purchase Order
      */
     async create(data: CreatePODto, token: string) {
-        const response = await axios.post(`${BASE_URL}/purchase-orders`, data, {
+        const response = await axios.post(`${BASE_URL}/purchase-order`, data, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return response.data;
@@ -56,7 +56,7 @@ class PurchaseOrderService {
      * Get all Purchase Orders with filters
      */
     async getAll(filters: PurchaseOrderFilters = {}, token: string) {
-        const response = await axios.get(`${BASE_URL}/purchase-orders`, {
+        const response = await axios.get(`${BASE_URL}/purchase-order`, {
             params: filters,
             headers: { Authorization: `Bearer ${token}` },
         });
@@ -67,7 +67,7 @@ class PurchaseOrderService {
      * Get Purchase Order by ID
      */
     async getOne(id: string, token: string) {
-        const response = await axios.get(`${BASE_URL}/purchase-orders/${id}`, {
+        const response = await axios.get(`${BASE_URL}/purchase-order/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return response.data;
@@ -77,7 +77,7 @@ class PurchaseOrderService {
      * Update Purchase Order (DRAFT only)
      */
     async update(id: string, data: UpdatePODto, token: string) {
-        const response = await axios.put(`${BASE_URL}/purchase-orders/${id}`, data, {
+        const response = await axios.put(`${BASE_URL}/purchase-order/${id}`, data, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return response.data;
@@ -88,7 +88,7 @@ class PurchaseOrderService {
      */
     async submit(id: string, token: string) {
         const response = await axios.post(
-            `${BASE_URL}/purchase-orders/${id}/submit`,
+            `${BASE_URL}/purchase-order/${id}/submit`,
             {},
             {
                 headers: { Authorization: `Bearer ${token}` },
@@ -102,7 +102,7 @@ class PurchaseOrderService {
      */
     async approve(id: string, approvedById: string, isAdmin: boolean, token: string) {
         const response = await axios.post(
-            `${BASE_URL}/purchase-orders/${id}/approve`,
+            `${BASE_URL}/purchase-order/${id}/approve`,
             { approvedById, isAdmin },
             {
                 headers: { Authorization: `Bearer ${token}` },
@@ -116,7 +116,7 @@ class PurchaseOrderService {
      */
     async cancel(id: string, reason: string, token: string) {
         const response = await axios.post(
-            `${BASE_URL}/purchase-orders/${id}/cancel`,
+            `${BASE_URL}/purchase-order/${id}/cancel`,
             { reason },
             {
                 headers: { Authorization: `Bearer ${token}` },
@@ -129,7 +129,7 @@ class PurchaseOrderService {
      * Delete Purchase Order (DRAFT only)
      */
     async delete(id: string, token: string) {
-        const response = await axios.delete(`${BASE_URL}/purchase-orders/${id}`, {
+        const response = await axios.delete(`${BASE_URL}/purchase-order/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return response.data;

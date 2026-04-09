@@ -3,6 +3,7 @@ import {
     Get,
     Post,
     Put,
+    Delete,
     Param,
     Body,
     Query,
@@ -54,6 +55,7 @@ export class PurchaseOrderController {
         return this.poService.cancel(id, body.reason);
     }
 
+    @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Param('id') id: string) {
         await this.poService.remove(id);
