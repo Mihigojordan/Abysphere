@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import headerImg from '../../assets/header.jpeg';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, X, ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import { resolveImgUrl } from '../../utils/imageUtils';
@@ -692,52 +693,69 @@ const ShopPage = () => {
       {/* Page header */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%)',
+          position: 'relative',
           padding: '5rem 2rem 3.5rem',
           textAlign: 'center',
+          overflow: 'hidden',
         }}
       >
-        <p
-          className="font-worksans"
+        <img
+          src={headerImg}
+          alt=""
           style={{
-            color: 'var(--aby-accent)',
-            fontSize: '0.72rem',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            marginBottom: '0.75rem',
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            zIndex: 0,
           }}
-        >
-          Our Collection
-        </p>
-        <h1
-          className="font-cormorant"
-          style={{ color: 'white', fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 400, margin: '0 0 0.75rem' }}
-        >
-          Shop All Products
-        </h1>
-        <p
-          className="font-worksans"
-          style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.9rem' }}
-        >
-          {loading ? 'Loading\u2026' : `${total} product${total !== 1 ? 's' : ''}`}
-          {hasFilters && !loading && (
-            <button
-              onClick={clearFilters}
-              className="font-worksans"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--aby-accent)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                marginLeft: '0.75rem',
-                textDecoration: 'underline',
-              }}
-            >
-              Clear filters
-            </button>
-          )}
-        </p>
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,20,60,0.6)', zIndex: 1 }} />
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <p
+            className="font-worksans"
+            style={{
+              color: 'var(--aby-accent)',
+              fontSize: '0.72rem',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              marginBottom: '0.75rem',
+            }}
+          >
+            Our Collection
+          </p>
+          <h1
+            className="font-cormorant"
+            style={{ color: 'white', fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 400, margin: '0 0 0.75rem' }}
+          >
+            Shop All Products
+          </h1>
+          <p
+            className="font-worksans"
+            style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.9rem' }}
+          >
+            {loading ? 'Loading\u2026' : `${total} product${total !== 1 ? 's' : ''}`}
+            {hasFilters && !loading && (
+              <button
+                onClick={clearFilters}
+                className="font-worksans"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--aby-accent)',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  marginLeft: '0.75rem',
+                  textDecoration: 'underline',
+                }}
+              >
+                Clear filters
+              </button>
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Layout */}

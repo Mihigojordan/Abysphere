@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import pmsLogo from '../../assets/pms_logo.png';
 
 // ─── Link definitions ──────────────────────────────────────────────────────────
 type NavLink = { label: string; path: string; external?: boolean };
@@ -62,19 +63,12 @@ const Footer = () => {
       >
         {/* Brand column */}
         <div>
-          <h3
-            className="font-cormorant"
-            style={{
-              fontSize: '1.4rem',
-              fontWeight: 500,
-              letterSpacing: '0.04em',
-              marginBottom: '1rem',
-              color: 'white',
-              lineHeight: 1.2,
-            }}
-          >
-            Papeterie Messanger<br />Supplier Ltd.
-          </h3>
+          <img
+            src={pmsLogo}
+            alt="PMS Logo"
+            className='scale-125'
+            style={{ height: '52px', width: 'auto', display: 'block', marginBottom: '1rem' }}
+          />
           <p
             className="font-worksans"
             style={{

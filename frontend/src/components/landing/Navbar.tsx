@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, X, Menu, ArrowRight } from 'lucide-react';
+import pmsLogo from '../../assets/pms_logo.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import publicStockService, { type Stock } from '../../services/publicStockService';
@@ -127,10 +128,9 @@ const Navbar = () => {
         {/* Logo */}
         <button
           onClick={() => navigate('/')}
-          className="font-cormorant"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.6rem', fontWeight: 500, letterSpacing: '0.04em', color: 'var(--aby-dark)' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 0 }}
         >
-          Papeterie Messanger Supplier Ltd.
+          <img src={pmsLogo} alt="PMS Logo" className='scale-125' style={{ height: '48px', width: 'auto', display: 'block' }} />
         </button>
 
         {/* Desktop Links */}

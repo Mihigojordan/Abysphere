@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import heroImg from '../../../assets/herosection.jpeg';
 
 interface HeroSectionProps {
   onExplore?: () => void;
@@ -197,8 +198,8 @@ const HeroSection = ({ onExplore }: HeroSectionProps) => {
             }}
           >
             <img
-              src="https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?w=900&h=1125&fit=crop&q=80"
-              alt="Premium stationery and office supplies by Papeterie Messanger"
+              src={heroImg}
+              alt="Premium stationery and office supplies"
               style={{
                 width: '100%',
                 height: '100%',

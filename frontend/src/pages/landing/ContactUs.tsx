@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import headerImg from '../../assets/header.jpeg';
 import emailjs from '@emailjs/browser';
 import { MapPin, Clock, Phone, Mail, Send, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
 
@@ -39,37 +40,54 @@ const ContactPage = () => {
       {/* ── Header Banner ──────────────────────────────────────────────────── */}
       <div
         style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%)',
+          position: 'relative',
           padding: '5rem 2rem 3.5rem',
           textAlign: 'center',
+          overflow: 'hidden',
         }}
       >
-        <p
-          className="font-worksans"
+        <img
+          src={headerImg}
+          alt=""
           style={{
-            color: 'rgba(180,200,255,0.8)',
-            fontSize: '0.72rem',
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            marginBottom: '0.75rem',
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            zIndex: 0,
           }}
-        >
-          We'd love to hear from you
-        </p>
-        <h1
-          className="font-cormorant"
-          style={{
-            color: 'white',
-            fontSize: 'clamp(2rem, 5vw, 3.2rem)',
-            fontWeight: 400,
-            margin: '0 0 0.75rem',
-          }}
-        >
-          Get in Touch
-        </h1>
-        <p className="font-worksans" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
-          Reach out for orders, quotes, or any questions
-        </p>
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,20,60,0.6)', zIndex: 1 }} />
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <p
+            className="font-worksans"
+            style={{
+              color: 'rgba(180,200,255,0.8)',
+              fontSize: '0.72rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              marginBottom: '0.75rem',
+            }}
+          >
+            We'd love to hear from you
+          </p>
+          <h1
+            className="font-cormorant"
+            style={{
+              color: 'white',
+              fontSize: 'clamp(2rem, 5vw, 3.2rem)',
+              fontWeight: 400,
+              margin: '0 0 0.75rem',
+            }}
+          >
+            Get in Touch
+          </h1>
+          <p className="font-worksans" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
+            Reach out for orders, quotes, or any questions
+          </p>
+        </div>
       </div>
 
       {/* ── Main Content ───────────────────────────────────────────────────── */}

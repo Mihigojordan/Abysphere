@@ -8,7 +8,7 @@ import sharp from 'sharp'
 import path from 'path'
 
 // Your source image path
-const sourceImage = './public/mysystem.jpeg';
+const sourceImage = './public/pms_logo.png';
 
 // Complete icon specifications for all platforms
 const iconSpecs = {
