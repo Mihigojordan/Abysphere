@@ -100,6 +100,7 @@ const StockHistory = lazy(() => import("../pages/dashboard/StockHistory"));
 const StockAlertsPage = lazy(() => import("../pages/dashboard/StockAlertsPage"));
 const PurchaseOrderManagement = lazy(() => import('../pages/dashboard/PurchaseOrderManagement'));
 const CreatePOForm = lazy(() => import('../pages/dashboard/CreatePOForm'));
+const UpdatePOForm = lazy(() => import('../pages/dashboard/UpdatePOForm'));
 const PurchaseOrderView = lazy(() => import('../pages/dashboard/PurchaseOrderView'));
 const StockInView = lazy(() => import('../pages/dashboard/StockInView'));
 const StockOutView = lazy(() => import('../pages/dashboard/StockOutView'));
@@ -855,6 +856,14 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'purchase-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <UpdatePOForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'grn-management',
                 element: (
                   <SuspenseWrapper>
@@ -1125,6 +1134,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <PurchaseOrderView />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'purchase-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <UpdatePOForm />
                   </SuspenseWrapper>
                 ),
               },

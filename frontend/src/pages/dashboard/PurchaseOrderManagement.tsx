@@ -12,6 +12,7 @@ import {
     FileText,
     Send,
     Package,
+    ThumbsUp,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -282,6 +283,31 @@ const PurchaseOrderDashboard: React.FC = () => {
                                                 >
                                                     <FileText className="w-3.5 h-3.5" />
                                                 </button>
+                                                {po.status === 'PENDING_APPROVAL' && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            const res = await Swal.fire({
+                                                                title: 'Approve Purchase Order?',
+                                                                text: `Approve ${po.poNumber}?`,
+                                                                icon: 'question',
+                                                                showCancelButton: true,
+                                                                confirmButtonText: 'Approve',
+                                                                confirmButtonColor: '#16a34a',
+                                                            });
+                                                            if (!res.isConfirmed) return;
+                                                            try {
+                                                                await purchaseOrderService.approve(po.id, adminData?.id || '', true, localStorage.getItem('token') || '');
+                                                                loadOrders();
+                                                            } catch (e: any) {
+                                                                Swal.fire('Error', e.response?.data?.message || e.message, 'error');
+                                                            }
+                                                        }}
+                                                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
+                                                        title="Approve"
+                                                    >
+                                                        <ThumbsUp className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
                                                 {po.status === 'DRAFT' && (
                                                     <>
                                                         <button
