@@ -18,7 +18,9 @@ import {
   AlertTriangle,
   CreditCard,
   Building,
-  Users
+  Users,
+  ShoppingCart,
+  PackageCheck
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -168,6 +170,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Truck,
         path: `${base}/supplier-management`,
         feature: "SUPPLIER_MANAGEMENT",
+      },
+      {
+        
+        id: "purchase",
+        label: t('sidebar.purchaseOrders'),
+        icon: ShoppingCart,
+        path: `${base}/purchase-management`,
+        // feature: "PURCHASE_MANAGEMENT",
+      },
+      {
+        id: "proforma",
+        label: t('sidebar.proformaInvoices'),
+        icon: CreditCard,
+        path: `${base}/proforma-management`,
+      },
+      {
+        id: "grn",
+        label: t('sidebar.grn'),
+        icon: PackageCheck,
+        path: `${base}/grn-management`,
+        // feature: "GRN_MANAGEMENT",
       },
       {
         id: "stockin",
