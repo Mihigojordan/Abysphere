@@ -53,7 +53,6 @@ const SalesReportPage = lazy(() => import("../pages/dashboard/SalesReportDashboa
 const InventoryReportPage = lazy(() => import("../pages/dashboard/InventoryReportDashboard"));
 
 // ✅ Lazy-loaded components
-const Home = lazy(() => import("../pages/landing/Home"));
 const BlogsPage = lazy(() => import("../pages/landing/BlogsPage"));
 const BlogViewPage = lazy(() => import("../components/landing/BlogViewPage"));
 const AdminLogin = lazy(() => import("../pages/auth/admin/Login"));
@@ -580,14 +579,6 @@ const routes = createBrowserRouter([
                 ),
               },
               {
-                path: 'purchase-management/view/:id',
-                element: (
-                  <SuspenseWrapper>
-                    <PurchaseOrderView />
-                  </SuspenseWrapper>
-                ),
-              },
-              {
                 path: 'proforma-management',
                 element: (
                   <SuspenseWrapper>
@@ -724,14 +715,6 @@ const routes = createBrowserRouter([
                 ),
               },
               {
-                path: 'expense-management',
-                element: (
-                  <SuspenseWrapper>
-                    <ExpenseManagement />
-                  </SuspenseWrapper>
-                ),
-              },
-              {
                 path: 'supplier-management',
                 element: (
                   <SuspenseWrapper>
@@ -811,7 +794,6 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
-              
               {
                 path: 'purchase-management/create',
                 element: (
