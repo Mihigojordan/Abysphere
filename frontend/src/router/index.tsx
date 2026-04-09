@@ -8,7 +8,7 @@ import LandingLayout from "../layout/LandingLayout";
 import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdminRoute";
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
-import logo from "../assets/tran.jpeg";
+import logo from "../assets/pms_logo.png";
 import StockAnalyticsPage from "../pages/dashboard/StockAnalyticsPage";
 
 // Dashboard Pages
