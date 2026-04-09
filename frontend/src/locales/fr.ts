@@ -509,6 +509,7 @@ export const fr = {
         salesReturn: 'Gestion des Retours de Vente',
         expenseManagement: 'Gestion des Dépenses',
         purchaseOrders: 'Bons de Commande',
+        proformaInvoices: 'Factures Proforma',
         grn: 'Gestion des GRN',
         reports: 'Rapports',
         salesReport: 'Rapport des Ventes',

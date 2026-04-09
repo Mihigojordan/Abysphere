@@ -13,9 +13,10 @@ import {
     Eye,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import grnService from '../../services/grnService';
 import useAdminAuth from '../../context/AdminAuthContext';
-import CreateGRNModal from '../../components/grn/CreateGRNModal';
 
 interface GRN {
     id: string;
@@ -47,9 +48,11 @@ const GRNManagement: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    const { user: adminData, token } = useAdminAuth();
+    const navigate = useNavigate();
+    const { user: adminData } = useAdminAuth();
+    const role = adminData?.role || 'admin';
+    const token = localStorage.getItem('token') || '';
 
     const stats = {
         pending: grns.filter((g) => g.status === 'PENDING').length,
@@ -120,11 +123,6 @@ const GRNManagement: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 font-sans">
-            <CreateGRNModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={loadGRNs}
-            />
             {/* Header */}
             <div className="sticky top-0 bg-white shadow-sm z-10 border-b border-gray-100">
                 <div className="mx-auto px-4 py-3">
@@ -144,7 +142,7 @@ const GRNManagement: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => setIsCreateModalOpen(true)}
+                                onClick={() => navigate(`/${role}/dashboard/grn-management/create`)}
                                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
                             >
                                 <Plus className="w-3.5 h-3.5" />
@@ -263,7 +261,7 @@ const GRNManagement: React.FC = () => {
                                             <div className="flex items-center gap-1">
                                                 <span className="text-gray-600">{grn._count?.items || 0}</span>
                                                 {grn.hasDiscrepancies && (
-                                                    <AlertCircle className="w-3 h-3 text-red-500" title="Has discrepancies" />
+                                                    <AlertCircle className="w-3 h-3 text-red-500" />
                                                 )}
                                             </div>
                                         </td>
@@ -288,31 +286,30 @@ const GRNManagement: React.FC = () => {
                                         <td className="px-4 py-2.5 text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
-                                                    onClick={() => {
-                                                        /* View details */
-                                                    }}
+                                                    onClick={() => navigate(`/${role}/dashboard/grn-management/view/${grn.id}`)}
                                                     className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                                                    title="View"
                                                 >
                                                     <Eye className="w-3.5 h-3.5" />
                                                 </button>
                                                 {grn.status === 'PENDING' && (
                                                     <>
                                                         <button
-                                                            onClick={() => {
-                                                                /* Approve */
+                                                            onClick={async () => {
+                                                                const res = await Swal.fire({ title: 'Approve GRN?', text: 'This will create stock entries.', icon: 'question', showCancelButton: true, confirmButtonText: 'Approve' });
+                                                                if (!res.isConfirmed) return;
+                                                                try { await grnService.approve(grn.id, adminData?.id || '', true, token); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
-                                                            title="Approve"
                                                         >
                                                             <CheckCircle className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => {
-                                                                /* Reject */
+                                                            onClick={async () => {
+                                                                const { value: reason } = await Swal.fire({ title: 'Reject GRN', input: 'text', inputLabel: 'Reason', showCancelButton: true });
+                                                                if (!reason) return;
+                                                                try { await grnService.reject(grn.id, reason, token); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                            title="Reject"
                                                         >
                                                             <XCircle className="w-3.5 h-3.5" />
                                                         </button>

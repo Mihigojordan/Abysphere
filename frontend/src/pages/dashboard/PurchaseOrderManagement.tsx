@@ -14,9 +14,10 @@ import {
     Package,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import purchaseOrderService from '../../services/purchaseOrderService';
 import useAdminAuth from '../../context/AdminAuthContext';
-import CreatePOModal from '../../components/purchase-order/CreatePOModal';
 
 interface PurchaseOrder {
     id: string;
@@ -47,9 +48,10 @@ const PurchaseOrderDashboard: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+    const navigate = useNavigate();
     const { user: adminData } = useAdminAuth();
+    const role = adminData?.role || 'admin';
     const token = localStorage.getItem('token') || '';
 
     const stats = {
@@ -121,11 +123,6 @@ const PurchaseOrderDashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-100 font-sans">
-            <CreatePOModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={loadOrders}
-            />
             {/* Header */}
             <div className="sticky top-0 bg-white shadow-sm z-10 border-b border-gray-100">
                 <div className="mx-auto px-4 py-3">
@@ -145,7 +142,7 @@ const PurchaseOrderDashboard: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => setIsCreateModalOpen(true)}
+                                onClick={() => navigate(`/${role}/dashboard/purchase-management/create`)}
                                 className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
                             >
                                 <Plus className="w-3.5 h-3.5" />
@@ -282,9 +279,7 @@ const PurchaseOrderDashboard: React.FC = () => {
                                         <td className="px-4 py-2.5 text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
-                                                    onClick={() => {
-                                                        /* View details */
-                                                    }}
+                                                    onClick={() => navigate(`/${role}/dashboard/purchase-management/view/${po.id}`)}
                                                     className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
                                                     title="View"
                                                 >
@@ -293,17 +288,17 @@ const PurchaseOrderDashboard: React.FC = () => {
                                                 {po.status === 'DRAFT' && (
                                                     <>
                                                         <button
-                                                            onClick={() => {
-                                                                /* Edit */
-                                                            }}
+                                                            onClick={() => navigate(`/${role}/dashboard/purchase-management/update/${po.id}`)}
                                                             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                                             title="Edit"
                                                         >
                                                             <Edit className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => {
-                                                                /* Submit for approval */
+                                                            onClick={async () => {
+                                                                const res = await Swal.fire({ title: 'Submit for approval?', icon: 'question', showCancelButton: true, confirmButtonText: 'Submit' });
+                                                                if (!res.isConfirmed) return;
+                                                                try { await purchaseOrderService.submit(po.id, token); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
                                                             title="Submit"
@@ -311,8 +306,10 @@ const PurchaseOrderDashboard: React.FC = () => {
                                                             <Send className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => {
-                                                                /* Delete */
+                                                            onClick={async () => {
+                                                                const res = await Swal.fire({ title: 'Delete PO?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' });
+                                                                if (!res.isConfirmed) return;
+                                                                try { await purchaseOrderService.delete(po.id, token); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                             title="Delete"

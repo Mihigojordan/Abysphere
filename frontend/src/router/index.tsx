@@ -104,6 +104,8 @@ const PurchaseOrderView = lazy(() => import('../pages/dashboard/PurchaseOrderVie
 const StockInView = lazy(() => import('../pages/dashboard/StockInView'));
 const StockOutView = lazy(() => import('../pages/dashboard/StockOutView'));
 const GRNManagement = lazy(() => import('../pages/dashboard/GRNManagement'));
+const CreateGRNForm = lazy(() => import('../pages/dashboard/CreateGRNForm'));
+const GRNView = lazy(() => import('../pages/dashboard/GRNView'));
 const ProformaInvoiceManagement = lazy(() => import('../pages/dashboard/ProformaInvoiceManagement'));
 const CreateProformaForm = lazy(() => import('../pages/dashboard/CreateProformaForm'));
 const ProformaInvoiceView = lazy(() => import('../pages/dashboard/ProformaInvoiceView'));
@@ -860,6 +862,22 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
+              {
+                path: 'grn-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CreateGRNForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'grn-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <GRNView />
+                  </SuspenseWrapper>
+                ),
+              },
 
               {
                 path: 'ParentFish-Feeding',
@@ -1112,10 +1130,25 @@ const routes = createBrowserRouter([
               },
               {
                 path: 'grn-management',
-
                 element: (
                   <SuspenseWrapper>
                     <GRNManagement />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'grn-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CreateGRNForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'grn-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <GRNView />
                   </SuspenseWrapper>
                 ),
               },

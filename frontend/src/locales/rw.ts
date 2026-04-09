@@ -505,6 +505,7 @@ export const rw = {
         salesReturn: 'Gucunga Ibyagarutse',
         expenseManagement: 'Gucunga Imikoreshereze y\'imari',
         purchaseOrders: 'Gutuma Ibicuruzwa',
+        proformaInvoices: 'Fagitire za Proforma',
         grn: 'Gucunga GRN',
         reports: 'Raporo',
         salesReport: 'Raporo y\'Ubucuruzi',

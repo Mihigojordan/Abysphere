@@ -1,0 +1,533 @@
+import {
+    Controller,
+    Get,
+    Post,
+    Put,
+    Delete,
+    Param,
+    Body,
+    Query,
+    HttpCode,
+    HttpStatus,
+    UseGuards,
+    Req,
+} from '@nestjs/common';
+import { ProformaInvoiceService, CreateProformaDto, UpdateProformaDto } from './proforma-invoice.service';
+import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
+import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+
+@Controller('proforma-invoices')
+@UseGuards(AdminJwtAuthGuard)
+export class ProformaInvoiceController {
+    constructor(private readonly proformaService: ProformaInvoiceService) { }
+
+    @Post()
+    @HttpCode(HttpStatus.CREATED)
+    async create(@Body() createDto: CreateProformaDto, @Req() req: RequestWithAdmin) {
+        createDto.createdByAdminId = req.admin?.id;
+        return this.proformaService.create(createDto);
+    }
+
+    @Get()
+    async findAll(@Query() filters: any) {
+        return this.proformaService.findAll(filters);
+    }
+
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        return this.proformaService.findOne(id);
+    }
+
+    @Put(':id')
+    async update(@Param('id') id: string, @Body() updateDto: UpdateProformaDto) {
+        return this.proformaService.update(id, updateDto);
+    }
+
+    @Post(':id/submit')
+    async submit(@Param('id') id: string) {
+        return this.proformaService.submit(id);
+    }
+
+    @Post(':id/mark-as-paid')
+    async markAsPaid(
+        @Param('id') id: string,
+        @Req() req: RequestWithAdmin,
+        @Body() body: { employeeId?: string }
+    ) {
+        return this.proformaService.markAsPaid(id, req.admin!.id, body.employeeId);
+    }
+
+    @Post(':id/cancel')
+    async cancel(@Param('id') id: string, @Body() body: { reason: string }) {
+        return this.proformaService.cancel(id, body.reason);
+    }
+
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async remove(@Param('id') id: string) {
+        await this.proformaService.remove(id);
+    }
+}
+
+import { Module } from '@nestjs/common';
+import { ProformaInvoiceController } from './proforma-invoice.controller';
+import { ProformaInvoiceService } from './proforma-invoice.service';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Module({
+    controllers: [ProformaInvoiceController],
+    providers: [ProformaInvoiceService, PrismaService],
+    exports: [ProformaInvoiceService],
+})
+export class ProformaInvoiceModule { }
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ProformaInvoice, ProformaStatus, Prisma } from '../../../generated/prisma';
+import { generateStockSKU } from 'src/common/utils/generate-sku.util';
+
+export interface CreateProformaDto {
+    clientName: string;
+    clientEmail?: string;
+    clientPhone?: string;
+    expiryDate?: Date;
+    paymentTerms?: string;
+    notes?: string;
+    discountType?: 'PERCENTAGE' | 'FIXED';
+    discountValue?: number;
+    items: CreateProformaItemDto[];
+    createdByAdminId?: string;
+    createdByEmployeeId?: string;
+}
+
+export interface CreateProformaItemDto {
+    stockId?: number;
+    productName: string;
+    productSku?: string;
+    description?: string;
+    quantity: number;
+    unitPrice: number;
+    discountPct?: number;
+    taxPct?: number;
+}
+
+export interface UpdateProformaDto extends Partial<Omit<CreateProformaDto, 'items'>> {
+    items?: CreateProformaItemDto[];
+}
+
+@Injectable()
+export class ProformaInvoiceService {
+    constructor(private readonly prisma: PrismaService) { }
+
+    /**
+     * Generate unique Proforma number
+     */
+    private async generateProformaNumber(): Promise<string> {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const prefix = `PI-${year}-${month}-`;
+
+        const lastPI = await this.prisma.proformaInvoice.findFirst({
+            where: { proformaNumber: { startsWith: prefix } },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        const lastNumber = lastPI ? parseInt(lastPI.proformaNumber.split('-')[3] || '0', 10) : 0;
+        const nextNumber = lastNumber + 1;
+        return `${prefix}${String(nextNumber).padStart(4, '0')}`;
+    }
+
+    /**
+     * Calculate Proforma totals
+     */
+    private calculateTotals(items: CreateProformaItemDto[], discountType?: string, discountValue = 0) {
+        let subtotal = 0;
+        let totalTax = 0;
+
+        items.forEach((item) => {
+            const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
+            const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
+            const afterDiscount = itemSubtotal - discount;
+            const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+
+            subtotal += afterDiscount;
+            totalTax += tax;
+        });
+
+        let finalGrandTotal = subtotal + totalTax;
+        if (discountType === 'PERCENTAGE') {
+            finalGrandTotal -= (subtotal * Number(discountValue)) / 100;
+        } else if (discountType === 'FIXED') {
+            finalGrandTotal -= Number(discountValue);
+        }
+
+        return { subtotal, taxAmount: totalTax, grandTotal: Math.max(0, finalGrandTotal) };
+    }
+
+    /**
+     * Create Proforma Invoice
+     */
+    async create(data: CreateProformaDto): Promise<ProformaInvoice> {
+        if (!data.items || data.items.length === 0) {
+            throw new BadRequestException('Proforma Invoice must have at least one item');
+        }
+
+        const proformaNumber = await this.generateProformaNumber();
+        const { subtotal, taxAmount, grandTotal } = this.calculateTotals(data.items, data.discountType, data.discountValue);
+
+        return this.prisma.proformaInvoice.create({
+            data: {
+                proformaNumber,
+                clientName: data.clientName,
+                clientEmail: data.clientEmail,
+                clientPhone: data.clientPhone,
+                expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+                paymentTerms: data.paymentTerms,
+                notes: data.notes,
+                status: ProformaStatus.DRAFT,
+                subtotal,
+                taxAmount,
+                discountType: data.discountType,
+                discountValue: data.discountValue || 0,
+                grandTotal,
+                createdByAdminId: data.createdByAdminId,
+                createdByEmployeeId: data.createdByEmployeeId,
+                items: {
+                    create: data.items.map((item) => {
+                        const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
+                        const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
+                        const afterDiscount = itemSubtotal - discount;
+                        const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+                        const totalPrice = afterDiscount + tax;
+
+                        return {
+                            stockId: item.stockId,
+                            productName: item.productName,
+                            productSku: item.productSku,
+                            description: item.description,
+                            quantity: Number(item.quantity),
+                            unitPrice: Number(item.unitPrice),
+                            discountPct: item.discountPct || 0,
+                            taxPct: item.taxPct || 0,
+                            totalPrice,
+                        };
+                    }),
+                },
+            },
+            include: { items: true },
+        });
+    }
+
+    /**
+     * Find all Proformas with filters
+     */
+    async findAll(filters: any) {
+        const { status, search, fromDate, toDate } = filters;
+        const where: Prisma.ProformaInvoiceWhereInput = {};
+
+        if (status) where.status = status;
+        if (search) {
+            where.OR = [
+                { proformaNumber: { contains: search } },
+                { clientName: { contains: search } },
+                { clientEmail: { contains: search } },
+            ];
+        }
+        if (fromDate || toDate) {
+            where.createdAt = {};
+            if (fromDate) where.createdAt.gte = new Date(fromDate);
+            if (toDate) where.createdAt.lte = new Date(toDate);
+        }
+
+        return this.prisma.proformaInvoice.findMany({
+            where,
+            include: {
+                items: true,
+                createdByAdmin: { select: { id: true, adminName: true } },
+                createdByEmployee: { select: { id: true, first_name: true, last_name: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    /**
+     * Find one Proforma
+     */
+    async findOne(id: string) {
+        const proforma = await this.prisma.proformaInvoice.findUnique({
+            where: { id },
+            include: {
+                items: { include: { stock: true } },
+                createdByAdmin: true,
+                createdByEmployee: true,
+                approvedByAdmin: true,
+                approvedByEmployee: true,
+            },
+        });
+
+        if (!proforma) throw new NotFoundException('Proforma Invoice not found');
+        return proforma;
+    }
+
+    /**
+     * Update Proforma (DRAFT only)
+     */
+    async update(id: string, data: UpdateProformaDto) {
+        const proforma = await this.findOne(id);
+        if (proforma.status !== ProformaStatus.DRAFT) {
+            throw new BadRequestException('Only DRAFT proforma invoices can be updated');
+        }
+
+        const { subtotal, taxAmount, grandTotal } = this.calculateTotals(
+            data.items || proforma.items as any,
+            data.discountType || proforma.discountType as any,
+            data.discountValue ?? Number(proforma.discountValue)
+        );
+
+        return this.prisma.$transaction(async (tx) => {
+            if (data.items) {
+                await tx.proformaInvoiceItem.deleteMany({ where: { proformaInvoiceId: id } });
+            }
+
+            return tx.proformaInvoice.update({
+                where: { id },
+                data: {
+                    clientName: data.clientName,
+                    clientEmail: data.clientEmail,
+                    clientPhone: data.clientPhone,
+                    expiryDate: data.expiryDate ? new Date(data.expiryDate) : undefined,
+                    paymentTerms: data.paymentTerms,
+                    notes: data.notes,
+                    subtotal,
+                    taxAmount,
+                    discountType: data.discountType,
+                    discountValue: data.discountValue,
+                    grandTotal,
+                    items: data.items ? {
+                        create: data.items.map((item) => {
+                            const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
+                            const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
+                            const afterDiscount = itemSubtotal - discount;
+                            const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+                            const totalPrice = afterDiscount + tax;
+
+                            return {
+                                stockId: item.stockId,
+                                productName: item.productName,
+                                productSku: item.productSku,
+                                description: item.description,
+                                quantity: Number(item.quantity),
+                                unitPrice: Number(item.unitPrice),
+                                discountPct: item.discountPct || 0,
+                                taxPct: item.taxPct || 0,
+                                totalPrice,
+                            };
+                        }),
+                    } : undefined,
+                },
+                include: { items: true },
+            });
+        });
+    }
+
+    /**
+     * Submit Proforma (DRAFT -> SENT)
+     */
+    async submit(id: string) {
+        const proforma = await this.findOne(id);
+        if (proforma.status !== ProformaStatus.DRAFT) {
+            throw new BadRequestException('Only DRAFT proforma invoices can be submitted');
+        }
+
+        return this.prisma.proformaInvoice.update({
+            where: { id },
+            data: { status: ProformaStatus.SENT },
+        });
+    }
+
+    /**
+     * Mark as PAID & Trigger Stock Out
+     */
+    async markAsPaid(id: string, adminId: string, employeeId?: string) {
+        const proforma = await this.findOne(id);
+        if (proforma.status !== ProformaStatus.SENT) {
+            throw new BadRequestException('Only SENT proforma invoices can be marked as paid');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            // 1. Update Proforma Status
+            const updatedProforma = await tx.proformaInvoice.update({
+                where: { id },
+                data: {
+                    status: ProformaStatus.PAID,
+                    paidAt: new Date(),
+                    approvedByAdminId: adminId,
+                    approvedByEmployeeId: employeeId,
+                },
+            });
+
+            const transactionId = generateStockSKU('ABY', 'SALE');
+
+            // 2. Process Stock Out for each item which has a stockId
+            for (const item of proforma.items) {
+                if (item.stockId) {
+                    const stock = await tx.stock.findUnique({ where: { id: item.stockId } });
+                    if (!stock) throw new NotFoundException(`Stock item "${item.productName}" not found`);
+                    
+                    if (Number(stock.receivedQuantity) < Number(item.quantity)) {
+                        throw new BadRequestException(`Insufficient stock for "${item.productName}". Available: ${stock.receivedQuantity}, Required: ${item.quantity}`);
+                    }
+
+                    // Decrement Stock
+                    await tx.stock.update({
+                        where: { id: item.stockId },
+                        data: { receivedQuantity: { decrement: Number(item.quantity) } },
+                    });
+
+                    // Create StockOut record
+                    await tx.stockOut.create({
+                        data: {
+                            stockinId: item.stockId,
+                            quantity: Number(item.quantity),
+                            soldPrice: Number(item.unitPrice),
+                            clientName: proforma.clientName,
+                            clientEmail: proforma.clientEmail,
+                            clientPhone: proforma.clientPhone,
+                            paymentMethod: 'CASH', // Default
+                            transactionId,
+                            adminId,
+                            employeeId,
+                        }
+                    });
+
+                    // Create StockHistory record
+                    await tx.stockHistory.create({
+                        data: {
+                            stockId: item.stockId,
+                            movementType: 'OUT',
+                            sourceType: 'ISSUE',
+                            qtyBefore: Number(stock.receivedQuantity),
+                            qtyChange: Number(item.quantity),
+                            qtyAfter: Number(stock.receivedQuantity) - Number(item.quantity),
+                            notes: `Proforma Invoice ${proforma.proformaNumber} Paid`,
+                            createdByAdminId: adminId,
+                            createdByEmployeeId: employeeId,
+                        }
+                    });
+                }
+            }
+
+            return updatedProforma;
+        });
+    }
+
+    /**
+     * Cancel Proforma
+     */
+    async cancel(id: string, reason: string) {
+        const proforma = await this.findOne(id);
+        if (proforma.status === ProformaStatus.PAID) {
+            throw new BadRequestException('PAID proforma invoices cannot be cancelled');
+        }
+
+        return this.prisma.proformaInvoice.update({
+            where: { id },
+            data: {
+                status: ProformaStatus.CANCELLED,
+                cancelledAt: new Date(),
+                cancellationReason: reason,
+            },
+        });
+    }
+
+    /**
+     * Remove Proforma (DRAFT only)
+     */
+    async remove(id: string) {
+        const proforma = await this.findOne(id);
+        if (proforma.status !== ProformaStatus.DRAFT) {
+            throw new BadRequestException('Only DRAFT proforma invoices can be deleted');
+        }
+
+        return this.prisma.proformaInvoice.delete({ where: { id } });
+    }
+}
+
+
+model ProformaInvoice {
+  id              String         @id @default(uuid())
+  proformaNumber  String         @unique // PI-YYYY-MM-NNNN
+  
+  // Client Info
+  clientName      String
+  clientEmail     String?
+  clientPhone     String?
+  
+  // Dates
+  issueDate       DateTime       @default(now())
+  expiryDate      DateTime?
+  
+  // Status
+  status          ProformaStatus @default(DRAFT)
+  
+  // Financial
+  subtotal        Decimal        @default(0) @db.Decimal(14, 2)
+  taxAmount       Decimal        @default(0) @db.Decimal(14, 2)
+  discountType    String?        // PERCENTAGE or FIXED
+  discountValue   Decimal        @default(0) @db.Decimal(14, 2)
+  grandTotal      Decimal        @default(0) @db.Decimal(14, 2)
+  
+  // Terms & Notes
+  paymentTerms    String?
+  notes           String?        @db.Text
+  
+  // Created By
+  createdByAdminId    String?
+  createdByAdmin      Admin?    @relation("ProformaCreatedByAdmin", fields: [createdByAdminId], references: [id])
+  createdByEmployeeId String?
+  createdByEmployee   Employee? @relation("ProformaCreatedByEmployee", fields: [createdByEmployeeId], references: [id])
+
+  // Approved/Paid By
+  paidAt             DateTime?
+  approvedByAdminId    String?
+  approvedByAdmin      Admin?    @relation("ProformaApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee   Employee? @relation("ProformaApprovedByEmployee", fields: [approvedByEmployeeId], references: [id])
+
+  // Cancelled
+  cancelledAt        DateTime?
+  cancellationReason String?   @db.Text
+
+  // Relations
+  items     ProformaInvoiceItem[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProformaInvoiceItem {
+  id                String          @id @default(uuid())
+  proformaInvoiceId String
+  proformaInvoice   ProformaInvoice @relation(fields: [proformaInvoiceId], references: [id], onDelete: Cascade)
+  
+  // Link to Stock if available
+  stockId           Int?
+  stock             Stock?          @relation(fields: [stockId], references: [id])
+  
+  // Product Info (copied from stock or manual entry)
+  productName       String
+  productSku        String?
+  description       String?         @db.Text
+  
+  // Quantities & Pricing
+  quantity          Int
+  unitPrice         Decimal         @db.Decimal(14, 2)
+  discountPct       Decimal?        @default(0) @db.Decimal(5, 2)
+  taxPct            Decimal?        @default(0) @db.Decimal(5, 2)
+  totalPrice        Decimal         @db.Decimal(14, 2)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+here everything about proforma

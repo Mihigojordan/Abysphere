@@ -46,6 +46,9 @@ import { StockoutModule } from './modules/stockout-management/stockout.module';
 import { SalesReturnModule } from './modules/salesReturn-management/salesReturn.module';
 import { MembershipPlanModule } from './modules/membership-plan-management/membership-plan.module';
 import { ExpenseManagementModule } from './modules/expense-management/expense-management.module';
+import { PurchaseOrderModule } from './modules/purchase-order/purchase-order.module';
+import { GRNModule } from './modules/grn/grn.module';
+import { ProformaInvoiceModule } from './modules/proforma-invoice/proforma-invoice.module';
 
 @Module({
   imports: [
@@ -92,7 +95,10 @@ import { ExpenseManagementModule } from './modules/expense-management/expense-ma
     StockoutModule,
     SalesReturnModule,
     MembershipPlanModule,
-    ExpenseManagementModule
+    ExpenseManagementModule,
+    PurchaseOrderModule,
+    GRNModule,
+    ProformaInvoiceModule,
   ],
   controllers: [AppController],
 })

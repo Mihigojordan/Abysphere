@@ -97,6 +97,8 @@ model Admin {
   membershipPlans        MembershipPlan[]
   purchaseOrdersApproved PurchaseOrder[]      @relation("POApprovedByAdmin")
   purchaseOrdersCreated  PurchaseOrder[]      @relation("POCreatedByAdmin")
+  proformasCreated       ProformaInvoice[]    @relation("ProformaCreatedByAdmin")
+  proformasApproved      ProformaInvoice[]    @relation("ProformaApprovedByAdmin")
   closedBy               Request[]            @relation("ClosedByAdmin")
   issuedBy               Request[]            @relation("IssuedByAdmin")
   rejectedBy             Request[]            @relation("rejectedByAdmin")
@@ -176,6 +178,8 @@ model Employee {
   PondWaterChanging          PondWaterChanging[]
   purchaseOrdersApproved     PurchaseOrder[]              @relation("POApprovedByEmployee")
   purchaseOrdersCreated      PurchaseOrder[]              @relation("POCreatedByEmployee")
+  proformasCreated           ProformaInvoice[]            @relation("ProformaCreatedByEmployee")
+  proformasApproved          ProformaInvoice[]            @relation("ProformaApprovedByEmployee")
   closedBy                   Request[]                    @relation("ClosedByEmployee")
   issuedBy                   Request[]                    @relation("IssuedByEmployee")
   rejectedBy                 Request[]                    @relation("rejectedByEmployee")
@@ -232,6 +236,7 @@ model Stock {
   category          Category?      @relation(fields: [categoryId], references: [id])
   stockhistory      StockHistory[]
   stockout          StockOut[]
+  proformaItems     ProformaInvoiceItem[]
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
@@ -1600,4 +1605,67 @@ enum Debit_status {
   PARTIALLY_PAID
   PAID
   CANCELLED
+}
+
+enum ProformaStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+}
+
+model ProformaInvoice {
+  id              String         @id @default(uuid())
+  proformaNumber  String         @unique
+  clientName      String
+  clientEmail     String?
+  clientPhone     String?
+  issueDate       DateTime       @default(now())
+  expiryDate      DateTime?
+  status          ProformaStatus @default(DRAFT)
+  subtotal        Decimal        @default(0) @db.Decimal(14, 2)
+  taxAmount       Decimal        @default(0) @db.Decimal(14, 2)
+  discountType    String?
+  discountValue   Decimal        @default(0) @db.Decimal(14, 2)
+  grandTotal      Decimal        @default(0) @db.Decimal(14, 2)
+  paymentTerms    String?
+  notes           String?        @db.Text
+  paidAt          DateTime?
+  cancelledAt     DateTime?
+  cancellationReason String?     @db.Text
+  createdByAdminId    String?
+  createdByAdmin      Admin?     @relation("ProformaCreatedByAdmin", fields: [createdByAdminId], references: [id])
+  createdByEmployeeId String?
+  createdByEmployee   Employee?  @relation("ProformaCreatedByEmployee", fields: [createdByEmployeeId], references: [id])
+  approvedByAdminId   String?
+  approvedByAdmin     Admin?     @relation("ProformaApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee  Employee?  @relation("ProformaApprovedByEmployee", fields: [approvedByEmployeeId], references: [id])
+  items           ProformaInvoiceItem[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([createdByAdminId])
+  @@index([approvedByAdminId])
+}
+
+model ProformaInvoiceItem {
+  id                String          @id @default(uuid())
+  proformaInvoiceId String
+  proformaInvoice   ProformaInvoice @relation(fields: [proformaInvoiceId], references: [id], onDelete: Cascade)
+  stockId           Int?
+  stock             Stock?          @relation(fields: [stockId], references: [id])
+  productName       String
+  productSku        String?
+  description       String?         @db.Text
+  quantity          Int
+  unitPrice         Decimal         @db.Decimal(14, 2)
+  discountPct       Decimal?        @default(0) @db.Decimal(5, 2)
+  taxPct            Decimal?        @default(0) @db.Decimal(5, 2)
+  totalPrice        Decimal         @db.Decimal(14, 2)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([proformaInvoiceId])
+  @@index([stockId])
 }
