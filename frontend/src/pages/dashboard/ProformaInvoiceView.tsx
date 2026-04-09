@@ -128,7 +128,7 @@ const ProformaInvoiceView: React.FC = () => {
                 <div className="doc">
                     <div className="head">
                         <div>
-                            <p className="brand-name">{adminData?.companyName || 'Abysphere Technologies'}</p>
+                            <p className="brand-name">{adminData?.companyName || 'PMS Technologies'}</p>
                             <div className="meta-row">{adminData?.companyAddress || 'Kigali, Rwanda'}</div>
                             <div className="meta-row">TIN: {adminData?.companyTin || '123 456 789'}</div>
                             <div className="meta-row">{adminData?.adminEmail}</div>

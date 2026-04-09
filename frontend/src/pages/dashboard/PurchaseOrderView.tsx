@@ -559,7 +559,7 @@ const PurchaseOrderView: React.FC = () => {
                                 <div className="brand-icon">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
                                 </div>
-                                <span className="brand-name">{adminData?.companyName ?? 'Abysphere Technologies'}</span>
+                                <span className="brand-name">{adminData?.companyName ?? 'PMS Technologies'}</span>
                             </div>
                             <div className="company-meta">
                                 <div className="meta-row">
@@ -572,7 +572,7 @@ const PurchaseOrderView: React.FC = () => {
                                 </div>
                                 <div className="meta-row">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                                    {adminData?.adminEmail ?? 'procurement@abysphere.rw'}
+                                    {adminData?.adminEmail ?? 'procurement@pms.rw'}
                                 </div>
                                 <div className="meta-tin">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -598,10 +598,10 @@ const PurchaseOrderView: React.FC = () => {
                     <div className="parties">
                         <div>
                             <p className="party-label">Issued By</p>
-                            <p className="party-name">{adminData?.companyName ?? 'Abysphere Technologies'}</p>
+                            <p className="party-name">{adminData?.companyName ?? 'PMS Technologies'}</p>
                             <p className="party-detail">
                                 {adminData?.companyAddress ?? 'Kigali Special Economic Zone, Kigali, Rwanda'}<br />
-                                {adminData?.adminEmail ?? 'procurement@abysphere.rw'}<br />
+                                {adminData?.adminEmail ?? 'procurement@pms.rw'}<br />
                                 {adminData?.companyPhone ?? '+250 788 000 000'}
                             </p>
                             <p className="party-tin">TIN: {adminData?.companyTin ?? '123 456 789'}</p>
@@ -690,7 +690,7 @@ const PurchaseOrderView: React.FC = () => {
                 <div className="doc-foot">
                     <div className="doc-foot-left">
                         <div className="dot"></div>
-                        <p>System Generated · Abysphere ERP v2.0</p>
+                        <p>System Generated · PMS ERP v2.0</p>
                     </div>
                     <p>Valid without physical signature in electronic format</p>
                 </div>

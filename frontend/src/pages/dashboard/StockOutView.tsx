@@ -414,7 +414,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                                 <div className="brand-icon">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
                                 </div>
-                                <span className="brand-name">{adminData?.companyName ?? 'Abysphere Technologies'}</span>
+                                <span className="brand-name">{adminData?.companyName ?? 'PMS Technologies'}</span>
                             </div>
                             <div className="company-meta">
                                 <div className="meta-row"><MapPin className="w-2 h-2" /> {adminData?.companyAddress ?? 'Kigali, Rwanda'}</div>
@@ -436,7 +436,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                     <div className="parties">
                         <div>
                             <p className="party-label">Sold By</p>
-                            <p className="party-name">{adminData?.companyName ?? 'Abysphere Technologies'}</p>
+                            <p className="party-name">{adminData?.companyName ?? 'PMS Technologies'}</p>
                             <p className="party-detail">
                                 {isEmployee ? 'Representative: ' + employeeData?.first_name : 'Authorized Admin'}<br />
                                 {adminData?.companyPhone ?? '+250 788 000 000'}
@@ -498,7 +498,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                 </div>
 
                 <div className="doc-foot">
-                    <div className="flex items-center gap-2 text-white/40"><div className="dot"></div><p>ABYSPHERE ERP · POS MODULE v2.0</p></div>
+                    <div className="flex items-center gap-2 text-white/40"><div className="dot"></div><p>PMS ERP · POS MODULE v2.0</p></div>
                     <p>Official Transaction Record</p>
                 </div>
             </div>

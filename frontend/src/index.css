@@ -56,7 +56,7 @@
   /* Transition speed for theme changes */
   --theme-transition: 0.2s ease-in-out;
 
-  /* ── Abysphere Landing Page Design System ── */
+  /* ── PMS Landing Page Design System ── */
   --aby-dark:    #1e3a8a;   /* blue-900 — nav bg, headings, buttons */
   --aby-accent:  #2563eb;   /* blue-600 — CTAs, highlights, badges */
   --aby-bg:      #f0f6ff;   /* very light blue-tinted off-white */
@@ -68,7 +68,7 @@
   --aby-shadow-lg: 0 8px 24px rgba(29,78,216,0.18);
 }
 
-/* Abysphere landing typography helpers */
+/* PMS landing typography helpers */
 .font-cormorant {
   font-family: 'Cormorant Garamond', serif;
 }
