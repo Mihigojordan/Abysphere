@@ -155,7 +155,9 @@ export class PurchaseOrderService {
      * Get all Purchase Orders
      */
     async findAll(filters: any = {}) {
-        const { search, status, supplierId, fromDate, toDate, page = 1, limit = 20 } = filters;
+        const { search, status, supplierId, fromDate, toDate } = filters;
+        const page = parseInt(filters.page, 10) || 1;
+        const limit = parseInt(filters.limit, 10) || 20;
 
         const where: Prisma.PurchaseOrderWhereInput = {};
 

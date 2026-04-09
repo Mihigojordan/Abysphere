@@ -130,9 +130,11 @@ export class StockService {
       minPrice,
       maxPrice,
       sort = 'default',
-      page = 1,
-      limit = 8,
+      page: pageRaw = 1,
+      limit: limitRaw = 8,
     } = params || {};
+    const page = parseInt(String(pageRaw), 10) || 1;
+    const limit = parseInt(String(limitRaw), 10) || 8;
 
     // Build where clause — cast to any to allow MySQL-compatible contains without mode
     const where: any = {
