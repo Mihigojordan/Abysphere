@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { API_URL } from '../api/api';
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:8000';
+const BASE_URL =  API_URL || 'http://localhost:8000';
 
 export interface CreatePODto {
     supplierId: string;
