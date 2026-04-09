@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import AuthLayout from "../layout/AuthLayout";
 import DashboardLayout from "../layout/DashboardLayout";
+import LandingLayout from "../layout/LandingLayout";
 import ProtectPrivateAdminRoute from "../components/protectors/ProtectPrivateAdminRoute";
 import ProtectPrivateEmployeeRoute from "../components/protectors/ProtectPrivateEmployeeRoute";
 import ProtectPrivateSuperAdminRoute from '../components/protectors/ProtectPrivateSuperAdminRoute'
@@ -53,11 +54,6 @@ const InventoryReportPage = lazy(() => import("../pages/dashboard/InventoryRepor
 
 // ✅ Lazy-loaded components
 const Home = lazy(() => import("../pages/landing/Home"));
-const ShopPage = lazy(() => import("../pages/landing/ShopPage"));
-const ProductPage = lazy(() => import("../pages/landing/ProductPage"));
-const ContactPage = lazy(() => import("../pages/landing/ContactUs"));
-const FAQPage = lazy(() => import("../pages/landing/FAQPage"));
-const NotFoundPage = lazy(() => import("../pages/landing/NotFoundPage"));
 const BlogsPage = lazy(() => import("../pages/landing/BlogsPage"));
 const BlogViewPage = lazy(() => import("../components/landing/BlogViewPage"));
 const AdminLogin = lazy(() => import("../pages/auth/admin/Login"));
@@ -100,13 +96,27 @@ const StockRequestManagementDetails = lazy(() => import("../pages/dashboard/Stoc
 const StockHistory = lazy(() => import("../pages/dashboard/StockHistory"));
 const StockAlertsPage = lazy(() => import("../pages/dashboard/StockAlertsPage"));
 const PurchaseOrderManagement = lazy(() => import('../pages/dashboard/PurchaseOrderManagement'));
+const CreatePOForm = lazy(() => import('../pages/dashboard/CreatePOForm'));
+const PurchaseOrderView = lazy(() => import('../pages/dashboard/PurchaseOrderView'));
+const StockInView = lazy(() => import('../pages/dashboard/StockInView'));
+const StockOutView = lazy(() => import('../pages/dashboard/StockOutView'));
 const GRNManagement = lazy(() => import('../pages/dashboard/GRNManagement'));
+const ProformaInvoiceManagement = lazy(() => import('../pages/dashboard/ProformaInvoiceManagement'));
+const CreateProformaForm = lazy(() => import('../pages/dashboard/CreateProformaForm'));
+const ProformaInvoiceView = lazy(() => import('../pages/dashboard/ProformaInvoiceView'));
+
 const PrivacyPolicy = lazy(() => import("../pages/landing/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("../pages/landing/TermsOfService"));
 const ServiceAgreement = lazy(() => import("../pages/landing/ServiceAgreement"));
 const DataProtection = lazy(() => import("../pages/landing/DataProtection"));
 const EnvironmentalCompliance = lazy(() => import("../pages/landing/EnvironmentalCompliance"));
 const DemoRequest = lazy(() => import("../pages/landing/DemoRequest"))
+// Landing / Shop pages
+const LandingHome = lazy(() => import("../pages/landing/Home"));
+const LandingAbout = lazy(() => import("../pages/landing/AboutPage"));
+const LandingContact = lazy(() => import("../pages/landing/ContactUs"));
+const ProductsPage = lazy(() => import("../pages/landing/ProductsPage"));
+const CategoryPage = lazy(() => import("../pages/landing/CategoryPage"));
 const DepartmentDashboard = lazy(() => import('../pages/dashboard/DepartmentManagement'));
 const SiteManagement = lazy(() => import('../pages/dashboard/SiteManagement'));
 const SiteAssignmentManagement = lazy(() => import('../pages/dashboard/SiteAssignmentManagement'));
@@ -151,45 +161,7 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '',
-        element: <MainLayout></MainLayout>,
-        children: [
-          {
-            path: '',
-            element: <Home />
-          },
-          {
-            path: 'shop',
-            element: (
-              <SuspenseWrapper>
-                <ShopPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'product/:id',
-            element: (
-              <SuspenseWrapper>
-                <ProductPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'contact',
-            element: (
-              <SuspenseWrapper>
-                <ContactPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'faq',
-            element: (
-              <SuspenseWrapper>
-                <FAQPage />
-              </SuspenseWrapper>
-            ),
-          },
-        ]
+        element: <Navigate to={'/auth/admin/login'} />
 
       },
       {
@@ -512,6 +484,14 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'stockin-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInView role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'stockin-analytics',
                 element: (
                   <SuspenseWrapper>
@@ -540,6 +520,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StockOutDashboard role={"admin"} />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockout-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockOutView role='admin' />
                   </SuspenseWrapper>
                 ),
               },
@@ -588,6 +576,46 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StoreManagement role='admin' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'purchase-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <PurchaseOrderView />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'proforma-management',
+                element: (
+                  <SuspenseWrapper>
+                    <ProformaInvoiceManagement />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'proforma-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CreateProformaForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'proforma-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <CreateProformaForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'proforma-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <ProformaInvoiceView />
                   </SuspenseWrapper>
                 ),
               },
@@ -775,6 +803,40 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
+              {
+                path: 'purchase-management',
+                element: (
+                  <SuspenseWrapper>
+                    <PurchaseOrderManagement />
+                  </SuspenseWrapper>
+                ),
+              },
+              
+              {
+                path: 'purchase-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CreatePOForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'purchase-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <PurchaseOrderView />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'grn-management',
+                element: (
+                  <SuspenseWrapper>
+                    <GRNManagement />
+                  </SuspenseWrapper>
+                ),
+              },
+
               {
                 path: 'ParentFish-Feeding',
                 element: (
@@ -1001,7 +1063,7 @@ const routes = createBrowserRouter([
                 ),
               },
               {
-                path: 'purchase-order-management',
+                path: 'purchase-management',
                 element: (
                   <SuspenseWrapper>
                     <PurchaseOrderManagement />
@@ -1009,7 +1071,24 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'purchase-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <CreatePOForm />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'purchase-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <PurchaseOrderView />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'grn-management',
+
                 element: (
                   <SuspenseWrapper>
                     <GRNManagement />
@@ -1037,6 +1116,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <StockInViewPage role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stock-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInView role='employee' />
                   </SuspenseWrapper>
                 ),
               },
@@ -1201,6 +1288,52 @@ const routes = createBrowserRouter([
     ],
   },
   {
+    path: '/landing',
+    element: <LandingLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <SuspenseWrapper>
+            <LandingHome />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'about',
+        element: (
+          <SuspenseWrapper>
+            <LandingAbout />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'products',
+        element: (
+          <SuspenseWrapper>
+            <ProductsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'category',
+        element: (
+          <SuspenseWrapper>
+            <CategoryPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: 'contact',
+        element: (
+          <SuspenseWrapper>
+            <LandingContact />
+          </SuspenseWrapper>
+        ),
+      },
+    ],
+  },
+  {
     path: '/auth',
     element: <AuthLayout />,
     children: [
@@ -1253,14 +1386,6 @@ const routes = createBrowserRouter([
         ),
       },
     ],
-  },
-  {
-    path: '*',
-    element: (
-      <SuspenseWrapper>
-        <NotFoundPage />
-      </SuspenseWrapper>
-    ),
   },
 ]);
 
