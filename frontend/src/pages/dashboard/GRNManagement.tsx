@@ -84,8 +84,8 @@ const GRNManagement: React.FC = () => {
     };
 
     useEffect(() => {
-        if (token) loadGRNs();
-    }, [token, searchTerm, statusFilter, currentPage]);
+        loadGRNs();
+    }, [searchTerm, statusFilter, currentPage]);
 
     const getStatusColor = (status: string) => {
         switch (status) {

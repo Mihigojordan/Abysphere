@@ -17,8 +17,9 @@ import useAdminAuth from '../../context/AdminAuthContext';
 const GRNView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { user: adminData, token } = useAdminAuth();
+    const { user: adminData } = useAdminAuth();
     const role = adminData?.role || 'admin';
+    const token = localStorage.getItem('token') || '';
 
     const [grn, setGrn] = useState<any>(null);
     const [loading, setLoading] = useState(true);

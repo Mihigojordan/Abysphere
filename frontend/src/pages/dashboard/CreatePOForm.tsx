@@ -25,6 +25,7 @@ const CreatePOForm: React.FC = () => {
     const { user: adminData } = useAdminAuth();
     const role = adminData?.role || 'admin';
 
+    const token = localStorage.getItem('token') || '';
     const [isLoading, setIsLoading] = useState(false);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
@@ -145,7 +146,7 @@ const CreatePOForm: React.FC = () => {
                 [isEmployee ? 'createdByEmployeeId' : 'createdByAdminId']: userId
             };
 
-            await purchaseOrderService.create(submitData);
+            await purchaseOrderService.create(submitData, token);
             showToast('Purchase Order created successfully', 'success');
             setTimeout(() => navigate(`/${role}/dashboard/purchase-management`), 1500);
         } catch (error: any) {

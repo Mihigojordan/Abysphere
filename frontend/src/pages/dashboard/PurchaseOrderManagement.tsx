@@ -84,8 +84,8 @@ const PurchaseOrderDashboard: React.FC = () => {
     };
 
     useEffect(() => {
-        if (token) loadOrders();
-    }, [token, searchTerm, statusFilter, currentPage]);
+        loadOrders();
+    }, [searchTerm, statusFilter, currentPage]);
 
     const getStatusColor = (status: string) => {
         switch (status) {

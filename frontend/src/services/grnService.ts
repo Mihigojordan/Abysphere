@@ -30,7 +30,7 @@ export interface CreateGRNItemDto {
     manufacturingDate?: Date;
     expiryDate?: Date;
     locationId?: string;
-    qualityStatus?: 'ACCEPTED' | 'REJECTED' | 'PARTIAL';
+    qualityStatus?: 'ACCEPTED' | 'REJECTED' | 'PENDING_INSPECTION' | 'CONDITIONALLY_ACCEPTED';
     qualityNotes?: string;
     damageNotes?: string;
 }

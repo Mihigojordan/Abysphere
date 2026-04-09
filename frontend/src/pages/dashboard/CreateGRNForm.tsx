@@ -54,11 +54,14 @@ const CreateGRNForm: React.FC = () => {
         setIsLoading(true);
         try {
             const response = await purchaseOrderService.getAll({
-                status: 'APPROVED',
                 search: poSearchTerm,
-                limit: 20,
+                limit: 50,
             }, token);
-            setAvailablePOs(response.data);
+            // Only show POs that can receive goods
+            const eligible = (response.data || []).filter((po: any) =>
+                ['APPROVED', 'PARTIALLY_RECEIVED'].includes(po.status)
+            );
+            setAvailablePOs(eligible);
         } catch {
             // silently fail — table will show empty
         } finally {
@@ -140,7 +143,11 @@ const CreateGRNForm: React.FC = () => {
                         unitCost: Number(i.unitCost),
                         batchNumber: i.batchNumber,
                         expiryDate: i.expiryDate,
-                        qualityStatus: Number(i.rejectedQty) > 0 ? 'PARTIAL' : 'ACCEPTED',
+                        qualityStatus: Number(i.rejectedQty) > 0 && Number(i.acceptedQty) > 0
+                            ? 'CONDITIONALLY_ACCEPTED'
+                            : Number(i.rejectedQty) > 0 && Number(i.acceptedQty) === 0
+                            ? 'REJECTED'
+                            : 'ACCEPTED',
                         qualityNotes: i.qualityNotes,
                         damageNotes: i.damageNotes,
                     })),
