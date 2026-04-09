@@ -53,6 +53,10 @@ const SalesReportPage = lazy(() => import("../pages/dashboard/SalesReportDashboa
 const InventoryReportPage = lazy(() => import("../pages/dashboard/InventoryReportDashboard"));
 
 // ✅ Lazy-loaded components
+const ShopPage = lazy(() => import("../pages/landing/ShopPage"));
+const ProductPage = lazy(() => import("../pages/landing/ProductPage"));
+const FAQPage = lazy(() => import("../pages/landing/FAQPage"));
+const NotFoundPage = lazy(() => import("../pages/landing/NotFoundPage"));
 const BlogsPage = lazy(() => import("../pages/landing/BlogsPage"));
 const BlogViewPage = lazy(() => import("../components/landing/BlogViewPage"));
 const AdminLogin = lazy(() => import("../pages/auth/admin/Login"));
@@ -160,8 +164,45 @@ const routes = createBrowserRouter([
     children: [
       {
         path: '',
-        element: <Navigate to={'/auth/admin/login'} />
-
+        element: <MainLayout />,
+        children: [
+          {
+            path: '',
+            element: <LandingHome />,
+          },
+          {
+            path: 'shop',
+            element: (
+              <SuspenseWrapper>
+                <ShopPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'product/:id',
+            element: (
+              <SuspenseWrapper>
+                <ProductPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'contact',
+            element: (
+              <SuspenseWrapper>
+                <LandingContact />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'faq',
+            element: (
+              <SuspenseWrapper>
+                <FAQPage />
+              </SuspenseWrapper>
+            ),
+          },
+        ],
       },
       {
         path: 'super-admin',
@@ -1368,6 +1409,14 @@ const routes = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: '*',
+    element: (
+      <SuspenseWrapper>
+        <NotFoundPage />
+      </SuspenseWrapper>
+    ),
   },
 ]);
 
