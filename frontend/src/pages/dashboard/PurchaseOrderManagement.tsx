@@ -52,7 +52,6 @@ const PurchaseOrderDashboard: React.FC = () => {
     const navigate = useNavigate();
     const { user: adminData } = useAdminAuth();
     const role = adminData?.role || 'admin';
-    const token = localStorage.getItem('token') || '';
 
     const stats = {
         draft: orders.filter(o => o.status === 'DRAFT').length,
@@ -64,15 +63,13 @@ const PurchaseOrderDashboard: React.FC = () => {
     const loadOrders = async () => {
         setIsLoading(true);
         try {
-            const response = await purchaseOrderService.getAll(
-                {
-                    search: searchTerm || undefined,
-                    status: statusFilter !== 'ALL' ? statusFilter : undefined,
-                    page: currentPage,
-                    limit: itemsPerPage,
-                },
-                token
-            );
+            const response = await purchaseOrderService.getAll({
+                search: searchTerm || undefined,
+                status: statusFilter !== 'ALL' ? statusFilter : undefined,
+                page: currentPage,
+                limit: itemsPerPage,
+            });
+             console.log('response =>>>', response)
             setOrders(response.data);
             setFilteredOrders(response.data);
             setTotalPages(response.meta.totalPages);
@@ -298,7 +295,7 @@ const PurchaseOrderDashboard: React.FC = () => {
                                                             onClick={async () => {
                                                                 const res = await Swal.fire({ title: 'Submit for approval?', icon: 'question', showCancelButton: true, confirmButtonText: 'Submit' });
                                                                 if (!res.isConfirmed) return;
-                                                                try { await purchaseOrderService.submit(po.id, token); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
+                                                                try { await purchaseOrderService.submit(po.id, localStorage.getItem('token') || ''); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
                                                             title="Submit"
@@ -309,7 +306,7 @@ const PurchaseOrderDashboard: React.FC = () => {
                                                             onClick={async () => {
                                                                 const res = await Swal.fire({ title: 'Delete PO?', text: 'This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' });
                                                                 if (!res.isConfirmed) return;
-                                                                try { await purchaseOrderService.delete(po.id, token); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
+                                                                try { await purchaseOrderService.delete(po.id, localStorage.getItem('token') || ''); loadOrders(); } catch (e: any) { Swal.fire('Error', e.message, 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                             title="Delete"

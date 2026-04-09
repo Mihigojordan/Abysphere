@@ -68,7 +68,7 @@ class GRNService {
     /**
      * Get all GRNs with filters
      */
-    async getAll(filters: GRNFilters = {}, token: string) {
+    async getAll(filters: GRNFilters = {}, token = '') {
         const response = await axios.get(`${BASE_URL}/grn`, {
             params: filters,
             headers: { Authorization: `Bearer ${token}` },

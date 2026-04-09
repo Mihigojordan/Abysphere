@@ -52,7 +52,6 @@ const GRNManagement: React.FC = () => {
     const navigate = useNavigate();
     const { user: adminData } = useAdminAuth();
     const role = adminData?.role || 'admin';
-    const token = localStorage.getItem('token') || '';
 
     const stats = {
         pending: grns.filter((g) => g.status === 'PENDING').length,
@@ -64,15 +63,12 @@ const GRNManagement: React.FC = () => {
     const loadGRNs = async () => {
         setIsLoading(true);
         try {
-            const response = await grnService.getAll(
-                {
-                    search: searchTerm || undefined,
-                    status: statusFilter !== 'ALL' ? statusFilter : undefined,
-                    page: currentPage,
-                    limit: itemsPerPage,
-                },
-                token
-            );
+            const response = await grnService.getAll({
+                search: searchTerm || undefined,
+                status: statusFilter !== 'ALL' ? statusFilter : undefined,
+                page: currentPage,
+                limit: itemsPerPage,
+            });
             setGrns(response.data);
             setFilteredGrns(response.data);
             setTotalPages(response.meta.totalPages);
@@ -297,7 +293,7 @@ const GRNManagement: React.FC = () => {
                                                             onClick={async () => {
                                                                 const res = await Swal.fire({ title: 'Approve GRN?', text: 'This will create stock entries.', icon: 'question', showCancelButton: true, confirmButtonText: 'Approve' });
                                                                 if (!res.isConfirmed) return;
-                                                                try { await grnService.approve(grn.id, adminData?.id || '', true, token); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
+                                                                try { await grnService.approve(grn.id, adminData?.id || '', true, localStorage.getItem('token') || ''); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors"
                                                         >
@@ -307,7 +303,7 @@ const GRNManagement: React.FC = () => {
                                                             onClick={async () => {
                                                                 const { value: reason } = await Swal.fire({ title: 'Reject GRN', input: 'text', inputLabel: 'Reason', showCancelButton: true });
                                                                 if (!reason) return;
-                                                                try { await grnService.reject(grn.id, reason, token); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
+                                                                try { await grnService.reject(grn.id, reason, localStorage.getItem('token') || ''); loadGRNs(); } catch (e: any) { Swal.fire('Error', e.response?.data?.message || 'Failed', 'error'); }
                                                             }}
                                                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                         >

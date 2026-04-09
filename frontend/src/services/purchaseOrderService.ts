@@ -55,7 +55,7 @@ class PurchaseOrderService {
     /**
      * Get all Purchase Orders with filters
      */
-    async getAll(filters: PurchaseOrderFilters = {}, token: string) {
+    async getAll(filters: PurchaseOrderFilters = {}, token = '') {
         const response = await axios.get(`${BASE_URL}/purchase-order`, {
             params: filters,
             headers: { Authorization: `Bearer ${token}` },
