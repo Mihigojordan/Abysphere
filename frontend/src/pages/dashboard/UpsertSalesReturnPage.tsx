@@ -406,7 +406,7 @@ const UpsertSalesReturnPage: React.FC = () => {
                                     const selItem = getSelectedItem(product.id);
                                     const hasErr = validationErrors[product.id];
                                     const unitPrice = product.soldPrice
-                                        ? parseFloat(product.soldPrice) / product.quantity
+                                        ? parseFloat(product.soldPrice)
                                         : 0;
 
                                     return (
@@ -439,7 +439,7 @@ const UpsertSalesReturnPage: React.FC = () => {
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
-                                                            <p className="font-bold text-slate-800 text-sm">{formatPrice(parseFloat(product.soldPrice || '0'))}</p>
+                                                            <p className="font-bold text-slate-800 text-sm">{formatPrice(unitPrice * product.quantity)}</p>
                                                             <p className="text-[10px] text-slate-400">{formatPrice(unitPrice)} / unit</p>
                                                         </div>
                                                     </div>
