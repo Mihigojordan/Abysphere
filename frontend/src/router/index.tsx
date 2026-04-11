@@ -598,7 +598,7 @@ const routes = createBrowserRouter([
                 path: 'sales-return-management',
                 element: (
                   <SuspenseWrapper>
-                    <SalesReturnDashboard />
+                    <SalesReturnDashboard role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -606,7 +606,7 @@ const routes = createBrowserRouter([
                 path: 'sales-return-management/create',
                 element: (
                   <SuspenseWrapper>
-                    <UpsertSalesReturnPage />
+                    <UpsertSalesReturnPage role="admin" />
                   </SuspenseWrapper>
                 ),
               },
@@ -614,7 +614,7 @@ const routes = createBrowserRouter([
                 path: 'sales-return-management/view/:id',
                 element: (
                   <SuspenseWrapper>
-                    <SalesReturnView />
+                    <SalesReturnView role="admin" />
                   </SuspenseWrapper>
                 ),
               },
