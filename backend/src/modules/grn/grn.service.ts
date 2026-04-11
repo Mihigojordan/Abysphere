@@ -497,6 +497,7 @@ export class GRNService {
             where: { id },
             data: {
                 status: GRNStatus.APPROVED,
+                inspectionStatus: InspectionStatus.APPROVED,
                 approvedAt: new Date(),
                 ...(isAdmin ? { approvedByAdminId: approvedById } : { approvedByEmployeeId: approvedById }),
             },
