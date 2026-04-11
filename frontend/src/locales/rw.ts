@@ -184,6 +184,7 @@ export const rw = {
         failedToLoad: 'Byananiranye gukurura amakuru',
         edit: 'Hindura',
         viewDetails: 'Reba Ibikubiyemo',
+        viewReceipt: 'Reba Inyemezabuguzi',
         delete: 'Siba',
         recorded: 'byabitswe!',
     },

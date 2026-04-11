@@ -188,6 +188,7 @@ export const fr = {
         failedToLoad: 'Échec du chargement des données',
         edit: 'Modifier',
         viewDetails: 'Voir Détails',
+        viewReceipt: 'Voir le Reçu',
         delete: 'Supprimer',
         recorded: 'enregistré !',
     },

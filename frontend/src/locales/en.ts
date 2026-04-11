@@ -188,6 +188,7 @@ export const en = {
         failedToLoad: 'Failed to load data',
         edit: 'Edit',
         viewDetails: 'View Details',
+        viewReceipt: 'View Receipt',
         delete: 'Delete',
         recorded: 'recorded!',
     },

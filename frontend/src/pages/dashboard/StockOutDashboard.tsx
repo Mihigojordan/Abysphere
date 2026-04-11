@@ -1038,7 +1038,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                     : 'text-theme-text-secondary hover:text-theme-text-primary'
                 }`}
               >
-                Grouped by Transaction
+                 Transaction
               </button>
             </div>
 

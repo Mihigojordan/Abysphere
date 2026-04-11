@@ -221,6 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         label: t('sidebar.assetManagement'),
         icon: Boxes,
         path: `${base}/asset-management`,
+        feature: "ASSET_MANAGEMENT",
       },
 
 

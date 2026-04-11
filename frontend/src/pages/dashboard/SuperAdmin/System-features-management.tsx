@@ -56,6 +56,7 @@ const AVAILABLE_FEATURES = [
   { value: "SALES_RETURN_MANAGEMENT", label: "Sales Return Management" },
   { value: "VIEW_SALES_REPORTS", label: "Reports - Sales" },
   { value: "VIEW_INVENTORY_REPORTS", label: "Reports - Inventory" },
+  { value: "ASSET_MANAGEMENT", label: "Asset Management" },
 ];
 
 const SystemFeaturesDashboard: React.FC<{ role: string }> = ({ role }) => {
