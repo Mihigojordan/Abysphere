@@ -4,7 +4,7 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { GoodsReceivingNote, GRNStatus, InspectionStatus, QualityStatus, Prisma } from '../../../generated/prisma';
+import { GoodsReceivingNote, GRNStatus, InspectionStatus, QualityStatus, Prisma, Unit } from '../../../generated/prisma';
 
 export interface CreateGRNDto {
     purchaseOrderId: string;
@@ -359,16 +359,30 @@ export class GRNService {
             throw new BadRequestException('Only pending GRNs can be approved');
         }
 
+        // Resolve default category and store for StockIn creation
+        const defaultCategory = await this.prisma.stockCategory.findFirst();
+        const defaultStore = await this.prisma.store.findFirst();
+        if (!defaultCategory || !defaultStore) {
+            throw new BadRequestException(
+                'Cannot approve GRN: please configure at least one stock category and store first.',
+            );
+        }
+
         // Create stock entries for each accepted item
         for (const item of grn.items) {
             if (item.acceptedQty > 0) {
+                const validUnits = Object.values(Unit);
+                const unitValue = validUnits.includes(item.unit as Unit)
+                    ? (item.unit as Unit)
+                    : Unit.PCS;
+
                 // Create StockIn entry
                 const stockIn = await this.prisma.stockIn.create({
                     data: {
                         productName: item.productName,
                         sku: item.productSku,
                         quantity: Number(item.acceptedQty),
-                        unit: item.unit as any,
+                        unit: unitValue,
                         unitPrice: Number(item.unitCost),
                         landedCost: Number(item.landedCost),
                         supplier: grn.supplier.name,
@@ -380,8 +394,8 @@ export class GRNService {
                         manufacturingDate: item.manufacturingDate,
                         inspectionStatus: grn.inspectionStatus,
                         qualityNotes: item.qualityNotes,
-                        stockcategoryId: '00000000-0000-0000-0000-000000000000', // Default - should be provided
-                        storeId: '00000000-0000-0000-0000-000000000000', // Default - should be provided
+                        stockcategoryId: defaultCategory.id,
+                        storeId: defaultStore.id,
                         grnItemId: item.id,
                     },
                 });

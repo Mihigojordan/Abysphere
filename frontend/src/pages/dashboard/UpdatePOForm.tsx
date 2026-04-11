@@ -34,6 +34,7 @@ const UpdatePOForm: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
     const [supplierSearch, setSupplierSearch] = useState('');
+    const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -173,11 +174,28 @@ const UpdatePOForm: React.FC = () => {
         }
     };
 
+    const handleCreateSupplier = async () => {
+        if (!supplierSearch.trim()) return;
+        setIsCreatingSupplier(true);
+        try {
+            const newSupplier = await supplierService.createSupplier({ name: supplierSearch.trim() });
+            const updated = await supplierService.getAllSuppliers();
+            setSuppliers(updated);
+            setFormData(prev => ({ ...prev, supplierId: newSupplier.id || '' }));
+            setIsSupplierDropdownOpen(false);
+            setSupplierSearch('');
+        } catch (err: any) {
+            showToast(err.message || 'Failed to create supplier', 'error');
+        } finally {
+            setIsCreatingSupplier(false);
+        }
+    };
+
     const { subtotal, taxTotal, grandTotal } = calculateTotals();
     const selectedSupplier = suppliers.find(s => s.id === formData.supplierId);
     const filteredSuppliers = suppliers.filter(s =>
         s.name.toLowerCase().includes(supplierSearch.toLowerCase()) ||
-        s.code.toLowerCase().includes(supplierSearch.toLowerCase())
+        (s.code && s.code.toLowerCase().includes(supplierSearch.toLowerCase()))
     );
 
     if (isFetching) {
@@ -321,10 +339,21 @@ const UpdatePOForm: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {filteredSuppliers.length === 0 && (
-                                                        <div className="p-8 text-center">
-                                                            <p className="text-sm text-slate-400 font-medium italic">
-                                                                No suppliers found
+                                                        <div className="p-6 text-center">
+                                                            <p className="text-sm text-slate-400 font-medium italic mb-3">
+                                                                {supplierSearch ? `No supplier matching "${supplierSearch}"` : 'No suppliers found'}
                                                             </p>
+                                                            {supplierSearch && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleCreateSupplier}
+                                                                    disabled={isCreatingSupplier}
+                                                                    className="flex items-center gap-1.5 mx-auto px-3 py-1.5 text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-60"
+                                                                >
+                                                                    {isCreatingSupplier ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                                                                    {isCreatingSupplier ? 'Creating...' : `Create "${supplierSearch}"`}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>

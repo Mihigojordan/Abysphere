@@ -513,6 +513,7 @@ export const fr = {
         purchaseOrders: 'Bons de Commande',
         proformaInvoices: 'Factures Proforma',
         grn: 'Gestion des GRN',
+        assetManagement: 'Gestion des Actifs',
         reports: 'Rapports',
         salesReport: 'Rapport des Ventes',
         inventoryReport: 'Rapport d\'Inventaire',

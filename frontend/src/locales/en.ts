@@ -513,6 +513,7 @@ export const en = {
         purchaseOrders: 'Purchase Orders',
         proformaInvoices: 'Proforma Invoices',
         grn: 'GRN Management',
+        assetManagement: 'Asset Management',
         reports: 'Reports',
         salesReport: 'Sales Report',
         inventoryReport: 'Inventory Report',

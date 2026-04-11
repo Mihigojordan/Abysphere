@@ -20,7 +20,8 @@ import {
   Building,
   Users,
   ShoppingCart,
-  PackageCheck
+  PackageCheck,
+  Boxes
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -157,13 +158,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         path: `${base}/category-management`,
         feature: "CATEGORY_MANAGEMENT",
       },
+        {
+        id: "stockin",
+        label: t('sidebar.stockIn'),
+        icon: ArrowUp,
+        path: `${base}/stockin-management`,
+        feature: "STOCKIN_MANAGEMENT",
+      },
       {
-        id: "expense",
-        label: t('sidebar.expenseManagement'),
-        icon: CreditCard,
-        path: `${base}/expense-management`,
+        id: "stockout",
+        label: t('sidebar.stockOut'),
+        icon: ArrowDown,
+        path: `${base}/stockout-management`,
+        feature: "STOCKOUT_MANAGEMENT",
+      },
+      {
+        id: "Sales-Return",
+        label: t('sidebar.salesReturn'),
+        icon: Loader,
+        path: `${base}/sales-return-management`,
+        feature: "SALES_RETURN_MANAGEMENT",
       },
 
+ 
       {
         id: "supplier",
         label: t('sidebar.suppliers'),
@@ -192,28 +209,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         path: `${base}/grn-management`,
         // feature: "GRN_MANAGEMENT",
       },
-      {
-        id: "stockin",
-        label: t('sidebar.stockIn'),
-        icon: ArrowUp,
-        path: `${base}/stockin-management`,
-        feature: "STOCKIN_MANAGEMENT",
+    
+     {
+        id: "expense",
+        label: t('sidebar.expenseManagement'),
+        icon: CreditCard,
+        path: `${base}/expense-management`,
       },
       {
-        id: "stockout",
-        label: t('sidebar.stockOut'),
-        icon: ArrowDown,
-        path: `${base}/stockout-management`,
-        feature: "STOCKOUT_MANAGEMENT",
+        id: "asset-management",
+        label: t('sidebar.assetManagement'),
+        icon: Boxes,
+        path: `${base}/asset-management`,
       },
-      {
-        id: "Sales-Return",
-        label: t('sidebar.salesReturn'),
-        icon: Loader,
-        path: `${base}/sales-return-management`,
-        feature: "SALES_RETURN_MANAGEMENT",
-      },
-
 
 
       /* ------------------------------------------------------------------ */

@@ -4,6 +4,7 @@ export interface CreateProformaDto {
     clientName: string;
     clientEmail?: string;
     clientPhone?: string;
+    clientId?: string;
     expiryDate?: Date;
     paymentTerms?: string;
     notes?: string;
@@ -74,10 +75,18 @@ class ProformaInvoiceService {
     }
 
     /**
-     * Submit PI (DRAFT -> SENT)
+     * Submit PI (DRAFT -> SENT) — legacy, status-only change
      */
     async submit(id: string) {
         const response = await api.post(`${this.baseUrl}/${id}/submit`);
+        return response.data;
+    }
+
+    /**
+     * Send PI by email (DRAFT -> SENT) — checks/saves email, sends email via Brevo
+     */
+    async sendProforma(id: string, email?: string) {
+        const response = await api.post(`${this.baseUrl}/${id}/send`, { email });
         return response.data;
     }
 

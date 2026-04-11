@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Plus, Search, Edit, Trash2, RefreshCw, Package,
     CheckCircle, XCircle, ChevronLeft, ChevronRight,
-    Eye, Send, FileText, Calendar
+    Eye, Send, FileText, Calendar, Mail, X, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import proformaInvoiceService from '../../services/proformaInvoiceService';
@@ -41,6 +41,9 @@ const ProformaInvoiceManagement: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
+    const [sendModal, setSendModal] = useState<{ open: boolean; proformaId: string; clientName: string } | null>(null);
+    const [sendEmail, setSendEmail] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     const navigate = useNavigate();
     const { user: adminData } = useAdminAuth();
@@ -82,12 +85,34 @@ const ProformaInvoiceManagement: React.FC = () => {
         setTimeout(() => setOperationStatus(null), duration);
     };
 
-    const handleAction = async (id: string, action: 'submit' | 'mark-as-paid' | 'delete' | 'cancel') => {
+    const handleSendClick = (proforma: ProformaInvoice) => {
+        if (proforma.clientEmail) {
+            // Email already on record — send immediately
+            handleSendConfirm(proforma.id, proforma.clientEmail);
+        } else {
+            // Ask for email first
+            setSendEmail('');
+            setSendModal({ open: true, proformaId: proforma.id, clientName: proforma.clientName });
+        }
+    };
+
+    const handleSendConfirm = async (id: string, emailOverride?: string) => {
+        setIsSending(true);
         try {
-            if (action === 'submit') {
-                await proformaInvoiceService.submit(id);
-                showOperationStatus('success', 'Proforma submitted');
-            } else if (action === 'mark-as-paid') {
+            await proformaInvoiceService.sendProforma(id, emailOverride);
+            showOperationStatus('success', `Proforma sent${emailOverride ? ` to ${emailOverride}` : ''}`);
+            setSendModal(null);
+            loadProformas();
+        } catch (e: any) {
+            showOperationStatus('error', e.response?.data?.message || e.message || 'Failed to send proforma');
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleAction = async (id: string, action: 'mark-as-paid' | 'delete' | 'cancel') => {
+        try {
+            if (action === 'mark-as-paid') {
                 await proformaInvoiceService.markAsPaid(id);
                 showOperationStatus('success', 'Proforma marked as paid and stock updated');
             } else if (action === 'delete') {
@@ -225,14 +250,14 @@ const ProformaInvoiceManagement: React.FC = () => {
                                                         {p.status === 'DRAFT' && (
                                                             <>
                                                                 <button onClick={() => navigate(`/${role}/dashboard/proforma-management/update/${p.id}`)} className="p-2 text-theme-text-secondary hover:text-amber-600 rounded-lg transition-all"><Edit className="w-4 h-4" /></button>
-                                                                <button onClick={() => handleAction(p.id, 'submit')} className="p-2 text-theme-text-secondary hover:text-emerald-600 rounded-lg transition-all"><Send className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleSendClick(p)} title="Send Proforma" className="p-2 text-theme-text-secondary hover:text-emerald-600 rounded-lg transition-all"><Send className="w-4 h-4" /></button>
                                                                 <button onClick={() => handleAction(p.id, 'delete')} className="p-2 text-theme-text-secondary hover:text-red-600 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
                                                             </>
                                                         )}
                                                         {p.status === 'SENT' && (
                                                             <>
                                                                 <button onClick={() => handleAction(p.id, 'mark-as-paid')} className="p-2 text-theme-text-secondary hover:text-emerald-600 rounded-lg transition-all" title="Mark as Paid"><CheckCircle className="w-4 h-4" /></button>
-                                                                <button onClick={() => handleAction(p.id, 'cancel')} className="p-2 text-theme-text-secondary hover:text-red-600 rounded-lg transition-all" title="Cancel"><XCircle className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleAction(p.id, 'cancel')} className="p-2 text-theme-text-secondary hover:text-red-600 rounded-lg transition-all" title="Cancel Proforma"><XCircle className="w-4 h-4" /></button>
                                                             </>
                                                         )}
                                                     </div>
@@ -262,6 +287,73 @@ const ProformaInvoiceManagement: React.FC = () => {
                             {operationStatus.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
                             <span className="text-[11px] font-black uppercase tracking-widest">{operationStatus.message}</span>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Send Proforma — Email Modal */}
+            <AnimatePresence>
+                {sendModal?.open && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                        onClick={() => setSendModal(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-primary-50 rounded-lg">
+                                        <Mail className="w-4 h-4 text-primary-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-slate-900">Send Proforma</h3>
+                                        <p className="text-[11px] text-slate-400">{sendModal.clientName}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setSendModal(null)} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
+                                    <X className="w-4 h-4 text-slate-400" />
+                                </button>
+                            </div>
+
+                            <p className="text-xs text-slate-500 mb-4">
+                                No email address found for this client. Enter one below to send the proforma and update the client record.
+                            </p>
+
+                            <input
+                                type="email"
+                                placeholder="client@example.com"
+                                value={sendEmail}
+                                onChange={(e) => setSendEmail(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && sendEmail.trim()) handleSendConfirm(sendModal.proformaId, sendEmail.trim()); }}
+                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+                                autoFocus
+                            />
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setSendModal(null)}
+                                    className="flex-1 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => { if (sendEmail.trim()) handleSendConfirm(sendModal.proformaId, sendEmail.trim()); }}
+                                    disabled={!sendEmail.trim() || isSending}
+                                    className="flex-1 py-2 text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                    {isSending ? 'Sending...' : 'Send'}
+                                </button>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

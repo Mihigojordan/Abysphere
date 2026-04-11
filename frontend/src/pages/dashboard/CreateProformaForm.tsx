@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
     Check, Package, Plus, Trash2, AlertCircle,
     ArrowLeft, TrendingUp, RefreshCw, CheckCircle, Briefcase
 } from 'lucide-react';
@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useAdminAuth from '../../context/AdminAuthContext';
 import stockService, { type Stock } from '../../services/stockService';
 import proformaService, { type CreateProformaDto, type CreateProformaItemDto } from '../../services/proformaInvoiceService';
+import ClientSelector from '../../components/common/ClientSelector';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CreateProformaForm: React.FC = () => {
@@ -22,10 +23,12 @@ const CreateProformaForm: React.FC = () => {
     const [stockSearch, setStockSearch] = useState('');
     const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
 
+    const [clientId, setClientId] = useState('');
     const [formData, setFormData] = useState<CreateProformaDto>({
         clientName: '',
         clientEmail: '',
         clientPhone: '',
+        clientId: '',
         expiryDate: undefined,
         paymentTerms: 'COD',
         notes: '',
@@ -165,8 +168,18 @@ const CreateProformaForm: React.FC = () => {
                         <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
                             <div className="flex items-center gap-2 mb-2"><Briefcase className="w-4 h-4 text-primary-600" /><h2 className="text-sm font-bold text-slate-900 uppercase">Client Information</h2></div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Client Name *</label>
-                                    <input type="text" value={formData.clientName} onChange={e => setFormData({ ...formData, clientName: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white transition-all" placeholder="Enter Client Name" />
+                                <div className="space-y-1.5">
+                                    <ClientSelector
+                                        value={clientId}
+                                        onChange={(id, fullName, email, phone) => {
+                                            setClientId(id);
+                                            setFormData(prev => ({ ...prev, clientId: id, clientName: fullName, clientEmail: email, clientPhone: phone }));
+                                        }}
+                                    />
+                                    {/* Show selected client's contact info */}
+                                    {formData.clientEmail && (
+                                        <p className="text-[11px] text-slate-400 ml-1">{formData.clientEmail}{formData.clientPhone ? ` · ${formData.clientPhone}` : ''}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-1.5"><label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Expiry Date</label>
                                     <input type="date" value={formData.expiryDate ? (formData.expiryDate as any).toISOString().split('T')[0] : ''} onChange={e => setFormData({ ...formData, expiryDate: e.target.value ? new Date(e.target.value) : undefined })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white transition-all" />

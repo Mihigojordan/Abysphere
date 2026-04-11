@@ -366,7 +366,11 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
       s.reorderLevel && s.quantity > 0 && s.quantity <= s.reorderLevel);
     const outOfStockItems = filteredStockIns.filter((s: any) => s.quantity === 0);
 
-    const returnsValue = filteredReturns.reduce((sum: number, r: any) => sum + (Number(r.refundAmount) || 0), 0);
+    const returnsValue = filteredReturns.reduce((sum: number, r: any) => {
+      const itemsValue = (r.items || []).reduce((iSum: number, item: any) =>
+        iSum + (Number(item.quantity) || 0) * (Number(item.stockout?.soldPrice) || 0), 0);
+      return sum + itemsValue;
+    }, 0);
     const totalStockValue = filteredStockIns.reduce((s: number, i: any) =>
       s + (Number(i.unitPrice) || 0) * (Number(i.quantity) || 0), 0);
     const totalStockItems = filteredStockIns.reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
@@ -470,15 +474,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             link="/admin/dashboard/stock-alerts"
           />
           <StatCard
-            title={t('dashboard.employees')}
-            value={stats.totalEmployees}
-            change={5}
-            trend="up"
-            icon={Users}
-            color="bg-primary-500"
-            link="/admin/dashboard/employee-management"
-          />
-          <StatCard
             title={t('dashboard.suppliers')}
             value={stats.totalSuppliers}
             change={8}
@@ -486,13 +481,6 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             icon={TrendingUp}
             color="bg-primary-500"
             link="/admin/dashboard/supplier-management"
-          />
-          <StatCard
-            title={t('dashboard.totalAssets')} // Ensure translation key or fallback
-            value={`${formatCurrency(stats.totalAssets)}`}
-            icon={DollarSign}
-            color="bg-primary-500"
-            link="/admin/dashboard/asset-management"
           />
           <StatCard
             title={t('dashboard.totalProfit')}

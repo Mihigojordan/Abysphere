@@ -2,11 +2,13 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProformaStatus, Prisma } from '../../../generated/prisma';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
+import { EmailService } from 'src/global/email/email.service';
 
 export interface CreateProformaDto {
     clientName: string;
     clientEmail?: string;
     clientPhone?: string;
+    clientId?: string;
     expiryDate?: Date;
     paymentTerms?: string;
     notes?: string;
@@ -34,7 +36,10 @@ export interface UpdateProformaDto extends Partial<Omit<CreateProformaDto, 'item
 
 @Injectable()
 export class ProformaInvoiceService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly emailService: EmailService,
+    ) { }
 
     private async generateProformaNumber(): Promise<string> {
         const now = new Date();
@@ -90,6 +95,7 @@ export class ProformaInvoiceService {
                 clientName: data.clientName,
                 clientEmail: data.clientEmail,
                 clientPhone: data.clientPhone,
+                clientId: data.clientId || null,
                 expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
                 paymentTerms: data.paymentTerms,
                 notes: data.notes,
@@ -195,6 +201,7 @@ export class ProformaInvoiceService {
                     clientName: data.clientName,
                     clientEmail: data.clientEmail,
                     clientPhone: data.clientPhone,
+                    clientId: data.clientId !== undefined ? (data.clientId || null) : undefined,
                     expiryDate: data.expiryDate ? new Date(data.expiryDate) : undefined,
                     paymentTerms: data.paymentTerms,
                     notes: data.notes,
@@ -333,5 +340,172 @@ export class ProformaInvoiceService {
         }
 
         return this.prisma.proformaInvoice.delete({ where: { id } });
+    }
+
+    async sendByEmail(id: string, emailOverride?: string) {
+        const proforma = await this.findOne(id);
+
+        if (proforma.status !== ProformaStatus.DRAFT) {
+            throw new BadRequestException('Only DRAFT proforma invoices can be sent');
+        }
+
+        const toEmail = emailOverride || proforma.clientEmail;
+        if (!toEmail) {
+            throw new BadRequestException('No email address available for this client');
+        }
+
+        // If caller provided an email override, persist it on the proforma and the linked client
+        if (emailOverride) {
+            await this.prisma.proformaInvoice.update({
+                where: { id },
+                data: { clientEmail: emailOverride },
+            });
+            if (proforma.clientId) {
+                await this.prisma.client.update({
+                    where: { id: proforma.clientId },
+                    data: { email: emailOverride },
+                });
+            }
+        }
+
+        const html = this.buildProformaEmailHtml(proforma);
+        await this.emailService.sendRawEmail(
+            toEmail,
+            `Proforma Invoice ${proforma.proformaNumber}`,
+            html,
+        );
+
+        return this.prisma.proformaInvoice.update({
+            where: { id },
+            data: { status: ProformaStatus.SENT },
+        });
+    }
+
+    private buildProformaEmailHtml(proforma: any): string {
+        const fmt = (n: any) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+
+        const itemRows = (proforma.items || []).map((item: any) => `
+            <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b;">${item.productName}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:center;color:#64748b;">${item.quantity}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b;">${fmt(item.unitPrice)}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:#1e293b;font-weight:600;">${fmt(item.totalPrice)}</td>
+            </tr>`).join('');
+
+        const discountLine = Number(proforma.discountValue) > 0 ? `
+            <tr>
+                <td colspan="3" style="padding:6px 12px;text-align:right;color:#64748b;">Discount</td>
+                <td style="padding:6px 12px;text-align:right;color:#dc2626;">- ${fmt(proforma.discountValue)}</td>
+            </tr>` : '';
+
+        const taxLine = Number(proforma.taxAmount) > 0 ? `
+            <tr>
+                <td colspan="3" style="padding:6px 12px;text-align:right;color:#64748b;">Tax</td>
+                <td style="padding:6px 12px;text-align:right;color:#64748b;">+ ${fmt(proforma.taxAmount)}</td>
+            </tr>` : '';
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Proforma Invoice ${proforma.proformaNumber}</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f6ff;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f6ff;padding:32px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(29,78,216,0.12);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
+            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Abysphere PMS</p>
+            <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#ffffff;">Proforma Invoice</h1>
+            <p style="margin:0;font-size:14px;color:#93c5fd;font-weight:600;">${proforma.proformaNumber}</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff;padding:32px;">
+
+            <!-- Greeting -->
+            <p style="margin:0 0 24px;font-size:15px;color:#1e293b;">Dear <strong>${proforma.clientName}</strong>,</p>
+            <p style="margin:0 0 24px;font-size:14px;color:#64748b;line-height:1.6;">
+              Please find below your proforma invoice summary. This document is valid until the expiry date shown.
+            </p>
+
+            <!-- Invoice details card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:24px;">
+              <tr>
+                <td style="padding:14px 16px;border-bottom:1px solid #bfdbfe;">
+                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Invoice #</span>
+                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${proforma.proformaNumber}</p>
+                </td>
+                <td style="padding:14px 16px;border-bottom:1px solid #bfdbfe;border-left:1px solid #bfdbfe;">
+                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Issue Date</span>
+                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${fmtDate(proforma.issueDate)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:14px 16px;">
+                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Expiry Date</span>
+                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${fmtDate(proforma.expiryDate)}</p>
+                </td>
+                <td style="padding:14px 16px;border-left:1px solid #bfdbfe;">
+                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Payment Terms</span>
+                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${proforma.paymentTerms || 'COD'}</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Items table -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+              <thead>
+                <tr style="background:#1e3a8a;">
+                  <th style="padding:10px 12px;text-align:left;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Product</th>
+                  <th style="padding:10px 12px;text-align:center;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Qty</th>
+                  <th style="padding:10px 12px;text-align:right;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Unit Price</th>
+                  <th style="padding:10px 12px;text-align:right;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Total</th>
+                </tr>
+              </thead>
+              <tbody>${itemRows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding:8px 12px;text-align:right;color:#64748b;border-top:1px solid #e2e8f0;">Subtotal</td>
+                  <td style="padding:8px 12px;text-align:right;border-top:1px solid #e2e8f0;">${fmt(proforma.subtotal)}</td>
+                </tr>
+                ${discountLine}
+                ${taxLine}
+                <tr style="background:#f0f6ff;">
+                  <td colspan="3" style="padding:12px;text-align:right;font-weight:700;color:#1e3a8a;font-size:15px;">Grand Total</td>
+                  <td style="padding:12px;text-align:right;font-weight:700;color:#2563eb;font-size:17px;">${fmt(proforma.grandTotal)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            ${proforma.notes ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;background:#f0f6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px;"><strong>Note:</strong> ${proforma.notes}</p>` : ''}
+
+          </td>
+        </tr>
+
+        <!-- Footer notice -->
+        <tr>
+          <td style="background:#f0f6ff;padding:20px 32px;border-top:1px solid #bfdbfe;text-align:center;">
+            <p style="margin:0 0 6px;font-size:12px;color:#64748b;font-style:italic;">
+              This is a proforma invoice and is not a tax invoice. Payment is not due until a formal invoice is issued.
+            </p>
+            <p style="margin:0;font-size:12px;color:#94a3b8;">
+              © ${new Date().getFullYear()} Abysphere PMS · This is an automated message, please do not reply.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
     }
 }

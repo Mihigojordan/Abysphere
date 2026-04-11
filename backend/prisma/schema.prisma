@@ -283,18 +283,19 @@ model Applicant {
 }
 
 model Client {
-  id           String       @id @default(uuid())
-  firstname    String
-  lastname     String
-  email        String
-  phone        String?
-  address      String?
-  status       ClientStatus @default(ACTIVE)
-  profileImage String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  adminId      String?
-  admin        Admin?       @relation(fields: [adminId], references: [id])
+  id                String            @id @default(uuid())
+  firstname         String
+  lastname          String
+  email             String?
+  phone             String?
+  address           String?
+  status            ClientStatus      @default(ACTIVE)
+  profileImage      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  adminId           String?
+  admin             Admin?            @relation(fields: [adminId], references: [id])
+  proformaInvoices  ProformaInvoice[]
 
   @@index([adminId], map: "Client_adminId_fkey")
 }
@@ -1622,6 +1623,8 @@ model ProformaInvoice {
   clientName      String
   clientEmail     String?
   clientPhone     String?
+  clientId        String?
+  client          Client?        @relation(fields: [clientId], references: [id])
   issueDate       DateTime       @default(now())
   expiryDate      DateTime?
   status          ProformaStatus @default(DRAFT)
@@ -1649,6 +1652,7 @@ model ProformaInvoice {
 
   @@index([createdByAdminId])
   @@index([approvedByAdminId])
+  @@index([clientId])
 }
 
 model ProformaInvoiceItem {

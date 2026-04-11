@@ -509,6 +509,7 @@ export const rw = {
         purchaseOrders: 'Gutuma Ibicuruzwa',
         proformaInvoices: 'Fagitire za Proforma',
         grn: 'Gucunga GRN',
+        assetManagement: 'Gucunga Ibintu',
         reports: 'Raporo',
         salesReport: 'Raporo y\'Ubucuruzi',
         inventoryReport: 'Raporo y\'Ububiko',

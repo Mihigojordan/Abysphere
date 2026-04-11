@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Check, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, Check, Loader2, Plus } from 'lucide-react';
 import supplierService, { type Supplier } from '../../services/supplierService';
 
 interface SupplierSelectorProps {
@@ -21,6 +21,7 @@ const SupplierSelector: React.FC<SupplierSelectorProps> = ({
     const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+    const [creating, setCreating] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Initial load
@@ -91,6 +92,20 @@ const SupplierSelector: React.FC<SupplierSelectorProps> = ({
         setSearchTerm('');
     };
 
+    const handleCreate = async () => {
+        if (!searchTerm.trim()) return;
+        setCreating(true);
+        try {
+            const newSupplier = await supplierService.createSupplier({ name: searchTerm.trim() });
+            await loadSuppliers();
+            handleSelect(newSupplier);
+        } catch (err) {
+            console.error('Failed to create supplier', err);
+        } finally {
+            setCreating(false);
+        }
+    };
+
     return (
         <div className="relative" ref={containerRef}>
             <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -134,12 +149,25 @@ const SupplierSelector: React.FC<SupplierSelectorProps> = ({
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                 <span className="text-xs">Loading...</span>
                             </div>
-                        ) : suppliers.length === 0 ? (
-                            <div className="py-4 text-center text-xs text-gray-400">
-                                No suppliers found
+                        ) : filteredSuppliers.length === 0 ? (
+                            <div className="py-3 px-2 text-center">
+                                <p className="text-xs text-gray-400 mb-2">
+                                    {searchTerm ? `No supplier matching "${searchTerm}"` : 'No suppliers found'}
+                                </p>
+                                {searchTerm && (
+                                    <button
+                                        type="button"
+                                        onClick={handleCreate}
+                                        disabled={creating}
+                                        className="flex items-center gap-1.5 mx-auto px-3 py-1.5 text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200 rounded-md hover:bg-primary-100 transition-colors disabled:opacity-60"
+                                    >
+                                        {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                                        {creating ? 'Creating...' : `Create "${searchTerm}"`}
+                                    </button>
+                                )}
                             </div>
                         ) : (
-                            suppliers.map((supplier) => (
+                            filteredSuppliers.map((supplier) => (
                                 <div
                                     key={supplier.id}
                                     onClick={() => handleSelect(supplier)}

@@ -48,6 +48,11 @@ export class ProformaInvoiceController {
         return this.proformaService.submit(id);
     }
 
+    @Post(':id/send')
+    async sendByEmail(@Param('id') id: string, @Body() body: { email?: string }) {
+        return this.proformaService.sendByEmail(id, body.email);
+    }
+
     @Post(':id/mark-as-paid')
     async markAsPaid(
         @Param('id') id: string,
