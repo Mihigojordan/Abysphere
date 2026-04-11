@@ -465,6 +465,7 @@ export const rw = {
             method: 'Uburyo bw\'Ubwishyu',
             category: 'Icyiciro',
             description: 'Ubusobanuro',
+            customTypePlaceholder: 'urugero: Kohereza, Gusubiza, Imbere...',
             placeholders: {
                 title: 'Ubukode, Amashanyarazi, Kwishyura Umukiliya...',
                 amount: 'Andika amafaranga...',
