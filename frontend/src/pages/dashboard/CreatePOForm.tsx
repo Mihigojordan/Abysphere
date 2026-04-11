@@ -282,8 +282,21 @@ const CreatePOForm: React.FC = () => {
                                                         </div>
                                                     ))}
                                                     {filteredSuppliers.length === 0 && (
-                                                        <div className="p-8 text-center">
-                                                            <p className="text-sm text-slate-400 font-medium italic">No suppliers found</p>
+                                                        <div className="p-6 text-center">
+                                                            <p className="text-sm text-slate-400 font-medium italic mb-3">
+                                                                {supplierSearch ? `No supplier matching "${supplierSearch}"` : 'No suppliers found'}
+                                                            </p>
+                                                            {supplierSearch && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleCreateSupplier}
+                                                                    disabled={isCreatingSupplier}
+                                                                    className="flex items-center gap-1.5 mx-auto px-3 py-1.5 text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors disabled:opacity-60"
+                                                                >
+                                                                    {isCreatingSupplier ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                                                                    {isCreatingSupplier ? 'Creating...' : `Create "${supplierSearch}"`}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
