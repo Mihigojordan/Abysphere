@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
     Printer,
     Download,
@@ -52,9 +51,11 @@ const PurchaseOrderView: React.FC = () => {
     const isEmployee = location.pathname.includes('/employee/');
     const role = isEmployee ? 'employee' : 'admin';
     
+    const sheetRef = useRef<HTMLDivElement>(null);
     const [order, setOrder] = useState<PurchaseOrder | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [pdfLoading, setPdfLoading] = useState(false);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -90,6 +91,26 @@ const PurchaseOrderView: React.FC = () => {
             case 'PENDING_APPROVAL': return 'status-pending';
             case 'DRAFT': return 'status-draft';
             default: return 'status-pending';
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!sheetRef.current || !order) return;
+        setPdfLoading(true);
+        const toolbar = sheetRef.current.querySelector('.toolbar') as HTMLElement | null;
+        if (toolbar) toolbar.style.display = 'none';
+        try {
+            const html2pdf = (await import('html2pdf.js')).default;
+            await html2pdf().set({
+                margin: 0,
+                filename: `PO-${order.poNumber}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            }).from(sheetRef.current).save();
+        } finally {
+            if (toolbar) toolbar.style.display = '';
+            setPdfLoading(false);
         }
     };
 
@@ -142,9 +163,17 @@ const PurchaseOrderView: React.FC = () => {
                 }
 
                 @media print {
-                    .po-view-container { background: #fff; padding: 0; }
+                    html, body { height: auto !important; overflow: visible !important; }
+                    body * { visibility: hidden !important; }
+                    .sheet, .sheet * { visibility: visible !important; }
+                    .sheet {
+                        position: fixed !important;
+                        top: 0 !important; left: 0 !important;
+                        width: 100% !important; max-width: 100% !important;
+                        box-shadow: none !important;
+                        margin: 0 !important;
+                    }
                     .toolbar, .print-hint { display: none !important; }
-                    .sheet { box-shadow: none !important; max-width: 100% !important; border-top: none !important; }
                     .doc { padding: 40px 48px !important; }
                     .doc-foot { padding: 12px 48px !important; }
                 }
@@ -552,7 +581,7 @@ const PurchaseOrderView: React.FC = () => {
                 }
             `}</style>
 
-            <div className="sheet">
+            <div className="sheet" ref={sheetRef}>
                 {/* PMS LETTERHEAD BAR */}
                 <div className="letterhead-bar" />
 
@@ -567,9 +596,9 @@ const PurchaseOrderView: React.FC = () => {
                             <Printer className="w-3 h-3" />
                             Print
                         </button>
-                        <button className="btn btn-primary">
-                            <Download className="w-3 h-3" />
-                            Export PDF
+                        <button className="btn btn-primary" onClick={handleDownloadPDF} disabled={pdfLoading}>
+                            {pdfLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                            {pdfLoading ? 'Generating...' : 'Export PDF'}
                         </button>
                     </div>
                 </div>
