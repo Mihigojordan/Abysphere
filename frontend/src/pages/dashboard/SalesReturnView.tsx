@@ -52,8 +52,12 @@ const SalesReturnView: React.FC = () => {
             if (!id) return;
             try {
                 setLoading(true);
-                const data = await salesReturnService.getSalesReturnById(id);
-                setSalesReturn(data as unknown as SalesReturn);
+                const raw = await salesReturnService.getSalesReturnById(id);
+                // Backend may return { salesReturn: {...} } or the object directly
+                const data: any = (raw as any)?.salesReturn ?? (raw as any)?.data ?? raw;
+                // Normalise items to always be an array
+                if (data && !Array.isArray(data.items)) data.items = [];
+                setSalesReturn(data as SalesReturn);
                 setError(null);
             } catch (err: any) {
                 console.error('Error fetching sales return:', err);
@@ -118,9 +122,9 @@ const SalesReturnView: React.FC = () => {
         </div>
     );
 
-    const firstItem = salesReturn.items[0];
+    const firstItem = (salesReturn.items ?? [])[0];
     const client = firstItem?.stockout;
-    const grandTotal = salesReturn.items.reduce((sum, item) => {
+    const grandTotal = (salesReturn.items ?? []).reduce((sum, item) => {
         const unitPrice = item.stockout?.soldPrice
             ? parseFloat(item.stockout.soldPrice) / (item.stockout.quantity || 1)
             : 0;
@@ -351,7 +355,7 @@ const SalesReturnView: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {salesReturn.items.map((item) => {
+                                {(salesReturn.items ?? []).map((item) => {
                                     const name = item.stockout?.stockin?.itemName || 'Item';
                                     const sku = item.stockout?.stockin?.sku || 'N/A';
                                     const soldQty = item.stockout?.quantity || 1;
@@ -386,7 +390,7 @@ const SalesReturnView: React.FC = () => {
                         <div className="totals">
                             <div className="totals-row">
                                 <span className="lbl">Items Returned</span>
-                                <span className="val">{salesReturn.items.reduce((s, i) => s + i.quantity, 0)} units</span>
+                                <span className="val">{(salesReturn.items ?? []).reduce((s, i) => s + i.quantity, 0)} units</span>
                             </div>
                             <div className="totals-row">
                                 <span className="lbl">Original Tx</span>
