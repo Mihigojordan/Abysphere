@@ -88,6 +88,10 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [selectedStockOutForView, setSelectedStockOutForView] = useState<StockOut | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [displayMode, setDisplayMode] = useState<'individual' | 'grouped'>(() => {
+    return (localStorage.getItem('stockout_display_mode') as 'individual' | 'grouped') || 'individual';
+  });
+  const [expandedTransactions, setExpandedTransactions] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState<Filters>({
     dateRange: 'all',
     startDate: '',

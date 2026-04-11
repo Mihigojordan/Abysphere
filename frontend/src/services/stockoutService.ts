@@ -11,9 +11,11 @@ export const PaymentMethod = {
 export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
 
 export interface SaleItem {
-  stockinId: number;
+  stockinId?: number;          // Required for internal (stock) sales
   quantity: number;
   soldPrice?: number;
+  externalItemName?: string;   // Required for external (non-stock) sales
+  externalSku?: string;
 }
 
 export interface ClientInfo {
@@ -139,16 +141,25 @@ class StockOutService {
     }
 
     for (const sale of salesArray) {
-      if (!sale.stockinId || !sale.quantity || sale.quantity <= 0) {
-        throw new Error('Each sale must have a valid stockinId and quantity');
+      const isExternal = !sale.stockinId || sale.stockinId === 0;
+      if (isExternal && !sale.externalItemName?.trim()) {
+        throw new Error('External items must have a valid item name');
+      }
+      if (!isExternal && !sale.stockinId) {
+        throw new Error('Each stock sale must have a valid stockinId');
+      }
+      if (!sale.quantity || sale.quantity <= 0) {
+        throw new Error('Each sale must have a valid quantity greater than zero');
       }
     }
 
     const payload = {
       sales: salesArray.map((sale) => ({
-        stockinId: sale.stockinId,
+        stockinId: sale.stockinId && sale.stockinId !== 0 ? sale.stockinId : undefined,
         quantity: Number(sale.quantity),
         soldPrice: sale.soldPrice ? Number(sale.soldPrice) : undefined,
+        externalItemName: sale.externalItemName || undefined,
+        externalSku: sale.externalSku || undefined,
       })),
       clientName: clientInfo.clientName?.trim() || undefined,
       clientEmail: clientInfo.clientEmail?.trim() || undefined,
