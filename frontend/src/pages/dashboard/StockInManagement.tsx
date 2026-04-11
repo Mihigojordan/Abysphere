@@ -511,7 +511,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="font-semibold text-theme-text-primary text-sm truncate">{stock.itemName}</div>
-                            <div className="text-theme-text-secondary text-xs truncate">SKU: {stock.sku}</div>
                         </div>
                     </div>
                     <div className="relative" ref={dropdownRef}>
@@ -589,7 +588,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                     <thead>
                         <tr className="bg-theme-bg-tertiary border-b border-theme-border">
                             <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">#</th>
-                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockIn.sku')}</th>
                             <th
                                 className="px-5 py-3 text-left font-medium text-theme-text-secondary cursor-pointer hover:bg-theme-bg-secondary transition-colors"
                                 onClick={() => {
@@ -605,7 +603,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                             <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden sm:table-cell">{t('stockIn.quantity')}</th>
                             <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden md:table-cell">{t('stockIn.unitCost')}</th>
                             <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden lg:table-cell">{t('stockIn.totalValue')}</th>
-                            <th className="px-5 py-3 text-left font-medium text-theme-text-secondary hidden xl:table-cell">{t('stockIn.location')}</th>
                             <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockIn.status')}</th>
                             <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">{t('stockIn.actions')}</th>
                         </tr>
@@ -616,9 +613,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                             return (
                                 <tr key={stock.id} className="hover:bg-theme-bg-tertiary transition-colors group">
                                     <td className="px-5 py-4 text-theme-text-secondary">{startIndex + index + 1}</td>
-                                    <td className="px-5 py-4">
-                                        <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{stock.sku}</span>
-                                    </td>
                                     <td className="px-5 py-4">
                                         <div className="flex items-center space-x-3">
                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-[10px] font-bold shadow-md ${getAvatarColor(stock.itemName)}`}>
@@ -639,7 +633,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     <td className="px-5 py-4 text-green-600 font-bold hidden lg:table-cell">
                                         {formatCurrency(stock.totalValue)}
                                     </td>
-                                    <td className="px-5 py-4 text-theme-text-secondary hidden xl:table-cell">{stock.warehouseLocation || '—'}</td>
                                     <td className="px-5 py-4">
                                         {isLowStock ? (
                                             <span className="inline-flex px-2 py-1 text-[10px] font-medium rounded-lg bg-red-500/10 text-red-600 border border-red-500/20">
@@ -696,7 +689,6 @@ const StockInManagement = ({ role }: { role: string }) => {
                             <div className="flex-1 min-w-0">
                                 <div className="font-semibold text-theme-text-primary text-sm truncate">{stock.itemName}</div>
                                 <div className="flex items-center gap-3 mt-1.5">
-                                    <span className="text-primary-600 font-mono text-xs bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{stock.sku}</span>
                                     <span className="text-theme-text-secondary text-xs">{formatDate(stock.receivedDate)}</span>
                                 </div>
                             </div>

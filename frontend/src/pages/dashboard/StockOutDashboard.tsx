@@ -101,6 +101,10 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [sortBy, setSortBy] = useState<'date' | 'quantity' | 'revenue'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  useEffect(() => {
+    localStorage.setItem('stockout_display_mode', displayMode);
+  }, [displayMode]);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -281,6 +285,35 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     setFilteredStockOuts(filtered);
     setCurrentPage(1);
   }, [searchTerm, stockOuts, filters, sortBy, sortOrder, paymentMethodFilter]);
+
+  const groupedTransactions = React.useMemo(() => {
+    const groups = filteredStockOuts.reduce((acc, item) => {
+      const tid = item.transactionId || `NoTx-${item.id}`;
+      if (!acc[tid]) {
+        acc[tid] = {
+           transactionId: item.transactionId || '—',
+           date: item.createdAt,
+           client: item.clientName || t('stockOut.walkIn'),
+           totalQty: 0,
+           totalRevenue: 0,
+           totalCost: 0,
+           items: []
+        };
+      }
+      acc[tid].totalQty += item.quantity;
+      const rowRev = item.soldPrice * item.quantity;
+      acc[tid].totalRevenue += rowRev;
+      
+      const stockIn = stockIns.find(s => s.id === item.stockinId) || item.stockin;
+      const cost = (stockIn as any)?.unitCost || 0;
+      acc[tid].totalCost += cost * item.quantity;
+      
+      acc[tid].items.push(item);
+      return acc;
+    }, {} as Record<string, any>);
+    
+    return Object.values(groups);
+  }, [filteredStockOuts, stockIns, t]);
   // ── Helpers ──────────────────────────────────────────────────
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ message, type });
@@ -466,9 +499,13 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     new Intl.NumberFormat('en-RW', { maximumFractionDigits: 0 }).format(price || 0);
 
   // Pagination
-  const totalPages = Math.ceil(filteredStockOuts.length / itemsPerPage);
+  const totalPages = displayMode === 'grouped' 
+    ? Math.ceil(groupedTransactions.length / itemsPerPage)
+    : Math.ceil(filteredStockOuts.length / itemsPerPage);
+
   const startIdx = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredStockOuts.slice(startIdx, startIdx + itemsPerPage);
+  const currentGroupedItems = displayMode === 'grouped' ? groupedTransactions.slice(startIdx, startIdx + itemsPerPage) : [];
 
   // Sub-Components
   const ViewModeSwitcher = () => (
@@ -632,10 +669,108 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     </div>
   );
 
+  const toggleTransaction = (tid: string) => {
+    const newSet = new Set(expandedTransactions);
+    if (newSet.has(tid)) {
+        newSet.delete(tid);
+    } else {
+        newSet.add(tid);
+    }
+    setExpandedTransactions(newSet);
+  };
+
+  const GroupedTableView = () => (
+    <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-theme-bg-tertiary border-b border-theme-border">
+            <tr>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary w-10"></th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.date')}</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.transactionId')}</th>
+              <th className="px-5 py-3 text-left font-medium text-theme-text-secondary">{t('stockOut.client')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.qty')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.totalRevenue')}</th>
+              <th className="px-5 py-3 text-right font-medium text-theme-text-secondary">{t('stockOut.totalProfit')}</th>
+              <th className="px-5 py-3 text-center font-medium text-theme-text-secondary">{t('stockOut.actions')}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-theme-border">
+            {currentGroupedItems.map((group: any) => (
+              <React.Fragment key={group.transactionId + group.date}>
+                <tr className="hover:bg-theme-bg-tertiary">
+                  <td className="px-5 py-4">
+                    <button onClick={() => toggleTransaction(group.transactionId !== '—' ? group.transactionId : group.date)} className="p-1 rounded hover:bg-theme-bg-secondary text-primary-600 transition-colors">
+                      {expandedTransactions.has(group.transactionId !== '—' ? group.transactionId : group.date) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                    </button>
+                  </td>
+                  <td className="px-5 py-4 text-theme-text-secondary">{formatDate(group.date)}</td>
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{group.transactionId}</span>
+                  </td>
+                  <td className="px-5 py-4 text-theme-text-secondary">{group.client}</td>
+                  <td className="px-5 py-4 text-right font-medium text-theme-text-primary">{group.totalQty}</td>
+                  <td className="px-5 py-4 text-right text-theme-text-secondary">{formatPrice(group.totalRevenue)}</td>
+                  <td className="px-5 py-4 text-right font-bold text-green-600">{formatPrice(group.totalRevenue - group.totalCost)}</td>
+                  <td className="px-5 py-4 text-center">
+                    <button
+                        onClick={() => {
+                          if (group.transactionId && group.transactionId !== '—') {
+                            navigate(`/${role}/dashboard/stockout-management/view/${group.transactionId}`);
+                          }
+                        }}
+                        disabled={!group.transactionId || group.transactionId === '—'}
+                        className="text-xs bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded-lg font-medium transition-colors border border-primary-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t('stockOut.viewReceipt')}
+                    </button>
+                  </td>
+                </tr>
+                {expandedTransactions.has(group.transactionId !== '—' ? group.transactionId : group.date) && (
+                  <tr>
+                    <td colSpan={8} className="p-0 bg-theme-bg-secondary/30">
+                      <div className="px-12 py-4">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-theme-text-secondary border-b border-theme-border/50">
+                              <th className="pb-2 pt-1 text-left">Product</th>
+                              <th className="pb-2 pt-1 text-right">Qty</th>
+                              <th className="pb-2 pt-1 text-right">Price</th>
+                              <th className="pb-2 pt-1 text-right">Subtotal</th>
+                              <th className="pb-2 pt-1 text-center">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-theme-border/30">
+                            {group.items.map((item: StockOut) => (
+                              <tr key={item.id}>
+                                <td className="py-2.5 text-theme-text-primary font-medium">{item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}</td>
+                                <td className="py-2.5 text-right text-theme-text-secondary">{item.quantity}</td>
+                                <td className="py-2.5 text-right text-theme-text-secondary">{formatPrice(item.soldPrice)}</td>
+                                <td className="py-2.5 text-right text-theme-text-secondary font-medium">{formatPrice(item.soldPrice * item.quantity)}</td>
+                                <td className="py-2.5 text-center flex justify-center">
+                                  <ActionButtons item={item} />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination />
+    </div>
+  );
+
   const Pagination = () => (
     <div className="flex items-center justify-between py-4 border-t border-theme-border bg-theme-bg-tertiary px-6">
       <p className="text-sm text-theme-text-secondary">
-        Showing {startIdx + 1}–{Math.min(startIdx + itemsPerPage, filteredStockOuts.length)} of {filteredStockOuts.length}
+        Showing {startIdx + 1}–{Math.min(startIdx + itemsPerPage, displayMode === 'grouped' ? groupedTransactions.length : filteredStockOuts.length)} of {displayMode === 'grouped' ? groupedTransactions.length : filteredStockOuts.length}
       </p>
       <div className="flex gap-2">
         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
@@ -883,7 +1018,31 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
               <option value="revenue-asc">{t('stockOut.lowestRevenue')}</option>
             </select>
 
-            <ViewModeSwitcher />
+            {/* Display Mode Toggle */}
+            <div className="flex bg-theme-bg-tertiary p-1 rounded border border-theme-border lg:ml-auto">
+              <button
+                onClick={() => { setDisplayMode('individual'); setCurrentPage(1); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  displayMode === 'individual'
+                    ? 'bg-theme-bg-primary text-primary-600 shadow-sm'
+                    : 'text-theme-text-secondary hover:text-theme-text-primary'
+                }`}
+              >
+                Individual
+              </button>
+              <button
+                onClick={() => { setDisplayMode('grouped'); setCurrentPage(1); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  displayMode === 'grouped'
+                    ? 'bg-theme-bg-primary text-primary-600 shadow-sm'
+                    : 'text-theme-text-secondary hover:text-theme-text-primary'
+                }`}
+              >
+                Grouped by Transaction
+              </button>
+            </div>
+
+            {displayMode === 'individual' && <ViewModeSwitcher />}
           </div>
         </div>
 
@@ -909,9 +1068,15 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
           </div>
         ) : (
           <>
-            {viewMode === 'table' && <TableView />}
-            {viewMode === 'grid' && <GridView />}
-            {viewMode === 'list' && <ListView />}
+            {displayMode === 'grouped' ? (
+              <GroupedTableView />
+            ) : (
+              <>
+                {viewMode === 'table' && <TableView />}
+                {viewMode === 'grid' && <GridView />}
+                {viewMode === 'list' && <ListView />}
+              </>
+            )}
           </>
         )}
       </div>
