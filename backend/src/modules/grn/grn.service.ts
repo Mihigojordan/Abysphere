@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GoodsReceivingNote, GRNStatus, InspectionStatus, QualityStatus, Prisma, Unit } from '../../../generated/prisma';
+import { generateSku } from '../../common/utils/sku.util';
 
 export interface CreateGRNDto {
     purchaseOrderId: string;
@@ -393,9 +394,22 @@ export class GRNService {
                     ? (item.unit as Unit)
                     : Unit.PCS;
 
-                // Check if StockIn with same productName already exists — merge if so
+                // Ensure every item has a SKU — generate one if missing so we
+                // never insert a null that could later cause a collision.
+                const effectiveSku: string =
+                    item.productSku && item.productSku.trim() !== ''
+                        ? item.productSku
+                        : generateSku(item.productName);
+
+                // De-dup: check existing StockIn by SKU OR productName
+                // (same store) so we never hit the unique constraint.
                 const existingStockIn = await this.prisma.stockIn.findFirst({
-                    where: { productName: item.productName },
+                    where: {
+                        OR: [
+                            { sku: effectiveSku },
+                            { productName: item.productName },
+                        ],
+                    },
                 });
 
                 if (existingStockIn) {
@@ -431,11 +445,12 @@ export class GRNService {
                         },
                     });
                 } else {
-                    // Create new StockIn entry
+                    // Create new StockIn entry — use effectiveSku so the value
+                    // is always non-null and guaranteed unique at this point.
                     const stockIn = await this.prisma.stockIn.create({
                         data: {
                             productName: item.productName,
-                            sku: item.productSku,
+                            sku: effectiveSku,
                             quantity: Number(item.acceptedQty),
                             unit: unitValue,
                             unitPrice: Number(item.unitCost),
@@ -468,7 +483,7 @@ export class GRNService {
                                 batchNumber: item.batchNumber,
                                 serialNumbers: item.serialNumbers,
                                 productName: item.productName,
-                                productSku: item.productSku,
+                                productSku: effectiveSku,
                                 grnItemId: item.id,
                                 manufacturingDate: item.manufacturingDate,
                                 expiryDate: item.expiryDate,

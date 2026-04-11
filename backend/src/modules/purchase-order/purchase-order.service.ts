@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PurchaseOrder, POStatus, Prisma } from '../../../generated/prisma';
+import { generateSku } from '../../common/utils/sku.util';
 
 export interface CreatePODto {
     supplierId: string;
@@ -125,7 +126,7 @@ export class PurchaseOrderService {
 
                         return {
                             productName: item.productName,
-                            productSku: item.productSku,
+                            productSku: item.productSku ?? generateSku(item.productName),
                             description: item.description,
                             orderedQty: item.orderedQty,
                             receivedQty: 0,
@@ -337,7 +338,7 @@ export class PurchaseOrderService {
 
                                 return {
                                     productName: item.productName,
-                                    productSku: item.productSku,
+                                    productSku: item.productSku ?? generateSku(item.productName),
                                     description: item.description,
                                     orderedQty: item.orderedQty,
                                     receivedQty: 0,
