@@ -442,6 +442,7 @@ export const rw = {
         allTypes: 'Amoko Yose',
         debit: 'Iyasohotse (Debit)',
         credit: 'Iyinjiye (Credit)',
+        custom: 'Ubwite',
         totalDebit: 'Yose Yasohotse',
         totalCredit: 'Yose Yinjiye',
         totalTransactions: 'Ibikorwa Byose',

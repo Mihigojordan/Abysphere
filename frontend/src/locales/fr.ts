@@ -446,6 +446,7 @@ export const fr = {
         allTypes: 'Tous les types',
         debit: 'Débit',
         credit: 'Crédit',
+        custom: 'Personnalisé',
         totalDebit: 'Débit Total',
         totalCredit: 'Crédit Total',
         totalTransactions: 'Total des Transactions',
@@ -468,6 +469,7 @@ export const fr = {
             method: 'Méthode de Paiement',
             category: 'Catégorie',
             description: 'Description',
+            customTypePlaceholder: 'ex. Virement, Remboursement, Interne...',
             placeholders: {
                 title: 'Loyer, Électricité, Paiement Client...',
                 amount: 'Entrez le montant...',

@@ -1,7 +1,7 @@
 import api from '../api/api';
 import { AxiosError, type AxiosResponse } from 'axios';
 
-export type ExpenseType = 'DEBIT' | 'CREDIT';
+export type ExpenseType = 'DEBIT' | 'CREDIT' | 'CUSTOM';
 
 export interface Expense {
     id?: string;
@@ -12,6 +12,7 @@ export interface Expense {
     date: string | Date;
     paymentMethod?: string;
     type: ExpenseType;
+    customTypeName?: string;
     adminId?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -102,7 +103,11 @@ class ExpenseService {
         }
 
         if (!expenseData.type) {
-            errors.push('Expense type (DEBIT/CREDIT) is required');
+            errors.push('Expense type is required');
+        }
+
+        if (expenseData.type === 'CUSTOM' && (!expenseData.customTypeName || expenseData.customTypeName.trim() === '')) {
+            errors.push('Custom type name is required');
         }
 
         return {

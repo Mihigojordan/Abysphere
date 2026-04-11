@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '../../../generated/prisma';
 
@@ -6,7 +6,14 @@ import { Prisma } from '../../../generated/prisma';
 export class ExpenseManagementService {
     constructor(private prisma: PrismaService) { }
 
+    private validateCustomType(data: any) {
+        if (data.type === 'CUSTOM' && (!data.customTypeName || !data.customTypeName.trim())) {
+            throw new BadRequestException('Custom type name is required when type is CUSTOM');
+        }
+    }
+
     async create(adminId: string, data: any) {
+        this.validateCustomType(data);
         return this.prisma.expense.create({
             data: {
                 ...data,
@@ -32,6 +39,7 @@ export class ExpenseManagementService {
     }
 
     async update(adminId: string, id: string, data: any) {
+        this.validateCustomType(data);
         await this.findOne(adminId, id);
         return this.prisma.expense.update({
             where: { id },

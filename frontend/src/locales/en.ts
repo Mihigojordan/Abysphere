@@ -446,6 +446,7 @@ export const en = {
         allTypes: 'All Types',
         debit: 'Debit',
         credit: 'Credit',
+        custom: 'Custom',
         totalDebit: 'Total Debit',
         totalCredit: 'Total Credit',
         totalTransactions: 'Total Transactions',
@@ -468,6 +469,7 @@ export const en = {
             method: 'Payment Method',
             category: 'Category',
             description: 'Description',
+            customTypePlaceholder: 'e.g. Transfer, Refund, Internal...',
             placeholders: {
                 title: 'Rent, Electricity, Client Payment...',
                 amount: 'Enter amount...',

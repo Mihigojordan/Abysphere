@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Expense` ADD COLUMN `customTypeName` VARCHAR(191) NULL,
+    MODIFY `type` ENUM('DEBIT', 'CREDIT', 'CUSTOM') NOT NULL DEFAULT 'DEBIT';

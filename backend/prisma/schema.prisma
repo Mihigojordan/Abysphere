@@ -1284,8 +1284,9 @@ model Expense {
   category      String?
   date          DateTime
   paymentMethod String?
-  type          ExpenseType @default(DEBIT)
-  adminId       String
+  type           ExpenseType @default(DEBIT)
+  customTypeName String?
+  adminId        String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   admin         Admin       @relation(fields: [adminId], references: [id], onDelete: Cascade)
@@ -1598,6 +1599,7 @@ enum AlertSeverity {
 enum ExpenseType {
   DEBIT
   CREDIT
+  CUSTOM
 }
 
 enum Debit_status {

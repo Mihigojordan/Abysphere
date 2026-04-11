@@ -71,6 +71,7 @@ const ExpenseManagement: React.FC = () => {
         amount: undefined,
         category: 'Others',
         type: 'DEBIT',
+        customTypeName: '',
         paymentMethod: 'CASH',
         date: new Date().toISOString().split('T')[0]
     });
@@ -241,6 +242,7 @@ const ExpenseManagement: React.FC = () => {
                                         amount: undefined,
                                         category: 'Others',
                                         type: 'DEBIT',
+                                        customTypeName: '',
                                         paymentMethod: 'CASH',
                                         date: new Date().toISOString().split('T')[0]
                                     });
@@ -298,7 +300,7 @@ const ExpenseManagement: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-hide">
-                            {['ALL', 'DEBIT', 'CREDIT'].map((t) => (
+                            {['ALL', 'DEBIT', 'CREDIT', 'CUSTOM'].map((t) => (
                                 <button
                                     key={t}
                                     onClick={() => setActiveType(t as any)}
@@ -307,7 +309,7 @@ const ExpenseManagement: React.FC = () => {
                                         : 'bg-theme-bg-tertiary text-theme-text-secondary hover:text-theme-text-primary border border-theme-border'
                                         }`}
                                 >
-                                    {t === 'ALL' ? _t('expense.allTypes') : t === 'DEBIT' ? _t('expense.debit') : _t('expense.credit')}
+                                    {t === 'ALL' ? _t('expense.allTypes') : t === 'DEBIT' ? _t('expense.debit') : t === 'CREDIT' ? _t('expense.credit') : _t('expense.custom')}
                                 </button>
                             ))}
                             <div className="h-6 w-px bg-theme-border mx-1" />
@@ -370,13 +372,15 @@ const ExpenseManagement: React.FC = () => {
                                             <td className="py-2.5 px-4">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${exp.type === 'DEBIT'
                                                     ? 'bg-red-500/10 text-red-600 border border-red-500/20'
-                                                    : 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                                    : exp.type === 'CREDIT'
+                                                        ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                                        : 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
                                                     }`}>
-                                                    {exp.type === 'DEBIT' ? _t('expense.debit') : _t('expense.credit')}
+                                                    {exp.type === 'DEBIT' ? _t('expense.debit') : exp.type === 'CREDIT' ? _t('expense.credit') : (exp.customTypeName || _t('expense.custom'))}
                                                 </span>
                                             </td>
-                                            <td className={`py-2.5 px-4 text-right font-bold ${exp.type === 'DEBIT' ? 'text-red-600' : 'text-green-600'}`}>
-                                                {exp.type === 'DEBIT' ? '-' : '+'}{formatCurrency(Number(exp.amount))}
+                                            <td className={`py-2.5 px-4 text-right font-bold ${exp.type === 'DEBIT' ? 'text-red-600' : exp.type === 'CREDIT' ? 'text-green-600' : 'text-blue-600'}`}>
+                                                {exp.type === 'DEBIT' ? '-' : exp.type === 'CREDIT' ? '+' : ''}{formatCurrency(Number(exp.amount))}
                                             </td>
                                             <td className="py-2.5 px-4 text-right whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-1">
@@ -443,9 +447,9 @@ const ExpenseManagement: React.FC = () => {
                                         <Calendar className="w-2.5 h-2.5" />
                                         {formatDate(exp.date)}
                                     </span>
-                                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${exp.type === 'DEBIT' ? 'bg-red-500/10 text-red-600' : 'bg-green-500/10 text-green-600'
+                                    <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${exp.type === 'DEBIT' ? 'bg-red-500/10 text-red-600' : exp.type === 'CREDIT' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'
                                         }`}>
-                                        {exp.type === 'DEBIT' ? _t('expense.debit') : _t('expense.credit')}
+                                        {exp.type === 'DEBIT' ? _t('expense.debit') : exp.type === 'CREDIT' ? _t('expense.credit') : (exp.customTypeName || _t('expense.custom'))}
                                     </span>
                                 </div>
                                 <h4 className="font-bold text-theme-text-primary text-xs line-clamp-1 mb-1">{exp.title}</h4>
@@ -460,8 +464,8 @@ const ExpenseManagement: React.FC = () => {
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between border-t border-theme-border pt-2 mt-auto">
-                                    <p className={`font-bold text-sm ${exp.type === 'DEBIT' ? 'text-red-600' : 'text-green-600'}`}>
-                                        {exp.type === 'DEBIT' ? '-' : '+'}{formatCurrency(Number(exp.amount))}
+                                    <p className={`font-bold text-sm ${exp.type === 'DEBIT' ? 'text-red-600' : exp.type === 'CREDIT' ? 'text-green-600' : 'text-blue-600'}`}>
+                                        {exp.type === 'DEBIT' ? '-' : exp.type === 'CREDIT' ? '+' : ''}{formatCurrency(Number(exp.amount))}
                                     </p>
                                     <div className="flex items-center gap-1">
                                         <button
@@ -516,20 +520,30 @@ const ExpenseManagement: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-semibold text-theme-text-secondary uppercase">{_t('expense.form.type')}</label>
                                         <div className="flex gap-2 p-1 bg-theme-bg-tertiary rounded border border-theme-border">
-                                            {(['DEBIT', 'CREDIT'] as ExpenseType[]).map(type => (
+                                            {(['DEBIT', 'CREDIT', 'CUSTOM'] as ExpenseType[]).map(type => (
                                                 <button
                                                     key={type}
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, type })}
+                                                    onClick={() => setFormData({ ...formData, type, customTypeName: '' })}
                                                     className={`flex-1 py-1 rounded text-[10px] font-bold transition-all ${formData.type === type
-                                                        ? type === 'DEBIT' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+                                                        ? type === 'DEBIT' ? 'bg-red-500 text-white' : type === 'CREDIT' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
                                                         : 'text-theme-text-secondary hover:bg-theme-bg-primary'
                                                         }`}
                                                 >
-                                                    {type === 'DEBIT' ? _t('expense.debit') : _t('expense.credit')}
+                                                    {type === 'DEBIT' ? _t('expense.debit') : type === 'CREDIT' ? _t('expense.credit') : _t('expense.custom')}
                                                 </button>
                                             ))}
                                         </div>
+                                        {formData.type === 'CUSTOM' && (
+                                            <input
+                                                type="text"
+                                                placeholder={_t('expense.form.customTypePlaceholder')}
+                                                value={formData.customTypeName || ''}
+                                                onChange={(e) => setFormData({ ...formData, customTypeName: e.target.value })}
+                                                maxLength={30}
+                                                className="w-full mt-2 px-3 py-1.5 bg-theme-bg-tertiary border border-blue-500/50 rounded focus:ring-1 focus:ring-blue-500 outline-none text-theme-text-primary text-[11px]"
+                                            />
+                                        )}
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-semibold text-theme-text-secondary uppercase">{_t('expense.form.date')}</label>
