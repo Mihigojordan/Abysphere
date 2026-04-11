@@ -147,7 +147,7 @@ const UpsertSalesReturnPage: React.FC = () => {
             const product = soldProducts.find(p => p.id === stockoutId);
             if (product) {
                 const unitPrice = product.soldPrice
-                    ? parseFloat(product.soldPrice) / product.quantity
+                    ? parseFloat(product.soldPrice)
                     : 0;
                 setSelectedItems(prev => [...prev, {
                     stockoutId,

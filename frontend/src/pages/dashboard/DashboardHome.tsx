@@ -3,7 +3,7 @@ import {
   Users, Package, DollarSign, TrendingUp, AlertCircle,
   RefreshCw,
   TrendingDown, Activity, ArrowUpRight, ArrowDownRight,
-  Calendar, ChevronDown, X
+  Calendar, ChevronDown, X, Boxes
 } from 'lucide-react';
 
 import clientService from '../../services/clientService';
@@ -464,6 +464,14 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
             icon={Users}
             color="bg-primary-500"
             link="/admin/dashboard/client-management"
+          />
+          <StatCard
+            title={t('dashboard.totalAssets') || 'Total Assets'}
+            value={`${formatCurrency(stats.totalAssets)}`}
+            icon={Boxes}
+            color="bg-primary-500"
+            subtitle={t('dashboard.assetsValue') || 'Total Asset Value'}
+            link="/admin/dashboard/asset-management"
           />
           <StatCard
             title={t('dashboard.stockItems')}
