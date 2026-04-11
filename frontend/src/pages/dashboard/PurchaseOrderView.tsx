@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-    Printer, 
-    Download, 
+import {
+    Printer,
+    Download,
     Loader2,
     AlertCircle,
     ArrowLeft
 } from 'lucide-react';
 import purchaseOrderService from '../../services/purchaseOrderService';
 import useAdminAuth from '../../context/AdminAuthContext';
+import pmsLogo from '../../assets/erasebg-transformed.png';
 
 interface PurchaseOrder {
     id: string;
@@ -125,7 +126,8 @@ const PurchaseOrderView: React.FC = () => {
         <div className="po-view-container">
             <style>{`
                 .po-view-container {
-                    --primary: #2563eb;
+                    --primary: #1e5fa8;
+                    --primary-light: #5fa3e8;
                     --ink: #0f172a;
                     --ink-2: #475569;
                     --ink-3: #94a3b8;
@@ -151,9 +153,13 @@ const PurchaseOrderView: React.FC = () => {
                     background: var(--white);
                     max-width: 880px;
                     margin: 0 auto;
-                    border-top: 5px solid var(--primary);
                     box-shadow: 0 8px 48px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
                     overflow: hidden;
+                }
+
+                .letterhead-bar {
+                    height: 8px;
+                    background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%);
                 }
 
                 .toolbar {
@@ -215,22 +221,37 @@ const PurchaseOrderView: React.FC = () => {
                     display: flex;
                     align-items: center;
                     gap: 12px;
-                    margin-bottom: 20px;
+                    margin-bottom: 6px;
                 }
-                .brand-icon {
-                    width: 16px; height: 16px;
-                    background: var(--primary);
-                    display: flex; align-items: center; justify-content: center;
-                    border-radius: 3px;
-                }
-                .brand-icon svg {
-                    width: 8px; height: 8px; color: #fff;
+                .brand-logo {
+                    height: 52px;
+                    width: auto;
+                    object-fit: contain;
                 }
                 .brand-name {
                     font-family: 'Instrument Serif', serif;
                     font-size: 15px;
                     letter-spacing: -.01em;
                     color: var(--ink);
+                }
+                .brand-tagline {
+                    font-size: 11px;
+                    font-style: italic;
+                    color: #5fa3e8;
+                    margin: 0 0 16px;
+                }
+
+                .doc-relative { position: relative; }
+                .doc-content { position: relative; z-index: 1; }
+                .watermark {
+                    position: absolute;
+                    top: 50%; left: 50%;
+                    transform: translate(-50%, -50%);
+                    opacity: 0.06;
+                    width: 500px;
+                    pointer-events: none;
+                    z-index: 0;
+                    object-fit: contain;
                 }
 
                 .company-meta { display: flex; flex-direction: column; gap: 2px; }
@@ -532,6 +553,9 @@ const PurchaseOrderView: React.FC = () => {
             `}</style>
 
             <div className="sheet">
+                {/* PMS LETTERHEAD BAR */}
+                <div className="letterhead-bar" />
+
                 {/* TOOLBAR */}
                 <div className="toolbar print:hidden">
                     <button className="toolbar-back" onClick={() => navigate(`/${role}/dashboard/purchase-management`)}>
@@ -551,32 +575,36 @@ const PurchaseOrderView: React.FC = () => {
                 </div>
 
                 {/* DOCUMENT */}
-                <div className="doc">
+                <div className="doc doc-relative">
+                    <img src={pmsLogo} alt="" className="watermark" />
+                    <div className="doc-content">
                     {/* HEAD */}
                     <div className="head">
                         <div>
                             <div className="brand-mark">
-                                <div className="brand-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                                </div>
-                                <span className="brand-name">{adminData?.companyName ?? 'PMS Technologies'}</span>
+                                <img src={pmsLogo} alt="PMS Logo" className="brand-logo" />
                             </div>
+                            <p className="brand-tagline">Customer is an asset</p>
                             <div className="company-meta">
                                 <div className="meta-row">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                    {adminData?.companyAddress ?? 'Kigali Special Economic Zone, Kigali, Rwanda'}
+                                    Kigali, Rwanda
                                 </div>
                                 <div className="meta-row">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6.29 6.29l1.84-1.84a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                    {adminData?.companyPhone ?? '+250 788 000 000'}
+                                    0784544729 / 0788347094
                                 </div>
                                 <div className="meta-row">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                                    {adminData?.adminEmail ?? 'procurement@pms.rw'}
+                                    papemessenger@gmail.com
+                                </div>
+                                <div className="meta-row">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                    Acc BK: 00048-06952213-37 &nbsp;|&nbsp; Acc KCB: 4490862733
                                 </div>
                                 <div className="meta-tin">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                                    TIN: &nbsp;{adminData?.companyTin ?? '123 456 789'}
+                                    TIN: &nbsp;107510116
                                 </div>
                             </div>
                         </div>
@@ -598,13 +626,13 @@ const PurchaseOrderView: React.FC = () => {
                     <div className="parties">
                         <div>
                             <p className="party-label">Issued By</p>
-                            <p className="party-name">{adminData?.companyName ?? 'PMS Technologies'}</p>
+                            <p className="party-name">PAPETERIE MESSENGER SUPPLY Ltd</p>
                             <p className="party-detail">
-                                {adminData?.companyAddress ?? 'Kigali Special Economic Zone, Kigali, Rwanda'}<br />
-                                {adminData?.adminEmail ?? 'procurement@pms.rw'}<br />
-                                {adminData?.companyPhone ?? '+250 788 000 000'}
+                                Kigali, Rwanda<br />
+                                papemessenger@gmail.com<br />
+                                0784544729 / 0788347094
                             </p>
-                            <p className="party-tin">TIN: {adminData?.companyTin ?? '123 456 789'}</p>
+                            <p className="party-tin">TIN: 107510116</p>
                         </div>
                         <div>
                             <p className="party-label">Order From</p>
@@ -684,15 +712,17 @@ const PurchaseOrderView: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                    </div>{/* end doc-content */}
                 </div>
 
                 {/* DOC FOOTER */}
+                <div className="letterhead-bar" />
                 <div className="doc-foot">
                     <div className="doc-foot-left">
                         <div className="dot"></div>
                         <p>System Generated · PMS ERP v2.0</p>
                     </div>
-                    <p>Valid without physical signature in electronic format</p>
+                    <p>papmes.com &nbsp;|&nbsp; papemessenger@gmail.com</p>
                 </div>
             </div>
 

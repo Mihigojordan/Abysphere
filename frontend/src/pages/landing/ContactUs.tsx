@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import headerImg from '../../assets/header.jpeg';
 import emailjs from '@emailjs/browser';
-import { MapPin, Clock, Phone, Mail, Send, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Clock, Phone, Mail, Send, MessageSquare, CheckCircle, AlertCircle, Copy, Check } from 'lucide-react';
 
 // ─── EmailJS credentials (replace with your real ones) ────────────────────────
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
@@ -14,6 +14,13 @@ type Status = 'idle' | 'sending' | 'success' | 'error';
 const ContactPage = () => {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>('idle');
+  const [copiedPhone, setCopiedPhone] = useState<string>('');
+
+  const copyPhone = (number: string) => {
+    navigator.clipboard.writeText(number);
+    setCopiedPhone(number);
+    setTimeout(() => setCopiedPhone(''), 2000);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,19 +140,69 @@ const ContactPage = () => {
             </p>
           </div>
 
-          {/* Info cards */}
+          {/* Phone card — two numbers with copy */}
+          <div
+            style={{
+              background: 'var(--aby-surface)',
+              border: '1px solid var(--aby-border)',
+              padding: '1.25rem 1.5rem',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-start',
+            }}
+          >
+            <span style={{ color: 'var(--aby-accent)', marginTop: '1px', flexShrink: 0 }}>
+              <Phone size={20} />
+            </span>
+            <div style={{ flex: 1 }}>
+              <p
+                className="font-worksans"
+                style={{ fontSize: '0.72rem', fontWeight: 500, color: 'var(--aby-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', margin: '0 0 0.4rem' }}
+              >
+                Phone
+              </p>
+              {['0784544729', '0788347094'].map((num) => (
+                <div key={num} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <a
+                    href={`tel:+250${num}`}
+                    className="font-worksans"
+                    style={{ fontSize: '0.92rem', color: 'var(--aby-dark)', textDecoration: 'none', transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--aby-accent)')}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--aby-dark)')}
+                  >
+                    {num}
+                  </a>
+                  <button
+                    onClick={() => copyPhone(num)}
+                    title="Copy number"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      color: copiedPhone === num ? '#16a34a' : 'var(--aby-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'color 0.2s',
+                    }}
+                  >
+                    {copiedPhone === num ? <Check size={13} /> : <Copy size={13} />}
+                  </button>
+                  {copiedPhone === num && (
+                    <span className="font-worksans" style={{ fontSize: '0.7rem', color: '#16a34a' }}>Copied!</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Remaining info cards */}
           {[
-            {
-              icon: <Phone size={20} />,
-              label: 'Phone',
-              value: '+250 723 683 518',
-              link: 'tel:+250723683518',
-            },
             {
               icon: <Mail size={20} />,
               label: 'Email',
-              value: 'info@papeterie.rw',
-              link: 'mailto:info@papeterie.rw',
+              value: 'papemessenger@gmail.com',
+              link: 'mailto:papemessenger@gmail.com',
             },
             {
               icon: <MapPin size={20} />,
@@ -205,7 +262,7 @@ const ContactPage = () => {
 
           {/* WhatsApp quick CTA */}
           <a
-            href="https://wa.me/250723683518"
+            href="https://wa.me/250784544729"
             target="_blank"
             rel="noopener noreferrer"
             className="font-worksans"

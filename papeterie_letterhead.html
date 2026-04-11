@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAPETERIE MESSENGER SUPPLY Ltd - Letterhead</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 0;
+        }
+
+        .letterhead {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            padding: 0;
+        }
+
+        /* Header Section */
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 8px solid #1e5fa8;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Logo Section - Left Side */
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .logo-placeholder {
+            width: 180px;
+            height: 120px;
+            border: 2px dashed #cccccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: #5fa3e8;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .tin-small {
+            font-size: 12px;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        /* Company Info - Right Side */
+        .company-info {
+            text-align: right;
+            flex: 1;
+            margin-left: 30px;
+        }
+
+        .company-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #5fa3e8;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .company-details {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .company-details strong {
+            color: #1e5fa8;
+            font-weight: bold;
+        }
+
+        /* Main Content Area with Watermark */
+        .content-area {
+            min-height: 600px;
+            position: relative;
+            padding: 40px 30px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            width: 600px;
+            height: 600px;
+        }
+
+        .watermark-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: grayscale(100%);
+        }
+
+        .watermark-placeholder {
+            width: 100%;
+            height: 100%;
+            border: 3px dashed #cccccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 24px;
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        /* Footer Section */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 8px solid #1e5fa8;
+            padding: 15px 30px;
+            text-align: center;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%);
+        }
+
+        .footer-content {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .footer-content a {
+            color: #1e5fa8;
+            text-decoration: none;
+        }
+
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            margin: 0 10px;
+            color: #1e5fa8;
+            font-weight: bold;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .letterhead {
+                width: 100%;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="letterhead">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <!-- Logo Section -->
+                <div class="logo-section">
+                    <div class="logo-placeholder">
+                        PMS LOGO<br>PLACE HERE
+                    </div>
+                    <div class="tagline">Customer is an asset</div>
+                    <div class="tin-small">TIN: 107510116</div>
+                </div>
+
+                <!-- Company Information -->
+                <div class="company-info">
+                    <div class="company-name">PAPETERIE MESSENGER SUPPLY Ltd</div>
+                    <div class="company-details">
+                        <strong>TVA/TIN: 107510116 TEL: 0784544729/0788347094</strong><br>
+                        Acc No: 00048-06952213-37/BK<br>
+                        Acc KCB: 4490862733<br>
+                        Kigali - Rwanda
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="content-area">
+            <!-- Large Logo Watermark -->
+            <div class="watermark">
+                <!-- Replace this placeholder with: <img src="path-to-your-pms-logo.png" alt="PMS Logo" class="watermark-logo"> -->
+                <div class="watermark-placeholder">
+                    PMS LOGO<br>WATERMARK<br>PLACE HERE
+                </div>
+            </div>
+
+            <!-- Your letter content goes here -->
+            
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                Email: <a href="mailto:papemessenger@gmail.com">papemessenger@gmail.com</a>
+                <span class="divider">I</span>
+                Web: <a href="http://www.papmes.com">http://www.papmes.com</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

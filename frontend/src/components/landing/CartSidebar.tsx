@@ -303,7 +303,7 @@ const CartSidebar = () => {
                   lines.join('\n') +
                   total +
                   `\n\nPlease confirm availability and delivery details. Thank you!`;
-                const waUrl = `https://wa.me/250723683518?text=${encodeURIComponent(message)}`;
+                const waUrl = `https://wa.me/250784544729?text=${encodeURIComponent(message)}`;
                 window.open(waUrl, '_blank', 'noopener,noreferrer');
                 setTimeout(() => {
                   clearCart();
