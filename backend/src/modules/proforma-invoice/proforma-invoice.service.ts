@@ -420,7 +420,7 @@ export class ProformaInvoiceService {
         <!-- Header -->
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Abysphere PMS</p>
+            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Papeterie Messenger Supply Ltd</p>
             <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#ffffff;">Proforma Invoice</h1>
             <p style="margin:0;font-size:14px;color:#93c5fd;font-weight:600;">${proforma.proformaNumber}</p>
           </td>
@@ -497,7 +497,7 @@ export class ProformaInvoiceService {
               This is a proforma invoice and is not a tax invoice. Payment is not due until a formal invoice is issued.
             </p>
             <p style="margin:0;font-size:12px;color:#94a3b8;">
-              © ${new Date().getFullYear()} Abysphere PMS · This is an automated message, please do not reply.
+              © ${new Date().getFullYear()} Papeterie Messenger Supply Ltd · This is an automated message, please do not reply.
             </p>
           </td>
         </tr>

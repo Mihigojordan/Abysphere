@@ -153,7 +153,7 @@ export class EmailService {
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(29,78,216,0.12);">
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Abysphere PMS</p>
+            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Papeterie Messenger Supply Ltd</p>
             <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;">Welcome Aboard!</h1>
           </td>
         </tr>
@@ -172,7 +172,7 @@ export class EmailService {
         </tr>
         <tr>
           <td style="background:#f0f6ff;padding:20px 32px;border-top:1px solid #bfdbfe;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Abysphere PMS · This is an automated message, please do not reply.</p>
+            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Papeterie Messenger Supply Ltd · This is an automated message, please do not reply.</p>
           </td>
         </tr>
       </table>
@@ -211,7 +211,7 @@ export class EmailService {
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(29,78,216,0.12);">
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Abysphere PMS</p>
+            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Papeterie Messenger Supply Ltd</p>
             <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;">Password Reset Request</h1>
           </td>
         </tr>
@@ -229,7 +229,7 @@ export class EmailService {
         </tr>
         <tr>
           <td style="background:#f0f6ff;padding:20px 32px;border-top:1px solid #bfdbfe;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Abysphere PMS · This is an automated message, please do not reply.</p>
+            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Papeterie Messenger Supply Ltd · This is an automated message, please do not reply.</p>
           </td>
         </tr>
       </table>
@@ -275,7 +275,7 @@ export class EmailService {
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(29,78,216,0.12);">
         <tr>
           <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Abysphere PMS</p>
+            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Papeterie Messenger Supply Ltd</p>
             <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#ffffff;">Payment Received</h1>
             <p style="margin:0;font-size:28px;font-weight:800;color:#4ade80;">${amountPaid}</p>
           </td>
@@ -310,7 +310,7 @@ export class EmailService {
         </tr>
         <tr>
           <td style="background:#f0f6ff;padding:20px 32px;border-top:1px solid #bfdbfe;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Abysphere PMS · This is an automated message, please do not reply.</p>
+            <p style="margin:0;font-size:12px;color:#94a3b8;">© ${new Date().getFullYear()} Papeterie Messenger Supply Ltd · This is an automated message, please do not reply.</p>
           </td>
         </tr>
       </table>

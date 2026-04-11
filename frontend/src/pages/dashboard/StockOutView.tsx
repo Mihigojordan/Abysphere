@@ -115,7 +115,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
     const itemName = sale.stockin?.product?.productName || sale.stockin?.itemName || sale.externalItemName || 'Item';
     const sku = sale.stockin?.sku || sale.externalSku || '—';
     const lineTotal = sale.quantity * sale.soldPrice;
-    const companyName = (adminData as any)?.companyName || (adminData as any)?.adminName || 'Abysphere PMS';
+    const companyName = (adminData as any)?.companyName || (adminData as any)?.adminName || 'Papeterie Messenger Supply Ltd';
 
     return (
         <div style={{ background: '#f0f6ff', minHeight: '100vh', padding: '32px 16px', fontFamily: 'Arial, sans-serif' }}>
@@ -156,7 +156,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                             <p style={{ margin: 0, fontSize: 11, letterSpacing: '0.15em', color: '#bfdbfe', textTransform: 'uppercase', marginBottom: 4 }}>
-                                Abysphere PMS
+                                Papeterie Messenger Supply Ltd
                             </p>
                             <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
                                 {companyName}
