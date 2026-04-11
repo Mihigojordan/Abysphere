@@ -359,13 +359,30 @@ export class GRNService {
             throw new BadRequestException('Only pending GRNs can be approved');
         }
 
-        // Resolve default category and store for StockIn creation
-        const defaultCategory = await this.prisma.stockCategory.findFirst();
-        const defaultStore = await this.prisma.store.findFirst();
-        if (!defaultCategory || !defaultStore) {
-            throw new BadRequestException(
-                'Cannot approve GRN: please configure at least one stock category and store first.',
-            );
+        // Resolve default category and store for StockIn creation — auto-create if missing
+        let defaultCategory = await this.prisma.stockCategory.findFirst();
+        if (!defaultCategory) {
+            defaultCategory = await this.prisma.stockCategory.create({
+                data: { name: 'General', description: 'Auto-created default category' },
+            });
+        }
+
+        let defaultStore = await this.prisma.store.findFirst();
+        if (!defaultStore) {
+            const anyAdmin = await this.prisma.admin.findFirst();
+            if (!anyAdmin) {
+                throw new BadRequestException(
+                    'Cannot auto-create store: please create an admin account first.',
+                );
+            }
+            defaultStore = await this.prisma.store.create({
+                data: {
+                    code: 'MAIN',
+                    name: 'Main Store',
+                    location: 'Default Location',
+                    adminId: anyAdmin.id,
+                },
+            });
         }
 
         // Create stock entries for each accepted item
@@ -376,74 +393,113 @@ export class GRNService {
                     ? (item.unit as Unit)
                     : Unit.PCS;
 
-                // Create StockIn entry
-                const stockIn = await this.prisma.stockIn.create({
-                    data: {
-                        productName: item.productName,
-                        sku: item.productSku,
-                        quantity: Number(item.acceptedQty),
-                        unit: unitValue,
-                        unitPrice: Number(item.unitCost),
-                        landedCost: Number(item.landedCost),
-                        supplier: grn.supplier.name,
-                        location: item.location?.name,
-                        description: item.description,
-                        expiryDate: item.expiryDate,
-                        batchNumber: item.batchNumber,
-                        serialNumbers: item.serialNumbers,
-                        manufacturingDate: item.manufacturingDate,
-                        inspectionStatus: grn.inspectionStatus,
-                        qualityNotes: item.qualityNotes,
-                        stockcategoryId: defaultCategory.id,
-                        storeId: defaultStore.id,
-                        grnItemId: item.id,
-                    },
+                // Check if StockIn with same productName already exists — merge if so
+                const existingStockIn = await this.prisma.stockIn.findFirst({
+                    where: { productName: item.productName },
                 });
 
-                // Link stockIn to GRN item
-                await this.prisma.gRNItem.update({
-                    where: { id: item.id },
-                    data: { stockInId: stockIn.id },
-                });
+                if (existingStockIn) {
+                    // Merge: add quantity to existing StockIn
+                    const qtyBefore = existingStockIn.quantity;
+                    const qtyAfter = qtyBefore + Number(item.acceptedQty);
 
-                // Create batch tracking if batch number provided
-                if (item.batchNumber) {
-                    await this.prisma.batchTracking.create({
+                    await this.prisma.stockIn.update({
+                        where: { id: existingStockIn.id },
+                        data: { quantity: qtyAfter },
+                    });
+
+                    // Link GRN item to the existing StockIn (if not already linked)
+                    await this.prisma.gRNItem.update({
+                        where: { id: item.id },
+                        data: { stockInId: existingStockIn.id },
+                    });
+
+                    // Record stock history for the merge
+                    await this.prisma.stockHistory.create({
                         data: {
+                            stockInId: existingStockIn.id,
+                            grnId: grn.id,
+                            batchNumber: item.batchNumber,
+                            movementType: 'IN',
+                            sourceType: 'RECEIPT',
+                            qtyBefore,
+                            qtyChange: Number(item.acceptedQty),
+                            qtyAfter,
+                            unitPrice: Number(item.unitCost),
+                            costAtTransaction: Number(item.landedCost),
+                            notes: `Merged from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
+                        },
+                    });
+                } else {
+                    // Create new StockIn entry
+                    const stockIn = await this.prisma.stockIn.create({
+                        data: {
+                            productName: item.productName,
+                            sku: item.productSku,
+                            quantity: Number(item.acceptedQty),
+                            unit: unitValue,
+                            unitPrice: Number(item.unitCost),
+                            landedCost: Number(item.landedCost),
+                            supplier: grn.supplier.name,
+                            location: item.location?.name,
+                            description: item.description,
+                            expiryDate: item.expiryDate,
                             batchNumber: item.batchNumber,
                             serialNumbers: item.serialNumbers,
-                            productName: item.productName,
-                            productSku: item.productSku,
-                            grnItemId: item.id,
                             manufacturingDate: item.manufacturingDate,
-                            expiryDate: item.expiryDate,
-                            receivedDate: grn.receivedDate,
-                            initialQty: Number(item.acceptedQty),
-                            currentQty: Number(item.acceptedQty),
-                            consumedQty: 0,
-                            unit: item.unit,
-                            status: 'ACTIVE',
-                            locationId: item.locationId,
+                            inspectionStatus: grn.inspectionStatus,
+                            qualityNotes: item.qualityNotes,
+                            stockcategoryId: defaultCategory.id,
+                            storeId: defaultStore.id,
+                            grnItemId: item.id,
+                        },
+                    });
+
+                    // Link stockIn to GRN item
+                    await this.prisma.gRNItem.update({
+                        where: { id: item.id },
+                        data: { stockInId: stockIn.id },
+                    });
+
+                    // Create batch tracking if batch number provided
+                    if (item.batchNumber) {
+                        await this.prisma.batchTracking.create({
+                            data: {
+                                batchNumber: item.batchNumber,
+                                serialNumbers: item.serialNumbers,
+                                productName: item.productName,
+                                productSku: item.productSku,
+                                grnItemId: item.id,
+                                manufacturingDate: item.manufacturingDate,
+                                expiryDate: item.expiryDate,
+                                receivedDate: grn.receivedDate,
+                                initialQty: Number(item.acceptedQty),
+                                currentQty: Number(item.acceptedQty),
+                                consumedQty: 0,
+                                unit: item.unit,
+                                status: 'ACTIVE',
+                                locationId: item.locationId,
+                            },
+                        });
+                    }
+
+                    // Create stock history entry
+                    await this.prisma.stockHistory.create({
+                        data: {
+                            stockInId: stockIn.id,
+                            grnId: grn.id,
+                            batchNumber: item.batchNumber,
+                            movementType: 'IN',
+                            sourceType: 'RECEIPT',
+                            qtyBefore: 0,
+                            qtyChange: Number(item.acceptedQty),
+                            qtyAfter: Number(item.acceptedQty),
+                            unitPrice: Number(item.unitCost),
+                            costAtTransaction: Number(item.landedCost),
+                            notes: `Received from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
                         },
                     });
                 }
-
-                // Create stock history entry
-                await this.prisma.stockHistory.create({
-                    data: {
-                        stockInId: stockIn.id,
-                        grnId: grn.id,
-                        batchNumber: item.batchNumber,
-                        movementType: 'IN',
-                        sourceType: 'RECEIPT',
-                        qtyBefore: 0,
-                        qtyChange: Number(item.acceptedQty),
-                        qtyAfter: Number(item.acceptedQty),
-                        unitPrice: Number(item.unitCost),
-                        costAtTransaction: Number(item.landedCost),
-                        notes: `Received from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
-                    },
-                });
             }
         }
 

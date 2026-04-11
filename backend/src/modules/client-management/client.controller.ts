@@ -35,17 +35,19 @@ export class ClientController {
     ) {
         const adminId = req.admin!.id;
 
-        const existingClient = await this.prisma.client.findFirst({
-            where: {
-                adminId,
-                phone: body.phone,
-            },
-        });
+        if (body.phone) {
+            const existingClient = await this.prisma.client.findFirst({
+                where: {
+                    adminId,
+                    phone: body.phone,
+                },
+            });
 
-        if (existingClient) {
-            throw new ConflictException(
-                'Client already exists with provided phone',
-            );
+            if (existingClient) {
+                throw new ConflictException(
+                    'Client already exists with provided phone',
+                );
+            }
         }
 
         if (files?.profileImg?.[0]?.filename) {

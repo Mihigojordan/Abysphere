@@ -30,6 +30,7 @@ const CreatePOForm: React.FC = () => {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
     const [supplierSearch, setSupplierSearch] = useState('');
+    const [isCreatingSupplier, setIsCreatingSupplier] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -74,6 +75,23 @@ const CreatePOForm: React.FC = () => {
     const showToast = (message: string, type: 'success' | 'error') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000);
+    };
+
+    const handleCreateSupplier = async () => {
+        if (!supplierSearch.trim()) return;
+        setIsCreatingSupplier(true);
+        try {
+            const newSupplier = await supplierService.createSupplier({ name: supplierSearch.trim() });
+            const updated = await supplierService.getAllSuppliers();
+            setSuppliers(updated);
+            setFormData(prev => ({ ...prev, supplierId: String(newSupplier.id || '') }));
+            setIsSupplierDropdownOpen(false);
+            setSupplierSearch('');
+        } catch (err: any) {
+            showToast(err.response?.data?.message || 'Failed to create supplier', 'error');
+        } finally {
+            setIsCreatingSupplier(false);
+        }
     };
 
     const addItem = () => {

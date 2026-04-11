@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -75,6 +76,7 @@ interface Filters {
 type ViewMode = 'table' | 'grid' | 'list';
 
 const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) => {
+  const navigate = useNavigate();
   const [stockOuts, setStockOuts] = useState<StockOut[]>([]);
   const [filteredStockOuts, setFilteredStockOuts] = useState<StockOut[]>([]);
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
@@ -537,7 +539,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
       <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
         <Edit3 size={16} />
       </button>
-      <button onClick={() => openViewModal(item)} className="text-gray-500 hover:text-primary-600" title={t('stockOut.viewDetails')}>
+      <button onClick={() => navigate(`/${role}/dashboard/stockout-management/view/${item.id}`)} className="text-gray-500 hover:text-primary-600" title={t('stockOut.viewDetails')}>
         <Eye size={16} />
       </button>
       <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title={t('stockOut.delete')}>
