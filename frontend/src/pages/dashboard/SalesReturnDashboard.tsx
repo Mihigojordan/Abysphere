@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -21,8 +22,6 @@ import salesReturnService, {
   type SalesReturnResponse as ServiceSalesReturn,
   type SalesReturnStatistics,
 } from '../../services/salesReturnService';
-import UpsertSalesReturnModal from '../../components/dashboard/salesReturn/UpsertSalesReturnModal';
-import ViewSalesReturnModal from '../../components/dashboard/salesReturn/ViewSalesReturnModal';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import CreditNoteComponent from '../../components/dashboard/salesReturn/CreditNote';
@@ -80,13 +79,11 @@ type ViewMode = 'table' | 'grid' | 'list';
 // Component
 // ──────────────────────────────────────────────────────────────
 const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) => {
+  const navigate = useNavigate();
   // ── State ─────────────────────────────────────────────────────
   const [salesReturns, setSalesReturns] = useState<SalesReturn[]>([]);
   const [filteredSalesReturns, setFilteredSalesReturns] = useState<SalesReturn[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
-  const [selectedSalesReturn, setSelectedSalesReturn] = useState<SalesReturn | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   const [statistics, setStatistics] = useState<SalesReturnStatistics | null>(null);
@@ -229,43 +226,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
     setTimeout(() => setOperationStatus(null), duration);
   };
 
-  const handleAddSalesReturn = async (returnData: any): Promise<void> => {
-    setIsLoading(true);
-    try {
-      if (!adminData?.id && !employeeData?.id) throw new Error(t('salesReturn.authRequired'));
-      const requestData = {
-        transactionId: returnData.transactionId,
-        reason: returnData.reason,
-        createdAt: returnData.createdAt,
-        items: returnData.items || [],
-        adminId: role === 'admin' && adminData?.id ? adminData.id : undefined,
-        employeeId: role === 'employee' && employeeData?.id ? employeeData.id : undefined,
-      };
-      if (!requestData.transactionId) throw new Error(t('salesReturn.transactionIdRequired'));
-      if (!requestData.items?.length) throw new Error(t('salesReturn.itemRequired'));
-      const response = await salesReturnService.createSalesReturn(requestData);
-      updateSearchParam('salesReturnId', response.salesReturn.id);
-      setSalesReturnId(response.salesReturn.id);
-      setIsCreditNoteOpen(true);
-      await fetchSalesReturns();
-      setIsAddModalOpen(false);
-      showOperationStatus('success', t('salesReturn.success'));
-    } catch (error: any) {
-      const msg =
-        error.message.includes('required') ? t('salesReturn.fillFields') :
-          error.message.includes('authentication') ? t('salesReturn.loginAgain') :
-            `${t('salesReturn.error')}: ${error.message}`;
-      showOperationStatus('error', msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const openViewModal = (sr: SalesReturn): void => {
-    setSelectedSalesReturn(sr);
-    setIsViewModalOpen(true);
-  };
-
   const formatDate = (dateString: string): string =>
     new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -356,7 +316,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   const ActionButtons = ({ sr }: { sr: SalesReturn }) => (
     <div className="flex items-center justify-center gap-2">
       <button
-        onClick={() => openViewModal(sr)}
+        onClick={() => navigate(`/${role}/dashboard/sales-return-management/view/${sr.id}`)}
         className="p-1.5 text-theme-text-secondary hover:text-primary-600 hover:bg-primary-500/10 rounded transition-colors"
         title={t('salesReturn.viewDetails')}
       >
@@ -624,7 +584,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
                 <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.refresh')}</span>
               </button>
               <button
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={() => navigate(`/${role}/dashboard/sales-return-management/create`)}
                 className="flex-1 sm:flex-none flex items-center justify-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded shadow-sm transition-all active:scale-95"
               >
                 <Plus className="w-3 h-3" />
@@ -650,7 +610,7 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
               {searchTerm || filters.dateRange !== 'all' ? t('salesReturn.adjustFilters') : t('salesReturn.startProcessing')}
             </p>
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => navigate(`/${role}/dashboard/sales-return-management/create`)}
               className="bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold uppercase tracking-widest px-6 py-2.5 rounded shadow-sm transition-all"
             >
               {t('salesReturn.processFirst')}
@@ -669,31 +629,6 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
         )}
       </div>
 
-      {/* Modals */}
-      {isAddModalOpen && (
-        <UpsertSalesReturnModal
-          isOpen={isAddModalOpen}
-          onClose={() => {
-            setIsAddModalOpen(false);
-            setSelectedSalesReturn(null);
-          }}
-          onSubmit={handleAddSalesReturn}
-          isLoading={isLoading}
-          title="Process Sales Return"
-          currentUser={role === 'admin' ? adminData : employeeData}
-          userRole={role}
-        />
-      )}
-      {isViewModalOpen && selectedSalesReturn && (
-        <ViewSalesReturnModal
-          isOpen={isViewModalOpen}
-          onClose={() => {
-            setIsViewModalOpen(false);
-            setSelectedSalesReturn(null);
-          }}
-          salesReturn={selectedSalesReturn}
-        />
-      )}
     </div>
   );
 };

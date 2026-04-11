@@ -1,38 +1,39 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Printer, Download, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
-import proformaService from '../../services/proformaInvoiceService';
+import salesReturnService from '../../services/salesReturnService';
 import pmsLogo from '../../assets/erasebg-transformed.png';
 
-interface ProformaInvoice {
+interface SalesReturnItem {
     id: string;
-    proformaNumber: string;
-    status: string;
-    createdAt: string;
-    issueDate: string;
-    expiryDate?: string;
-    subtotal: number;
-    taxAmount: number;
-    discountValue: number;
-    discountType: string;
-    grandTotal: number;
-    notes?: string;
-    clientName: string;
-    clientEmail?: string;
-    clientPhone?: string;
-    items: Array<{
+    stockoutId: string;
+    quantity: number;
+    stockout?: {
         id: string;
-        productName: string;
-        productSku?: string;
+        transactionId?: string;
         quantity: number;
-        unitPrice: number;
-        taxPct?: number;
-        discountPct?: number;
-        totalPrice: number;
-    }>;
+        soldPrice?: string;
+        clientName?: string;
+        clientEmail?: string;
+        clientPhone?: string;
+        createdAt: string;
+        stockin?: {
+            itemName: string;
+            sku: string;
+            unitOfMeasure?: string;
+        };
+    };
 }
 
-const ProformaInvoiceView: React.FC = () => {
+interface SalesReturn {
+    id: string;
+    transactionId: string;
+    reason?: string;
+    createdAt: string;
+    items: SalesReturnItem[];
+}
+
+const SalesReturnView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const location = useLocation();
@@ -41,33 +42,39 @@ const ProformaInvoiceView: React.FC = () => {
     const role = isEmployee ? 'employee' : 'admin';
 
     const sheetRef = useRef<HTMLDivElement>(null);
-    const [proforma, setProforma] = useState<ProformaInvoice | null>(null);
+    const [salesReturn, setSalesReturn] = useState<SalesReturn | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [pdfLoading, setPdfLoading] = useState(false);
 
     useEffect(() => {
-        const fetchPI = async () => {
+        const fetchReturn = async () => {
             if (!id) return;
             try {
                 setLoading(true);
-                const data = await proformaService.getOne(id);
-                setProforma(data);
+                const data = await salesReturnService.getSalesReturnById(id);
+                setSalesReturn(data as unknown as SalesReturn);
                 setError(null);
-            } catch {
-                setError('Failed to load proforma invoice details.');
+            } catch (err: any) {
+                console.error('Error fetching sales return:', err);
+                setError('Failed to load sales return details.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchPI();
+        fetchReturn();
     }, [id]);
 
-    const formatCurrency = (amt: number) =>
-        `RWF ${Number(amt || 0).toLocaleString()}`;
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat('en-RW', {
+            style: 'currency',
+            currency: 'RWF',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount).replace('RWF', 'RWF ');
 
     const handleDownloadPDF = async () => {
-        if (!sheetRef.current || !proforma) return;
+        if (!sheetRef.current || !salesReturn) return;
         setPdfLoading(true);
         const toolbar = sheetRef.current.querySelector('.toolbar') as HTMLElement | null;
         if (toolbar) toolbar.style.display = 'none';
@@ -75,7 +82,7 @@ const ProformaInvoiceView: React.FC = () => {
             const html2pdf = (await import('html2pdf.js')).default;
             await html2pdf().set({
                 margin: 0,
-                filename: `PI-${proforma.proformaNumber}.pdf`,
+                filename: `Return-${salesReturn.id.slice(0, 8).toUpperCase()}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -89,36 +96,41 @@ const ProformaInvoiceView: React.FC = () => {
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Loading Document...</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Generating Document...</p>
         </div>
     );
 
-    if (error || !proforma) return (
+    if (error || !salesReturn) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
             <div className="p-4 bg-red-500/10 rounded-full text-red-600 border border-red-500/20">
                 <AlertCircle className="w-10 h-10" />
             </div>
             <div className="text-center">
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Error</h3>
-                <p className="text-[10px] text-slate-500 mt-1">{error}</p>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Record Not Found</h3>
+                <p className="text-[10px] text-slate-500 mt-1">{error || 'The requested return could not be found.'}</p>
             </div>
-            <button onClick={() => navigate(`/${role}/dashboard/proforma-management`)} className="px-6 py-2 bg-slate-100 border border-slate-200 rounded-xl text-[9px] font-bold uppercase tracking-widest">Return</button>
+            <button
+                onClick={() => navigate(`/${role}/dashboard/sales-return-management`)}
+                className="px-6 py-2 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-bold text-[9px] uppercase tracking-widest hover:bg-slate-200 transition-all"
+            >
+                Return to Registry
+            </button>
         </div>
     );
 
-    const getStatusClass = (status: string) => {
-        switch (status) {
-            case 'PAID': return 'status-paid';
-            case 'SENT': return 'status-sent';
-            case 'CANCELLED': return 'status-cancelled';
-            default: return 'status-draft';
-        }
-    };
+    const firstItem = salesReturn.items[0];
+    const client = firstItem?.stockout;
+    const grandTotal = salesReturn.items.reduce((sum, item) => {
+        const unitPrice = item.stockout?.soldPrice
+            ? parseFloat(item.stockout.soldPrice) / (item.stockout.quantity || 1)
+            : 0;
+        return sum + (unitPrice * item.quantity);
+    }, 0);
 
     return (
-        <div className="pi-view-container">
+        <div className="sr-view-container">
             <style>{`
-                .pi-view-container {
+                .sr-view-container {
                     --primary: #1e5fa8;
                     --primary-light: #5fa3e8;
                     --ink: #0f172a;
@@ -142,51 +154,22 @@ const ProformaInvoiceView: React.FC = () => {
                         position: fixed !important;
                         top: 0 !important; left: 0 !important;
                         width: 100% !important; max-width: 100% !important;
-                        box-shadow: none !important;
-                        margin: 0 !important;
+                        box-shadow: none !important; margin: 0 !important;
                     }
                     .toolbar, .print-hint { display: none !important; }
                     .doc { padding: 40px 48px !important; }
                     .doc-foot { padding: 12px 48px !important; }
                 }
 
-                .sheet {
-                    background: var(--white);
-                    max-width: 880px;
-                    margin: 0 auto;
-                    box-shadow: 0 8px 48px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
-                    overflow: hidden;
-                }
+                .sheet { background: var(--white); max-width: 880px; margin: 0 auto; box-shadow: 0 8px 48px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06); overflow: hidden; }
+                .letterhead-bar { height: 8px; background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%); }
 
-                .letterhead-bar {
-                    height: 8px;
-                    background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%);
-                }
-
-                .toolbar {
-                    background: var(--ink);
-                    padding: 12px 32px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-                .toolbar-back {
-                    display: flex; align-items: center; gap: 8px;
-                    color: rgba(255,255,255,.5); font-size: 10px; font-weight: 600;
-                    letter-spacing: .12em; text-transform: uppercase;
-                    cursor: pointer; border: none; background: none;
-                    transition: color .15s;
-                }
+                .toolbar { background: var(--ink); padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; }
+                .toolbar-back { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,.5); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .15s; background: none; border: none; }
                 .toolbar-back:hover { color: #fff; }
                 .toolbar-actions { display: flex; gap: 8px; }
 
-                .btn {
-                    display: inline-flex; align-items: center; gap: 6px;
-                    padding: 7px 16px; border: none; border-radius: 4px;
-                    font-family: inherit; font-size: 10px; font-weight: 700;
-                    letter-spacing: .1em; text-transform: uppercase;
-                    cursor: pointer; transition: opacity .15s;
-                }
+                .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: none; border-radius: 4px; font-family: inherit; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: opacity .15s; }
                 .btn:hover { opacity: .85; }
                 .btn-ghost { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.12); }
                 .btn-primary { background: var(--primary); color: #fff; }
@@ -194,68 +177,38 @@ const ProformaInvoiceView: React.FC = () => {
                 .doc { padding: 56px 64px; }
                 .doc-relative { position: relative; }
                 .doc-content { position: relative; z-index: 1; }
-                .watermark {
-                    position: absolute; top: 50%; left: 50%;
-                    transform: translate(-50%, -50%);
-                    opacity: 0.06; width: 500px;
-                    pointer-events: none; z-index: 0; object-fit: contain;
-                }
+                .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.06; width: 500px; pointer-events: none; z-index: 0; object-fit: contain; }
 
                 .head { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 40px; border-bottom: 1px solid var(--rule); }
-
                 .brand-mark { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
                 .brand-logo { height: 52px; width: auto; object-fit: contain; }
                 .brand-tagline { font-size: 11px; font-style: italic; color: #5fa3e8; margin: 0 0 16px; }
 
                 .company-meta { display: flex; flex-direction: column; gap: 2px; }
-                .meta-row {
-                    display: flex; align-items: center; gap: 5px;
-                    font-size: 9px; color: var(--ink-2); font-weight: 400;
-                }
+                .meta-row { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--ink-2); font-weight: 400; }
                 .meta-row svg { width: 8px; height: 8px; color: var(--ink-3); }
-                .meta-tin {
-                    margin-top: 5px; padding-top: 5px;
-                    border-top: 1px solid var(--rule);
-                    display: flex; align-items: center; gap: 5px;
-                    font-size: 9px; font-weight: 600; color: var(--ink);
-                }
+                .meta-tin { margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--rule); display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 600; color: var(--ink); }
                 .meta-tin svg { width: 8px; height: 8px; color: var(--primary); }
 
-                .po-block { text-align: right; }
-                .po-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--primary); margin-bottom: 4px; }
-                .po-number { font-family: 'Instrument Serif', serif; font-size: 40px; line-height: 1; color: var(--ink); letter-spacing: -.02em; margin-bottom: 16px; }
-                .po-dates { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-                .po-date-row { font-size: 10px; color: var(--ink-2); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; display: flex; gap: 6px; }
-                .po-date-row span:first-child { color: var(--ink-3); }
+                .doc-block { text-align: right; }
+                .doc-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--primary); margin-bottom: 4px; }
+                .doc-number { font-family: 'Instrument Serif', serif; font-size: 40px; line-height: 1; color: var(--ink); letter-spacing: -.02em; margin-bottom: 16px; }
+                .doc-dates { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+                .doc-date-row { font-size: 10px; color: var(--ink-2); font-weight: 500; letter-spacing: .04em; text-transform: uppercase; display: flex; gap: 6px; }
+                .doc-date-row span:first-child { color: var(--ink-3); }
 
-                .status-badge {
-                    display: inline-flex; margin-top: 12px;
-                    padding: 4px 10px; font-size: 9px; font-weight: 700;
-                    letter-spacing: .12em; text-transform: uppercase;
-                    border-radius: 2px; border: 1px solid;
-                }
-                .status-paid     { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
-                .status-sent     { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-                .status-draft    { background: #f8fafc; color: #64748b; border-color: #cbd5e1; }
-                .status-cancelled { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+                .status-badge { display: inline-flex; margin-top: 12px; padding: 4px 10px; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-radius: 2px; border: 1px solid; }
+                .status-returned { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
-                .parties {
-                    display: grid; grid-template-columns: 1fr 1fr;
-                    gap: 48px; padding: 36px 0; border-bottom: 1px solid var(--rule);
-                }
+                .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding: 36px 0; border-bottom: 1px solid var(--rule); }
                 .party-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 12px; }
                 .party-name { font-family: 'Instrument Serif', serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; line-height: 1.2; }
                 .party-detail { font-size: 11px; color: var(--ink-2); line-height: 1.8; }
 
-                .section-label {
-                    font-size: 9px; font-weight: 700; letter-spacing: .18em;
-                    text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px;
-                    display: flex; align-items: center; gap: 8px;
-                }
+                .section-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
                 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
 
                 .items-section { padding: 36px 0; border-bottom: 1px solid var(--rule); }
-
                 table { width: 100%; border-collapse: collapse; }
                 thead tr { border-bottom: 2px solid var(--ink); }
                 th { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); padding: 0 0 10px; text-align: left; }
@@ -281,10 +234,7 @@ const ProformaInvoiceView: React.FC = () => {
                 .totals-row.grand .lbl { font-size: 11px; font-weight: 700; color: var(--ink); letter-spacing: .06em; text-transform: uppercase; }
                 .totals-row.grand .val { font-size: 22px; font-family: 'Instrument Serif', serif; color: var(--primary); letter-spacing: -.02em; }
 
-                .doc-foot {
-                    background: var(--ink); padding: 16px 64px;
-                    display: flex; align-items: center; justify-content: space-between;
-                }
+                .doc-foot { background: var(--ink); padding: 16px 64px; display: flex; align-items: center; justify-content: space-between; }
                 .doc-foot-left { display: flex; align-items: center; gap: 10px; }
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
@@ -294,14 +244,12 @@ const ProformaInvoiceView: React.FC = () => {
             `}</style>
 
             <div className="sheet" ref={sheetRef}>
-                {/* PMS LETTERHEAD BAR */}
                 <div className="letterhead-bar" />
 
-                {/* TOOLBAR */}
                 <div className="toolbar">
-                    <button className="toolbar-back" onClick={() => navigate(`/${role}/dashboard/proforma-management`)}>
+                    <button className="toolbar-back" onClick={() => navigate(`/${role}/dashboard/sales-return-management`)}>
                         <ArrowLeft className="w-3 h-3" />
-                        Proforma Management
+                        Sales Returns
                     </button>
                     <div className="toolbar-actions">
                         <button className="btn btn-ghost" onClick={() => window.print()}>
@@ -315,7 +263,6 @@ const ProformaInvoiceView: React.FC = () => {
                     </div>
                 </div>
 
-                {/* DOCUMENT */}
                 <div className="doc doc-relative">
                     <img src={pmsLogo} alt="" className="watermark" />
                     <div className="doc-content">
@@ -351,39 +298,27 @@ const ProformaInvoiceView: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="po-block">
-                            <p className="po-label">Proforma Invoice</p>
-                            <p className="po-number">#{proforma.proformaNumber}</p>
-                            <div className="po-dates">
-                                <div className="po-date-row">
-                                    <span>Date</span>
-                                    <span>{new Date(proforma.issueDate || proforma.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        <div className="doc-block">
+                            <p className="doc-label">Sales Return</p>
+                            <p className="doc-number">#{salesReturn.id.slice(0, 8).toUpperCase()}</p>
+                            <div className="doc-dates">
+                                <div className="doc-date-row">
+                                    <span>Tx Ref</span>
+                                    <span>{salesReturn.transactionId}</span>
                                 </div>
-                                {proforma.expiryDate && (
-                                    <div className="po-date-row">
-                                        <span>Expires</span>
-                                        <span>{new Date(proforma.expiryDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                    </div>
-                                )}
+                                <div className="doc-date-row">
+                                    <span>Date</span>
+                                    <span>{new Date(salesReturn.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                </div>
                             </div>
-                            <span className={`status-badge ${getStatusClass(proforma.status)}`}>
-                                {proforma.status}
-                            </span>
+                            <span className="status-badge status-returned">RETURNED</span>
                         </div>
                     </div>
 
                     {/* PARTIES */}
                     <div className="parties">
                         <div>
-                            <p className="party-label">Bill To</p>
-                            <p className="party-name">{proforma.clientName}</p>
-                            <p className="party-detail">
-                                {proforma.clientEmail && <>{proforma.clientEmail}<br /></>}
-                                {proforma.clientPhone && <>{proforma.clientPhone}</>}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="party-label">Issued By</p>
+                            <p className="party-label">Returned To</p>
                             <p className="party-name">PAPETERIE MESSENGER SUPPLY Ltd</p>
                             <p className="party-detail">
                                 Kigali, Rwanda<br />
@@ -391,11 +326,20 @@ const ProformaInvoiceView: React.FC = () => {
                                 0784544729 / 0788347094
                             </p>
                         </div>
+                        <div>
+                            <p className="party-label">Returned By</p>
+                            <p className="party-name">{client?.clientName || 'Walk-In Customer'}</p>
+                            <p className="party-detail">
+                                {client?.clientPhone || 'No contact provided'}<br />
+                                {client?.clientEmail || ''}<br />
+                                {salesReturn.reason && `Reason: ${salesReturn.reason}`}
+                            </p>
+                        </div>
                     </div>
 
                     {/* ITEMS */}
                     <div className="items-section">
-                        <p className="section-label">Items</p>
+                        <p className="section-label">Items Returned</p>
                         <table>
                             <thead>
                                 <tr>
@@ -403,19 +347,27 @@ const ProformaInvoiceView: React.FC = () => {
                                     <th>Description</th>
                                     <th className="center" style={{ width: '90px' }}>Qty</th>
                                     <th className="right" style={{ width: '130px' }}>Unit Price</th>
-                                    <th className="right" style={{ width: '140px' }}>Total</th>
+                                    <th className="right" style={{ width: '140px' }}>Refund</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {proforma.items.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td><span className="td-sku">{item.productSku || 'N/A'}</span></td>
-                                        <td><p className="td-name">{item.productName}</p></td>
-                                        <td><p className="td-qty">{item.quantity}</p></td>
-                                        <td className="td-price">{formatCurrency(item.unitPrice)}</td>
-                                        <td className="td-total">{formatCurrency(item.totalPrice)}</td>
-                                    </tr>
-                                ))}
+                                {salesReturn.items.map((item) => {
+                                    const name = item.stockout?.stockin?.itemName || 'Item';
+                                    const sku = item.stockout?.stockin?.sku || 'N/A';
+                                    const soldQty = item.stockout?.quantity || 1;
+                                    const soldTotal = parseFloat(item.stockout?.soldPrice || '0');
+                                    const unitPrice = soldQty > 0 ? soldTotal / soldQty : 0;
+                                    const lineTotal = unitPrice * item.quantity;
+                                    return (
+                                        <tr key={item.id}>
+                                            <td><span className="td-sku">{sku}</span></td>
+                                            <td><p className="td-name">{name}</p></td>
+                                            <td><p className="td-qty">{item.quantity}</p></td>
+                                            <td className="td-price">{formatCurrency(unitPrice)}</td>
+                                            <td className="td-total">{formatCurrency(lineTotal)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -423,29 +375,26 @@ const ProformaInvoiceView: React.FC = () => {
                     {/* FOOTER SECTION */}
                     <div className="footer-section">
                         <div>
-                            <p className="notes-label">Notes & Terms</p>
+                            <p className="notes-label">Return Policy</p>
                             <p className="notes-text">
-                                {proforma.notes || 'Standard terms apply. This proforma invoice is valid for 30 days from the issue date. Payment confirms the order.'}
+                                {salesReturn.reason
+                                    ? `Return reason: ${salesReturn.reason}.`
+                                    : 'No reason provided.'}{' '}
+                                This document confirms the acceptance of returned goods. Refund will be processed within 3–5 business days.
                             </p>
                         </div>
                         <div className="totals">
                             <div className="totals-row">
-                                <span className="lbl">Subtotal</span>
-                                <span className="val">{formatCurrency(proforma.subtotal)}</span>
+                                <span className="lbl">Items Returned</span>
+                                <span className="val">{salesReturn.items.reduce((s, i) => s + i.quantity, 0)} units</span>
                             </div>
                             <div className="totals-row">
-                                <span className="lbl">VAT (18%)</span>
-                                <span className="val">{formatCurrency(proforma.taxAmount)}</span>
+                                <span className="lbl">Original Tx</span>
+                                <span className="val">{salesReturn.transactionId}</span>
                             </div>
-                            {proforma.discountValue > 0 && (
-                                <div className="totals-row">
-                                    <span className="lbl">Discount ({proforma.discountType})</span>
-                                    <span className="val">− {formatCurrency(proforma.discountValue)}</span>
-                                </div>
-                            )}
                             <div className="totals-row grand">
-                                <span className="lbl">Grand Total</span>
-                                <span className="val">{formatCurrency(proforma.grandTotal)}</span>
+                                <span className="lbl">Total Refund</span>
+                                <span className="val">{formatCurrency(grandTotal)}</span>
                             </div>
                         </div>
                     </div>
@@ -453,7 +402,6 @@ const ProformaInvoiceView: React.FC = () => {
                     </div>{/* end doc-content */}
                 </div>
 
-                {/* DOC FOOTER */}
                 <div className="letterhead-bar" />
                 <div className="doc-foot">
                     <div className="doc-foot-left">
@@ -471,4 +419,4 @@ const ProformaInvoiceView: React.FC = () => {
     );
 };
 
-export default ProformaInvoiceView;
+export default SalesReturnView;

@@ -27,7 +27,6 @@ import { Download, ChevronDown } from 'lucide-react';
 
 import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
-import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
 import ViewStockOutModal from '../../components/dashboard/stock/out/ViewStockOutModal';
 import ImportStockOutModal from '../../components/dashboard/stock/out/ImportStockOutModal';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
@@ -81,9 +80,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
   const [filteredStockOuts, setFilteredStockOuts] = useState<StockOut[]>([]);
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [selectedStockOut, setSelectedStockOut] = useState<StockOut | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
@@ -299,11 +296,6 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     updateSearchParam('transactionId');
   };
 
-  const openEditModal = (stockOut: StockOut) => {
-    setSelectedStockOut(stockOut);
-    setIsAddModalOpen(true);
-  };
-
   const openViewModal = (stockOut: StockOut) => {
     setSelectedStockOutForView(stockOut);
     setIsViewModalOpen(true);
@@ -463,46 +455,6 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     }
   };
 
-  const handleSubmit = async (data: any) => {
-    setIsLoading(true);
-    try {
-      console.warn('Submitting:', data);
-      const userInfo: any = {};
-      if (role === 'admin') userInfo.adminId = adminData?.id;
-      if (role === 'employee') userInfo.employeeId = employeeData?.id;
-
-      let response;
-
-      if (selectedStockOut) {
-        // EDIT EXISTING SALE
-        await stockOutService.updateStockOut(selectedStockOut.id, { ...data, ...userInfo });
-        showNotification('Sale updated successfully!', 'success');
-      } else if (data.salesArray?.length > 0) {
-        // MULTIPLE ITEMS
-        response = await stockOutService.createMultipleStockOut(data.salesArray, data.clientInfo || {}, userInfo);
-        showNotification(`${data.salesArray.length} ${t('stockOut.recorded')}`, 'success');
-      } else {
-        // SINGLE ITEM
-        response = await stockOutService.createStockOut({ ...data, ...userInfo });
-        showNotification(t('stockOut.recordSuccess'), 'success');
-      }
-
-      if (response?.transactionId && !selectedStockOut) {
-        // Navigate to the receipt page instead of opening the modal
-        navigate(`/${role}/dashboard/stockout-management/view/${response.transactionId}`);
-        return;
-      }
-
-      await fetchData();
-      setIsAddModalOpen(false);
-      setSelectedStockOut(null);
-    } catch (err: any) {
-      showNotification(`${t('stockOut.error')}: ${err.message}`, 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -536,7 +488,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
   const ActionButtons = ({ item }: { item: StockOut }) => (
     <div className="flex items-center gap-3">
-      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
+      <button onClick={() => navigate(`/${role}/dashboard/stockout-management/update/${item.id}`)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
         <Edit3 size={16} />
       </button>
       <button onClick={() => navigate(`/${role}/dashboard/stockout-management/view/${item.transactionId || item.id}`)} className="text-gray-500 hover:text-primary-600" title={t('stockOut.viewDetails')}>
@@ -779,7 +731,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                 </AnimatePresence>
               </div>
               <button
-                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                onClick={() => navigate(`/${role}/dashboard/stockout-management/create`)}
                 className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
               >
                 <Plus className="w-3 h-3" />
@@ -945,7 +897,7 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
               {searchTerm || filters.dateRange !== 'all' ? t('stockOut.adjustFilters') : t('stockOut.startRecording')}
             </p>
             <button
-              onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+              onClick={() => navigate(`/${role}/dashboard/stockout-management/create`)}
               className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
             >
               {t('stockOut.recordFirstSale')}
@@ -959,19 +911,6 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
           </>
         )}
       </div>
-
-      <UpsertStockOutModal
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setSelectedStockOut(null);
-        }}
-        onSubmit={handleSubmit}
-        stockOut={selectedStockOut as any}
-        stockIns={stockIns}
-        isLoading={isLoading}
-        title={selectedStockOut ? 'Edit Sale' : 'New Sale'}
-      />
 
       <ViewStockOutModal
         isOpen={isViewModalOpen}
