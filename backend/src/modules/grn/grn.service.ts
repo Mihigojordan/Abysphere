@@ -360,123 +360,114 @@ export class GRNService {
             throw new BadRequestException('Only pending GRNs can be approved');
         }
 
-        // Resolve default category and store for StockIn creation — auto-create if missing
-        let defaultCategory = await this.prisma.stockCategory.findFirst();
-        if (!defaultCategory) {
-            defaultCategory = await this.prisma.stockCategory.create({
-                data: { name: 'General', description: 'Auto-created default category' },
-            });
+        // Resolve the admin who owns this GRN (via the PO or the GRN receiver)
+        const adminId: string | null =
+            grn.purchaseOrder?.createdByAdminId ||
+            grn.receivedByAdminId ||
+            (await this.prisma.admin.findFirst().then((a) => a?.id ?? null));
+
+        if (!adminId) {
+            throw new BadRequestException(
+                'Cannot approve GRN: no admin is associated with this order.',
+            );
         }
 
-        let defaultStore = await this.prisma.store.findFirst();
-        if (!defaultStore) {
-            const anyAdmin = await this.prisma.admin.findFirst();
-            if (!anyAdmin) {
-                throw new BadRequestException(
-                    'Cannot auto-create store: please create an admin account first.',
-                );
-            }
-            defaultStore = await this.prisma.store.create({
-                data: {
-                    code: 'MAIN',
-                    name: 'Main Store',
-                    location: 'Default Location',
-                    adminId: anyAdmin.id,
-                },
-            });
-        }
-
-        // Create stock entries for each accepted item
+        // Write each accepted item directly into the main Stock table
         for (const item of grn.items) {
-            if (item.acceptedQty > 0) {
-                const validUnits = Object.values(Unit);
-                const unitValue = validUnits.includes(item.unit as Unit)
-                    ? (item.unit as Unit)
-                    : Unit.PCS;
-
-                // Ensure every item has a SKU — generate one if missing so we
-                // never insert a null that could later cause a collision.
+            if (Number(item.acceptedQty) > 0) {
                 const effectiveSku: string =
-                    item.productSku && item.productSku.trim() !== ''
-                        ? item.productSku
+                    item.productSku && String(item.productSku).trim() !== ''
+                        ? String(item.productSku)
                         : generateSku(item.productName);
 
-                // De-dup: check existing StockIn by SKU OR productName
-                // (same store) so we never hit the unique constraint.
-                const existingStockIn = await this.prisma.stockIn.findFirst({
+                const acceptedQty = Number(item.acceptedQty);
+                const unitCost = Number(item.unitCost);
+
+                // De-dup: check existing Stock by itemName + adminId (same logic as StockService)
+                const existingStock = await this.prisma.stock.findFirst({
                     where: {
                         OR: [
-                            { sku: effectiveSku },
-                            { productName: item.productName },
+                            { sku: effectiveSku, adminId },
+                            { itemName: item.productName, adminId },
                         ],
                     },
                 });
 
-                if (existingStockIn) {
-                    // Merge: add quantity to existing StockIn
-                    const qtyBefore = existingStockIn.quantity;
-                    const qtyAfter = qtyBefore + Number(item.acceptedQty);
+                if (existingStock) {
+                    // Merge: add quantity to existing Stock row
+                    const oldQty = Number(existingStock.receivedQuantity);
+                    const newQty = oldQty + acceptedQty;
+                    const newTotal = newQty * Number(existingStock.unitCost);
 
-                    await this.prisma.stockIn.update({
-                        where: { id: existingStockIn.id },
-                        data: { quantity: qtyAfter },
+                    await this.prisma.stock.update({
+                        where: { id: existingStock.id },
+                        data: {
+                            receivedQuantity: newQty,
+                            totalValue: new Prisma.Decimal(newTotal),
+                            supplier: grn.supplier?.name ?? existingStock.supplier,
+                            receivedDate: grn.receivedDate ?? new Date(),
+                            expiryDate: item.expiryDate ?? existingStock.expiryDate,
+                        },
                     });
 
-                    // Link GRN item to the existing StockIn (if not already linked)
-                    await this.prisma.gRNItem.update({
-                        where: { id: item.id },
-                        data: { stockInId: existingStockIn.id },
-                    });
-
-                    // Record stock history for the merge
+                    // StockHistory — linked to the Stock row
                     await this.prisma.stockHistory.create({
                         data: {
-                            stockInId: existingStockIn.id,
+                            stockId: existingStock.id,
                             grnId: grn.id,
                             batchNumber: item.batchNumber,
                             movementType: 'IN',
                             sourceType: 'RECEIPT',
-                            qtyBefore,
-                            qtyChange: Number(item.acceptedQty),
-                            qtyAfter,
-                            unitPrice: Number(item.unitCost),
-                            costAtTransaction: Number(item.landedCost),
+                            qtyBefore: new Prisma.Decimal(oldQty),
+                            qtyChange: new Prisma.Decimal(acceptedQty),
+                            qtyAfter: new Prisma.Decimal(newQty),
+                            unitPrice: new Prisma.Decimal(unitCost),
+                            costAtTransaction: new Prisma.Decimal(Number(item.landedCost)),
                             notes: `Merged from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
+                            createdByAdminId: adminId,
                         },
                     });
                 } else {
-                    // Create new StockIn entry — use effectiveSku so the value
-                    // is always non-null and guaranteed unique at this point.
-                    const stockIn = await this.prisma.stockIn.create({
+                    // Create new Stock row
+                    const totalValue = acceptedQty * unitCost;
+
+                    const stock = await this.prisma.stock.create({
                         data: {
-                            productName: item.productName,
                             sku: effectiveSku,
-                            quantity: Number(item.acceptedQty),
-                            unit: unitValue,
-                            unitPrice: Number(item.unitCost),
-                            landedCost: Number(item.landedCost),
-                            supplier: grn.supplier.name,
-                            location: item.location?.name,
-                            description: item.description,
-                            expiryDate: item.expiryDate,
+                            itemName: item.productName,
+                            supplier: grn.supplier?.name ?? null,
+                            unitOfMeasure: item.unit || 'PCS',
+                            receivedQuantity: acceptedQty,
+                            unitCost: new Prisma.Decimal(unitCost),
+                            totalValue: new Prisma.Decimal(totalValue),
+                            warehouseLocation: item.location?.name ?? 'Main Warehouse',
+                            receivedDate: grn.receivedDate ?? new Date(),
+                            reorderLevel: 0,
+                            expiryDate: item.expiryDate ?? null,
+                            description: item.description ?? null,
+                            adminId,
+                        } as any,
+                    });
+
+                    // StockHistory — new receipt
+                    await this.prisma.stockHistory.create({
+                        data: {
+                            stockId: stock.id,
+                            grnId: grn.id,
                             batchNumber: item.batchNumber,
-                            serialNumbers: item.serialNumbers,
-                            manufacturingDate: item.manufacturingDate,
-                            inspectionStatus: grn.inspectionStatus,
-                            qualityNotes: item.qualityNotes,
-                            stockcategoryId: defaultCategory.id,
-                            storeId: defaultStore.id,
-                            grnItemId: item.id,
+                            movementType: 'IN',
+                            sourceType: 'RECEIPT',
+                            qtyBefore: new Prisma.Decimal(0),
+                            qtyChange: new Prisma.Decimal(acceptedQty),
+                            qtyAfter: new Prisma.Decimal(acceptedQty),
+                            unitPrice: new Prisma.Decimal(unitCost),
+                            costAtTransaction: new Prisma.Decimal(Number(item.landedCost)),
+                            notes: `Received from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
+                            createdByAdminId: adminId,
                         },
                     });
 
-                    // Link stockIn to GRN item
-                    await this.prisma.gRNItem.update({
-                        where: { id: item.id },
-                        data: { stockInId: stockIn.id },
-                    });
-
-                    // Create batch tracking if batch number provided
+                    // Batch tracking (optional, kept for traceability)
                     if (item.batchNumber) {
                         await this.prisma.batchTracking.create({
                             data: {
@@ -488,8 +479,8 @@ export class GRNService {
                                 manufacturingDate: item.manufacturingDate,
                                 expiryDate: item.expiryDate,
                                 receivedDate: grn.receivedDate,
-                                initialQty: Number(item.acceptedQty),
-                                currentQty: Number(item.acceptedQty),
+                                initialQty: acceptedQty,
+                                currentQty: acceptedQty,
                                 consumedQty: 0,
                                 unit: item.unit,
                                 status: 'ACTIVE',
@@ -497,23 +488,6 @@ export class GRNService {
                             },
                         });
                     }
-
-                    // Create stock history entry
-                    await this.prisma.stockHistory.create({
-                        data: {
-                            stockInId: stockIn.id,
-                            grnId: grn.id,
-                            batchNumber: item.batchNumber,
-                            movementType: 'IN',
-                            sourceType: 'RECEIPT',
-                            qtyBefore: 0,
-                            qtyChange: Number(item.acceptedQty),
-                            qtyAfter: Number(item.acceptedQty),
-                            unitPrice: Number(item.unitCost),
-                            costAtTransaction: Number(item.landedCost),
-                            notes: `Received from GRN ${grn.grnNumber} - PO ${grn.purchaseOrder.poNumber}`,
-                        },
-                    });
                 }
             }
         }
