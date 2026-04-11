@@ -530,7 +530,7 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     <Eye className="w-4 h-4 mr-3 text-primary-500" /> {t('stockIn.viewStock')}
                                 </button>
                                 <button
-                                    onClick={() => { handleEditStock(stock); setIsDropdownOpen(false); }}
+                                    onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); setIsDropdownOpen(false); }}
                                     className="flex items-center px-4 py-2.5 text-xs text-theme-text-primary hover:bg-theme-bg-tertiary w-full font-medium transition-colors"
                                 >
                                     <Edit className="w-4 h-4 mr-3 text-amber-500" /> {t('stockIn.editStock')}
@@ -656,7 +656,7 @@ const StockInManagement = ({ role }: { role: string }) => {
                                             <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title={t('stockIn.viewStock')}>
                                                 <Eye className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.editStock')}>
+                                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.editStock')}>
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.deleteStock')}>
@@ -721,7 +721,7 @@ const StockInManagement = ({ role }: { role: string }) => {
                             <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title="View Stock">
                                 <Eye className="w-5 h-5" />
                             </button>
-                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Edit Stock">
+                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Edit Stock">
                                 <Edit className="w-5 h-5" />
                             </button>
                             <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Delete Stock">

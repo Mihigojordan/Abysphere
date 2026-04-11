@@ -110,6 +110,9 @@ const GRNView = lazy(() => import('../pages/dashboard/GRNView'));
 const ProformaInvoiceManagement = lazy(() => import('../pages/dashboard/ProformaInvoiceManagement'));
 const CreateProformaForm = lazy(() => import('../pages/dashboard/CreateProformaForm'));
 const ProformaInvoiceView = lazy(() => import('../pages/dashboard/ProformaInvoiceView'));
+const SalesReturnView = lazy(() => import('../pages/dashboard/SalesReturnView'));
+const UpsertSalesReturnPage = lazy(() => import('../pages/dashboard/UpsertSalesReturnPage'));
+const UpsertStockOutPage = lazy(() => import('../pages/dashboard/UpsertStockOutPage'));
 
 const PrivacyPolicy = lazy(() => import("../pages/landing/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("../pages/landing/TermsOfService"));
@@ -576,10 +579,42 @@ const routes = createBrowserRouter([
                 ),
               },
               {
+                path: 'stockout-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <UpsertStockOutPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockout-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <UpsertStockOutPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
                 path: 'sales-return-management',
                 element: (
                   <SuspenseWrapper>
                     <SalesReturnDashboard />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'sales-return-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <UpsertSalesReturnPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'sales-return-management/view/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <SalesReturnView />
                   </SuspenseWrapper>
                 ),
               },
