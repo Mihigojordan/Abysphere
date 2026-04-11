@@ -29,6 +29,8 @@ interface StockOutItem {
     clientPhone?: string;
     createdAt: string;
     stockin?: StockIn;
+    externalItemName?: string;
+    externalSku?: string;
 }
 
 interface SelectedItem {
@@ -40,6 +42,7 @@ interface SelectedItem {
     unitPrice: number;
     soldPrice: number;
     soldQuantity: number;
+    isExternal?: boolean;
 }
 
 interface ValidationErrors {
@@ -119,7 +122,7 @@ const UpsertSalesReturnPage: React.FC = () => {
         try {
             const response: StockOutItem[] = await stockOutService.getStockOutByTransactionId(id);
             if (response && response.length > 0) {
-                const available = response.filter(item => item.quantity > 0 && item.stockin);
+                const available = response.filter(item => item.quantity > 0);
                 if (available.length > 0) {
                     setSoldProducts(available);
                     setHasSearched(true);
@@ -142,7 +145,7 @@ const UpsertSalesReturnPage: React.FC = () => {
     const handleItemSelect = (stockoutId: string, isSelected: boolean): void => {
         if (isSelected) {
             const product = soldProducts.find(p => p.id === stockoutId);
-            if (product && product.stockin) {
+            if (product) {
                 const unitPrice = product.soldPrice
                     ? parseFloat(product.soldPrice) / product.quantity
                     : 0;
@@ -150,11 +153,12 @@ const UpsertSalesReturnPage: React.FC = () => {
                     stockoutId,
                     quantity: 1,
                     maxQuantity: product.quantity,
-                    itemName: product.stockin!.itemName,
-                    sku: product.stockin!.sku,
+                    itemName: product.stockin?.itemName || product.externalItemName || 'Unknown Item',
+                    sku: product.stockin?.sku || product.externalSku || 'N/A',
                     unitPrice,
                     soldPrice: parseFloat(product.soldPrice || '0'),
                     soldQuantity: product.quantity,
+                    isExternal: !product.stockin
                 }]);
             }
         } else {
@@ -175,6 +179,17 @@ const UpsertSalesReturnPage: React.FC = () => {
         if (num > 0) {
             setValidationErrors(prev => { const e = { ...prev }; delete e[stockoutId]; return e; });
         }
+    };
+
+    const handleUnitPriceChange = (stockoutId: string, unitPriceStr: string): void => {
+        const num = parseFloat(unitPriceStr) || 0;
+        setSelectedItems(prev =>
+            prev.map(item =>
+                item.stockoutId === stockoutId
+                    ? { ...item, unitPrice: Math.max(0, num) }
+                    : item
+            )
+        );
     };
 
     const validateForm = (): boolean => {
@@ -203,7 +218,7 @@ const UpsertSalesReturnPage: React.FC = () => {
             await salesReturnService.createSalesReturn({
                 transactionId: transactionId.trim(),
                 reason: reason.trim(),
-                items: selectedItems.map(item => ({ stockoutId: item.stockoutId, quantity: item.quantity })),
+                items: selectedItems.map(item => ({ stockoutId: item.stockoutId, quantity: item.quantity, unitPrice: item.unitPrice })),
                 adminId: !isEmployee ? (adminData as any)?.id : undefined,
                 employeeId: isEmployee ? (employeeData as any)?.id : undefined,
             });
@@ -301,12 +316,12 @@ const UpsertSalesReturnPage: React.FC = () => {
                             onChange={(e) => handleTransactionIdChange(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearchTransaction()}
                             placeholder="e.g., ABTR64943"
-                            disabled={isSearching}
-                            className="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                            disabled={isSearching || isSubmitting}
+                            className={`flex-1 px-4 py-2.5 border rounded-lg text-sm text-slate-800 focus:ring-2 outline-none transition-all ${isSearching || isSubmitting ? 'bg-slate-100 border-slate-200 cursor-not-allowed opacity-70' : 'border-slate-200 focus:ring-blue-500 focus:border-blue-500'}`}
                         />
                         <button
                             onClick={() => handleSearchTransaction()}
-                            disabled={isSearching || !transactionId.trim()}
+                            disabled={isSearching || isSubmitting || !transactionId.trim()}
                             className="px-6 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-700 disabled:opacity-50 flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors"
                         >
                             {isSearching
@@ -416,10 +431,10 @@ const UpsertSalesReturnPage: React.FC = () => {
                                                                 <Package className="w-5 h-5" />
                                                             </div>
                                                             <div>
-                                                                <p className="font-semibold text-slate-800 text-sm">{product.stockin?.itemName || 'Unknown'}</p>
+                                                                <p className="font-semibold text-slate-800 text-sm">{product.stockin?.itemName || product.externalItemName || 'Unknown Item'}</p>
                                                                 <div className="flex gap-3 text-[10px] text-slate-500 mt-0.5">
-                                                                    <span>SKU: <strong className="text-slate-700">{product.stockin?.sku || 'N/A'}</strong></span>
-                                                                    <span>Qty: <strong className="text-slate-700">{product.quantity} {product.stockin?.unitOfMeasure}</strong></span>
+                                                                    <span>SKU: <strong className="text-slate-700">{product.stockin?.sku || product.externalSku || 'N/A'}</strong></span>
+                                                                    <span>Qty: <strong className="text-slate-700">{product.quantity} {product.stockin?.unitOfMeasure || 'units'}</strong></span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -451,13 +466,36 @@ const UpsertSalesReturnPage: React.FC = () => {
                                                                     <p className="text-[9px] text-slate-400 text-center mt-1 uppercase tracking-wide">Max: {selItem.maxQuantity}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Total Refund</label>
-                                                                    <div className="w-full px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
-                                                                        <span className="font-bold text-emerald-600 text-sm">{formatPrice(selItem.unitPrice * selItem.quantity)}</span>
-                                                                    </div>
+                                                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                                                      <span>{selItem.isExternal ? 'Unit Price (Editable)' : 'Total Refund'}</span>
+                                                                    </label>
+                                                                    {selItem.isExternal ? (
+                                                                         <input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            step="0.01"
+                                                                            value={selItem.unitPrice}
+                                                                            onChange={(e) => handleUnitPriceChange(product.id, e.target.value)}
+                                                                            className={`w-full text-center font-bold px-3 py-2 border border-slate-200 rounded-lg text-emerald-600 focus:ring-2 focus:ring-blue-500 outline-none`}
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-full px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+                                                                            <span className="font-bold text-emerald-600 text-sm">{formatPrice(selItem.unitPrice * selItem.quantity)}</span>
+                                                                        </div>
+                                                                    )}
                                                                     <p className="text-[9px] text-slate-400 text-center mt-1 uppercase tracking-wide">{formatPrice(selItem.unitPrice)} × {selItem.quantity}</p>
                                                                 </div>
                                                             </div>
+
+                                                            {selItem.isExternal && (
+                                                                <div className="mt-4 flex items-start gap-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-xs text-yellow-800">
+                                                                    <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+                                                                    <p>
+                                                                        <strong>Warning:</strong> This is a returned external item. A new stock record will be generated automatically. 
+                                                                        Please verify the default sold price and confirm or enter your own unit price for the newly created stock.
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                         </motion.div>
                                                     )}
 

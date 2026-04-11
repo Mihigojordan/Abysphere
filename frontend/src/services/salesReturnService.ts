@@ -4,6 +4,7 @@ import api from '../api/api'; // Adjust the import path as needed
 export interface SalesReturnItem {
   stockoutId: string;
   quantity: number;
+  unitPrice?: number;
 }
 
 export interface SalesReturnData {
@@ -75,6 +76,7 @@ class SalesReturnService {
         items: returnData.items.map(item => ({
           stockoutId: item.stockoutId,
           quantity: Number(item.quantity),
+          ...(item.unitPrice !== undefined && { unitPrice: Number(item.unitPrice) }),
         })),
         adminId: returnData.adminId || undefined,
         employeeId: returnData.employeeId || undefined,

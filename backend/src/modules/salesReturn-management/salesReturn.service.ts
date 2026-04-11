@@ -16,7 +16,7 @@ export class SalesReturnService {
     transactionId: string;
     reason?: string;
     createdAt?: Date;
-    items: { stockoutId: string; quantity: number }[];
+    items: { stockoutId: string; quantity: number; unitPrice?: number }[];
     adminId: string;
     employeeId?: string;
   }) {
@@ -62,9 +62,53 @@ export class SalesReturnService {
           );
         }
 
-        if (stockout.stockinId) {
+        let currentStockinId = stockout.stockinId;
+
+        if (!currentStockinId) {
+          // It's an external item. Create new stock!
+          const newStockQty = quantity;
+          const newStock = await this.prisma.stock.create({
+            data: {
+              sku: generateStockSKU('EX', 'RET'),
+              itemName: stockout.externalItemName || 'Returned External Item',
+              unitOfMeasure: 'units',
+              receivedQuantity: newStockQty,
+              unitCost: item.unitPrice ? new Prisma.Decimal(item.unitPrice) : new Prisma.Decimal(Number(stockout.soldPrice) || 0),
+              totalValue: new Prisma.Decimal(newStockQty * Number(item.unitPrice || stockout.soldPrice || 0)),
+              warehouseLocation: 'External Returns',
+              reorderLevel: 0,
+              adminId: adminId,
+              receivedDate: new Date()
+            }
+          });
+
+          currentStockinId = newStock.id;
+
+          // Record stock history for this newly created returning stock
+          await this.prisma.stockHistory.create({
+            data: {
+              stockId: newStock.id,
+              movementType: 'IN',
+              sourceType: 'RECEIPT',
+              qtyBefore: new Prisma.Decimal(0),
+              qtyChange: new Prisma.Decimal(newStockQty),
+              qtyAfter: new Prisma.Decimal(newStockQty),
+              unitPrice: item.unitPrice ? new Prisma.Decimal(item.unitPrice) : new Prisma.Decimal(Number(stockout.soldPrice) || 0),
+              notes: `External item converted to stock via return (CreditNote: ${creditnoteId})`,
+              createdByAdminId: adminId,
+              createdByEmployeeId: employeeId || null,
+            },
+          });
+
+          // Link the newly created stock to the existing stockout
+          await this.prisma.stockOut.update({
+            where: { id: stockout.id },
+            data: { stockinId: currentStockinId }
+          });
+        } else {
+          // Regular flow for items that already have a stockinId
           const stock = await this.prisma.stock.findUnique({
-            where: { id: stockout.stockinId },
+            where: { id: currentStockinId },
           });
 
           if (!stock) throw new Error('Related stock not found');

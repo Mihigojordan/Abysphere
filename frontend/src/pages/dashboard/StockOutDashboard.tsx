@@ -541,6 +541,15 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
     </div>
   );
 
+  const copyTransactionId = (tid: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (tid && tid !== '—') {
+      navigator.clipboard.writeText(tid);
+      setNotification({ message: `Copied Transaction ID: ${tid}`, type: 'success' });
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
   const TableView = () => (
     <div className="bg-theme-bg-primary rounded-xl shadow-sm border border-theme-border overflow-hidden">
       <div className="overflow-x-auto">
@@ -562,7 +571,12 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
               <tr key={item.id} className="hover:bg-theme-bg-tertiary">
                 <td className="px-5 py-4 text-theme-text-secondary">{formatDate(item.createdAt)}</td>
                 <td className="px-5 py-4">
-                  <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{item.transactionId || '—'}</span>
+                  <span 
+                    onClick={(e) => copyTransactionId(item.transactionId || '—', e)}
+                    className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20 cursor-pointer hover:bg-primary-500/20 transition-colors"
+                  >
+                    {item.transactionId || '—'}
+                  </span>
                 </td>
                 <td className="px-5 py-4">
                   <div className="font-medium text-theme-text-primary">
@@ -606,7 +620,12 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                 <p className="font-semibold text-theme-text-primary truncate">
                   {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
                 </p>
-                <p className="text-xs text-theme-text-secondary">{item.transactionId || '—'}</p>
+                <p 
+                  onClick={(e) => copyTransactionId(item.transactionId || '—', e)}
+                  className="text-xs text-theme-text-secondary cursor-pointer hover:text-primary-600 transition-colors"
+                >
+                  {item.transactionId || '—'}
+                </p>
               </div>
             </div>
             <ActionButtons item={item} />
@@ -653,7 +672,12 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                 {item.stockin?.product?.productName || item.stockin?.itemName || item.externalItemName}
               </p>
               <p className="text-sm text-theme-text-secondary truncate">
-                <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-1.5 py-0.5 rounded border border-primary-500/20 mr-2">{item.transactionId || '—'}</span>
+                <span 
+                  onClick={(e) => copyTransactionId(item.transactionId || '—', e)}
+                  className="font-mono text-xs text-primary-600 bg-primary-500/10 px-1.5 py-0.5 rounded border border-primary-500/20 mr-2 cursor-pointer hover:bg-primary-500/20 transition-colors"
+                >
+                  {item.transactionId || '—'}
+                </span>
                 {item.clientName || t('stockOut.walkIn')} • {formatDate(item.createdAt)}
               </p>
             </div>
@@ -706,7 +730,12 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                   </td>
                   <td className="px-5 py-4 text-theme-text-secondary">{formatDate(group.date)}</td>
                   <td className="px-5 py-4">
-                    <span className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">{group.transactionId}</span>
+                    <span 
+                      onClick={(e) => copyTransactionId(group.transactionId, e)}
+                      className="font-mono text-xs text-primary-600 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20 cursor-pointer hover:bg-primary-500/20 transition-colors"
+                    >
+                      {group.transactionId}
+                    </span>
                   </td>
                   <td className="px-5 py-4 text-theme-text-secondary">{group.client}</td>
                   <td className="px-5 py-4 text-right font-medium text-theme-text-primary">{group.totalQty}</td>
