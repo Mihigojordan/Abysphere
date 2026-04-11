@@ -12,6 +12,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import grnService from '../../services/grnService';
+import stockService from '../../services/stockService';
 import useAdminAuth from '../../context/AdminAuthContext';
 
 const GRNView: React.FC = () => {
@@ -40,14 +41,51 @@ const GRNView: React.FC = () => {
     useEffect(() => { loadGRN(); }, [id]);
 
     const handleApprove = async () => {
-        const res = await Swal.fire({ title: 'Approve GRN?', text: 'This will create stock entries.', icon: 'question', showCancelButton: true, confirmButtonText: 'Approve' });
+        const res = await Swal.fire({
+            title: 'Approve GRN?',
+            text: 'This will add accepted items directly into stock.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Approve & Add to Stock',
+        });
         if (!res.isConfirmed || !grn) return;
+
         try {
+            // 1. Approve the GRN (updates GRN status → APPROVED)
             await grnService.approve(grn.id, adminData?.id || '', true, token);
+
+            // 2. Set inspectionStatus → APPROVED (approve call doesn't do this)
+            await grnService.updateInspection(grn.id, 'APPROVED', 'Approved with GRN', undefined, token);
+
+            // 3. Create a Stock record for every accepted item so it appears in StockInManagement
+            const acceptedItems = (grn.items || []).filter(
+                (item: any) => (item.acceptedQty ?? 0) > 0 && item.qualityStatus !== 'REJECTED'
+            );
+
+            await Promise.allSettled(
+                acceptedItems.map((item: any) =>
+                    stockService.createStock({
+                        sku: item.productSku || `GRN-${grn.grnNumber}-${item.productName.slice(0, 4).toUpperCase()}`,
+                        itemName: item.productName,
+                        categoryId: item.categoryId || '',
+                        supplier: grn.supplier?.name || '',
+                        unitOfMeasure: item.unit || 'pcs',
+                        receivedQuantity: item.acceptedQty,
+                        unitCost: item.unitCost || 0,
+                        totalValue: item.acceptedQty * (item.unitCost || 0),
+                        warehouseLocation: item.locationId || 'Warehouse',
+                        receivedDate: new Date(grn.receivedDate || Date.now()),
+                        reorderLevel: 0,
+                        expiryDate: item.expiryDate || undefined,
+                        adminId: adminData?.id || '',
+                    })
+                )
+            );
+
             loadGRN();
-            Swal.fire({ icon: 'success', title: 'Approved', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'Approved — Items added to stock', timer: 2000, showConfirmButton: false });
         } catch (e: any) {
-            Swal.fire('Error', e.response?.data?.message || 'Failed to approve', 'error');
+            Swal.fire('Error', e.response?.data?.message || 'Failed to approve GRN', 'error');
         }
     };
 
