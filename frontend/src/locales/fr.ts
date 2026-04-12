@@ -564,5 +564,7 @@ export const fr = {
         revenueCost: 'Revenu - Coût',
         overallMargin: 'Marge globale',
         loading: 'Chargement du tableau de bord...',
+        totalAssets: 'Total des Actifs',
+        assetsValue: 'Valeur Totale des Actifs',
     }
 };

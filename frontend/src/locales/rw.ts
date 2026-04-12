@@ -560,5 +560,7 @@ export const rw = {
         revenueCost: 'Amafaranga yinjijwe - Ikiguzi',
         overallMargin: 'Inyungu yose hamwe',
         loading: 'Birategura Dashboard...',
+        totalAssets: 'Imitungo Yose',
+        assetsValue: 'Agaciro k\'Imitungo',
     }
 };

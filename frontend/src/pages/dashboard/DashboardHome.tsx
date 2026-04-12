@@ -374,7 +374,7 @@ const DashboardHome: React.FC<{ role: 'ADMIN' | 'EMPLOYEE' }> = ({ role }) => {
     const totalStockValue = filteredStockIns.reduce((s: number, i: any) =>
       s + (Number(i.unitPrice) || 0) * (Number(i.quantity) || 0), 0);
     const totalStockItems = filteredStockIns.reduce((s: number, i: any) => s + (Number(i.quantity) || 0), 0);
-    const totalAssetsValue = filteredAssets.reduce((s: number, a: any) => s + (Number(a.value) || 0), 0);
+    const totalAssetsValue = filteredAssets.reduce((s: number, a: any) => s + ((Number(a.purchaseCost) || 0) * (Number(a.quantity) || 1)), 0);
 
     setStats({
       totalClients: filteredClients.length,
