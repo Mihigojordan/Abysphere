@@ -563,7 +563,7 @@ const PurchaseOrderView: React.FC = () => {
                 }
 
                 .seal-left { display: flex; align-items: center; justify-content: flex-start; }
-                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
+                .company-seal-large { width: 300px; height: 300px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint {
                     text-align: center;

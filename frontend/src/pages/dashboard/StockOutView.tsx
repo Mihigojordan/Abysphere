@@ -395,7 +395,7 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
                 .seal-left { display: flex; align-items: center; justify-content: flex-start; }
-                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
+                .company-seal-large { width: 300px; height: 300px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint {
                     text-align: center; margin-top: 24px; font-size: 9px;

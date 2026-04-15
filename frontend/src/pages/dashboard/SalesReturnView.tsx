@@ -245,7 +245,7 @@ const SalesReturnView: React.FC = () => {
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
                 .seal-left { display: flex; align-items: center; justify-content: flex-start; }
-                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
+                .company-seal-large { width: 300px; height: 300px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint { text-align: center; margin-top: 24px; font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; }
                 .print-hint kbd { font-family: 'DM Mono', monospace; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 5px; font-size: 9px; color: var(--primary); }
