@@ -16,11 +16,12 @@ export class CategoryManagementService {
   async createCategory(data: {
     name?: string;
     description?: string;
+    image?: string;
     adminId?: string;
     employeeId?: string;
   }) {
     try {
-      const { name, description } = data;
+      const { name, description, image } = data;
 
       if (!name) {
         throw new BadRequestException('Category name is required');
@@ -35,7 +36,7 @@ export class CategoryManagementService {
       }
 
       const createdCategory = await this.prismaService.category.create({
-        data: { name, description , adminId:data.adminId , },
+        data: { name, description, image: image || null, adminId:data.adminId },
       });
 
       
@@ -96,6 +97,7 @@ export class CategoryManagementService {
     data: {
       name?: string;
       description?: string;
+      image?: string;
       adminId?: string;
       employeeId?: string;
     },
@@ -113,7 +115,8 @@ export class CategoryManagementService {
         where: { id },
         data: {
           name: data.name ?? existing.name,
-          description: data.description ?? existing.description
+          description: data.description ?? existing.description,
+          image: data.image !== undefined ? data.image : (existing as any).image,
         }
       });
 

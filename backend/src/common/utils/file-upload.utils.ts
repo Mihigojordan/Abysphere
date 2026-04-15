@@ -35,6 +35,9 @@ export const createUnifiedUploadConfig = (): MulterOptions => ({
       else if(file.fieldname === 'stockImg'){
         subFolder = 'stock_images'
       }
+      else if(file.fieldname === 'categoryImg'){
+        subFolder = 'category_images'
+      }
 
       console.log('Received file.fieldname:', file.fieldname);
 
@@ -129,3 +132,8 @@ export const StockFileFields = [
   { name: 'stockImg', maxCount: 1 },
 ];
 export const StockUploadConfig = createUnifiedUploadConfig();
+
+export const CategoryFileFields = [
+  { name: 'categoryImg', maxCount: 1 },
+];
+export const CategoryUploadConfig = createUnifiedUploadConfig();

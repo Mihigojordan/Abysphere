@@ -7,6 +7,7 @@ export interface Category {
   id?: string;
   name: string;
   description?: string;
+  image?: string;
 }
 
 export interface TaskAssignment {
@@ -20,9 +21,22 @@ export interface ValidationResult {
 }
 
 class CategoryService {
-  async createCategory(categoryData: Category): Promise<Category> {
+  async createCategory(categoryData: Category & { imageFile?: File }): Promise<Category> {
     try {
-      const response: AxiosResponse<Category> = await api.post('/category/create', categoryData);
+      let response: AxiosResponse<Category>;
+      if (categoryData.imageFile) {
+        const formData = new FormData();
+        formData.append('name', categoryData.name);
+        if (categoryData.description) formData.append('description', categoryData.description);
+        if (categoryData.adminId) formData.append('adminId', (categoryData as any).adminId);
+        if (categoryData.employeeId) formData.append('employeeId', (categoryData as any).employeeId);
+        formData.append('categoryImg', categoryData.imageFile);
+        response = await api.post('/category/create', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.post('/category/create', categoryData);
+      }
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to create category');
@@ -47,9 +61,22 @@ class CategoryService {
     }
   }
 
-  async updateCategory(id: string, categoryData: Category): Promise<Category> {
+  async updateCategory(id: string, categoryData: Category & { imageFile?: File }): Promise<Category> {
     try {
-      const response: AxiosResponse<Category> = await api.put(`/category/update/${id}`, categoryData);
+      let response: AxiosResponse<Category>;
+      if (categoryData.imageFile) {
+        const formData = new FormData();
+        formData.append('name', categoryData.name);
+        if (categoryData.description) formData.append('description', categoryData.description);
+        if (categoryData.adminId) formData.append('adminId', (categoryData as any).adminId);
+        if (categoryData.employeeId) formData.append('employeeId', (categoryData as any).employeeId);
+        formData.append('categoryImg', categoryData.imageFile);
+        response = await api.put(`/category/update/${id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.put(`/category/update/${id}`, categoryData);
+      }
       return response.data;
     } catch (error: unknown) {
       this.handleError(error, 'Failed to update category');

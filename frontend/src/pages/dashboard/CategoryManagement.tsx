@@ -57,6 +57,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [formData, setFormData] = useState({ name: '', description: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('table');
 
@@ -207,7 +209,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           const response: any = await categoryService.createCategory({
             ...categoryData,
             ...userData,
-          });
+            imageFile: imageFile || undefined,
+          } as any);
 
           const categoryResponse = response.category || response;
 
@@ -215,6 +218,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             id: categoryResponse.id,
             name: categoryData.name,
             description: categoryData.description,
+            image: categoryResponse.image || undefined,
             lastModified: now.toISOString(),
             updatedAt: categoryResponse.updatedAt || now.toISOString(),
           });
@@ -230,6 +234,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       await loadCategories();
       setIsAddModalOpen(false);
       setFormData({ name: '', description: '' });
+      setImageFile(null);
+      setImagePreview(null);
     } catch (error: any) {
       setFormError(error.message);
       showNotification(`Failed to add category: ${error.message}`, 'error');
@@ -265,7 +271,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
         try {
           const response: any = await categoryService.updateCategory(
             selectedCategory.id,
-            { ...categoryData, ...userData }
+            { ...categoryData, ...userData, imageFile: imageFile || undefined } as any
           );
 
           const categoryResponse = response.category || response;
@@ -274,6 +280,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             id: selectedCategory.id,
             name: categoryData.name,
             description: categoryData.description,
+            image: categoryResponse.image || (selectedCategory as any).image || undefined,
             lastModified: now.toISOString(),
             updatedAt: categoryResponse.updatedAt || now.toISOString(),
           });
@@ -291,6 +298,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
       await loadCategories();
       setIsEditModalOpen(false);
       setSelectedCategory(null);
+      setImageFile(null);
+      setImagePreview(null);
     } catch (error: any) {
       setFormError(error.message);
       showNotification(`Failed to update category: ${error.message}`, 'error');
@@ -371,6 +380,20 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
     setSelectedCategory(null);
     setFormData({ name: '', description: '' });
     setFormError('');
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   /* --------------------------------------------------------------------- */
@@ -400,9 +423,17 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 </td>
                 <td className="py-2 px-4 font-medium text-theme-text-primary">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center text-primary-700 dark:text-primary-400 text-[10px] font-bold">
-                      {cat.name?.[0] || 'C'}
-                    </div>
+                    {(cat as any).image ? (
+                      <img
+                        src={`${import.meta.env.VITE_API_URL}${(cat as any).image}`}
+                        alt={cat.name}
+                        className="w-6 h-6 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center text-primary-700 dark:text-primary-400 text-[10px] font-bold">
+                        {cat.name?.[0] || 'C'}
+                      </div>
+                    )}
                     <span>{cat.name}</span>
                   </div>
                 </td>
@@ -425,6 +456,8 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                       onClick={() => {
                         setSelectedCategory(cat);
                         setFormData({ name: cat.name, description: cat.description || '' });
+                        setImageFile(null);
+                        setImagePreview((cat as any).image ? `${import.meta.env.VITE_API_URL}${(cat as any).image}` : null);
                         setIsEditModalOpen(true);
                       }}
                       className="p-1.5 text-amber-600 hover:bg-amber-500/10 rounded-md transition-colors"
@@ -462,8 +495,16 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           className="bg-theme-bg-primary rounded-lg shadow-sm border border-theme-border p-3 hover:shadow-md transition-all group"
         >
           <div className="flex items-center space-x-3 mb-3">
-            <div className="w-9 h-9 bg-primary-500/10 rounded-lg flex items-center justify-center group-hover:bg-primary-500/20 transition-colors">
-              <FolderIcon className="w-4.5 h-4.5 text-primary-600" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 bg-primary-500/10 group-hover:bg-primary-500/20 transition-colors">
+              {(cat as any).image ? (
+                <img
+                  src={`${import.meta.env.VITE_API_URL}${(cat as any).image}`}
+                  alt={cat.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FolderIcon className="w-4.5 h-4.5 text-primary-600" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-theme-text-primary text-xs truncate">{cat.name}</div>
@@ -515,8 +556,16 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
           className="px-4 py-3 hover:bg-theme-bg-tertiary/50 flex items-center justify-between transition-colors"
         >
           <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="w-8 h-8 bg-primary-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <FolderIcon className="w-4 h-4 text-primary-600" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden bg-primary-500/10">
+              {(cat as any).image ? (
+                <img
+                  src={`${import.meta.env.VITE_API_URL}${(cat as any).image}`}
+                  alt={cat.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FolderIcon className="w-4 h-4 text-primary-600" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-theme-text-primary text-xs truncate">{cat.name}</div>
@@ -813,6 +862,27 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   rows={3}
                   className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
+                <div>
+                  <label className="block text-[10px] font-semibold text-theme-text-secondary uppercase tracking-wide mb-1.5">
+                    Category Image (optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleImageChange}
+                    className="w-full text-xs text-theme-text-secondary file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-primary-600 file:text-white hover:file:bg-primary-700 cursor-pointer"
+                  />
+                  {imagePreview && (
+                    <div className="mt-2 relative inline-block">
+                      <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded border border-theme-border" />
+                      <button
+                        type="button"
+                        onClick={() => { setImageFile(null); setImagePreview(null); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]"
+                      >✕</button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
@@ -871,6 +941,27 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                   rows={3}
                   className="w-full px-4 py-2 border border-theme-border rounded text-xs bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
+                <div>
+                  <label className="block text-[10px] font-semibold text-theme-text-secondary uppercase tracking-wide mb-1.5">
+                    Category Image (optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleImageChange}
+                    className="w-full text-xs text-theme-text-secondary file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-primary-600 file:text-white hover:file:bg-primary-700 cursor-pointer"
+                  />
+                  {imagePreview && (
+                    <div className="mt-2 relative inline-block">
+                      <img src={imagePreview} alt="Preview" className="h-20 w-20 object-cover rounded border border-theme-border" />
+                      <button
+                        type="button"
+                        onClick={() => { setImageFile(null); setImagePreview(null); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]"
+                      >✕</button>
+                    </div>
+                  )}
+                </div>
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"

@@ -4,15 +4,7 @@ import publicCategoryService from '../../../services/publicCategoryService';
 import type { Category } from '../../../services/categoryService';
 import publicStockService from '../../../services/publicStockService';
 
-// Cycling images for categories that don't have their own photo
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1590736704728-f4730bb30770?w=600&h=600&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=600&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600&h=600&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&h=600&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1526045612212-70caf35c14df?w=600&h=600&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=600&h=600&fit=crop&q=80',
-];
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 const Categories = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -111,11 +103,10 @@ const Categories = () => {
         {/* Grid */}
         {!loading && categories.length > 0 && (
           <div className="categories-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2rem' }}>
-            {categories.map((cat, i) => (
+            {categories.map((cat) => (
               <CategoryCard
                 key={cat.id || cat.name}
                 cat={cat}
-                img={FALLBACK_IMAGES[i % FALLBACK_IMAGES.length]}
                 count={counts[cat.id || ''] ?? 0}
                 onClick={() => handleCategoryClick(cat)}
               />
@@ -145,16 +136,15 @@ const Categories = () => {
 
 const CategoryCard = ({
   cat,
-  img,
   count,
   onClick,
 }: {
   cat: Category;
-  img: string;
   count: number;
   onClick: () => void;
 }) => {
   const [hovered, setHovered] = useState(false);
+  const imgSrc = cat.image ? `${API_BASE}${cat.image}` : null;
 
   return (
     <div
@@ -167,7 +157,7 @@ const CategoryCard = ({
         transition: 'transform 0.3s ease',
       }}
     >
-      {/* Image */}
+      {/* Image / Icon */}
       <div
         style={{
           width: '100%',
@@ -177,20 +167,46 @@ const CategoryCard = ({
           overflow: 'hidden',
           transition: 'border-color 0.3s ease, border-width 0.3s ease',
           position: 'relative',
+          background: imgSrc ? undefined : 'var(--aby-surface)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <img
-          src={img}
-          alt={cat.name}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            transform: hovered ? 'scale(1.06)' : 'scale(1)',
-            transition: 'transform 0.5s ease',
-          }}
-        />
+        {imgSrc ? (
+          <img
+            src={imgSrc}
+            alt={cat.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transform: hovered ? 'scale(1.06)' : 'scale(1)',
+              transition: 'transform 0.5s ease',
+            }}
+          />
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              width: '35%',
+              height: '35%',
+              color: 'var(--aby-accent)',
+              opacity: 0.55,
+              transition: 'transform 0.5s ease',
+              transform: hovered ? 'scale(1.1)' : 'scale(1)',
+            }}
+          >
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+          </svg>
+        )}
         {/* Hover overlay */}
         <div
           style={{

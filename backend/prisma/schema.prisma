@@ -908,6 +908,7 @@ model Category {
   id          String    @id @default(uuid())
   name        String?
   description String?
+  image       String?
   adminId     String?
   employeeId  String?
   createdAt   DateTime  @default(now())
