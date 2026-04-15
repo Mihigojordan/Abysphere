@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Printer, Download, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import salesReturnService from '../../services/salesReturnService';
 import pmsLogo from '../../assets/erasebg-transformed.png';
+import companySeal from '../../assets/company_seal.png';
 
 interface SalesReturnItem {
     id: string;
@@ -243,6 +244,9 @@ const SalesReturnView: React.FC = () => {
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
+                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+
                 .print-hint { text-align: center; margin-top: 24px; font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; }
                 .print-hint kbd { font-family: 'DM Mono', monospace; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 5px; font-size: 9px; color: var(--primary); }
             `}</style>
@@ -399,6 +403,9 @@ const SalesReturnView: React.FC = () => {
                             <div className="totals-row grand">
                                 <span className="lbl">Total Refund</span>
                                 <span className="val">{formatCurrency(grandTotal)}</span>
+                            </div>
+                            <div className="seal-wrap">
+                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ import stockOutService from '../../services/stockoutService';
 import useAdminAuth from '../../context/AdminAuthContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import pmsLogo from '../../assets/erasebg-transformed.png';
+import companySeal from '../../assets/company_seal.png';
 
 interface StockOutItem {
     id: string;
@@ -393,6 +394,9 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
+                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+
                 .print-hint {
                     text-align: center; margin-top: 24px; font-size: 9px;
                     font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8;
@@ -568,6 +572,9 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                             <div className="totals-row grand">
                                 <span className="lbl">Grand Total</span>
                                 <span className="val">{formatCurrency(grandTotal)}</span>
+                            </div>
+                            <div className="seal-wrap">
+                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>

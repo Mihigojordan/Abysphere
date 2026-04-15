@@ -10,6 +10,7 @@ import {
 import purchaseOrderService from '../../services/purchaseOrderService';
 import useAdminAuth from '../../context/AdminAuthContext';
 import pmsLogo from '../../assets/erasebg-transformed.png';
+import companySeal from '../../assets/company_seal.png';
 
 interface PurchaseOrder {
     id: string;
@@ -561,6 +562,9 @@ const PurchaseOrderView: React.FC = () => {
                     color: rgba(255,255,255,.35);
                 }
 
+                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+
                 .print-hint {
                     text-align: center;
                     margin-top: 24px;
@@ -738,6 +742,9 @@ const PurchaseOrderView: React.FC = () => {
                             <div className="totals-row grand">
                                 <span className="lbl">Grand Total</span>
                                 <span className="val">{formatCurrency(order.grandTotal)}</span>
+                            </div>
+                            <div className="seal-wrap">
+                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>
