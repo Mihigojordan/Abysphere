@@ -244,8 +244,8 @@ const SalesReturnView: React.FC = () => {
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
-                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
-                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+                .seal-left { display: flex; align-items: center; justify-content: flex-start; }
+                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint { text-align: center; margin-top: 24px; font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; }
                 .print-hint kbd { font-family: 'DM Mono', monospace; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 5px; font-size: 9px; color: var(--primary); }
@@ -382,15 +382,10 @@ const SalesReturnView: React.FC = () => {
 
                     {/* FOOTER SECTION */}
                     <div className="footer-section">
-                        <div>
-                            <p className="notes-label">Return Policy</p>
-                            <p className="notes-text">
-                                {salesReturn.reason
-                                    ? `Return reason: ${salesReturn.reason}.`
-                                    : 'No reason provided.'}{' '}
-                                This document confirms the acceptance of returned goods. Refund will be processed within 3–5 business days.
-                            </p>
+                        <div className="seal-left">
+                            <img src={companySeal} alt="Company Seal" className="company-seal-large" />
                         </div>
+
                         <div className="totals">
                             <div className="totals-row">
                                 <span className="lbl">Items Returned</span>
@@ -403,9 +398,6 @@ const SalesReturnView: React.FC = () => {
                             <div className="totals-row grand">
                                 <span className="lbl">Total Refund</span>
                                 <span className="val">{formatCurrency(grandTotal)}</span>
-                            </div>
-                            <div className="seal-wrap">
-                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>

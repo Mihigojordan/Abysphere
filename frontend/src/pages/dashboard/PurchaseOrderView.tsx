@@ -562,8 +562,8 @@ const PurchaseOrderView: React.FC = () => {
                     color: rgba(255,255,255,.35);
                 }
 
-                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
-                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+                .seal-left { display: flex; align-items: center; justify-content: flex-start; }
+                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint {
                     text-align: center;
@@ -713,21 +713,8 @@ const PurchaseOrderView: React.FC = () => {
 
                     {/* FOOTER SECTION */}
                     <div className="footer-section">
-                        <div>
-                            <p className="notes-label">Notes & Terms</p>
-                            <p className="notes-text">
-                                {order.notes || "Standard procurement terms apply. All items subject to technical inspection upon delivery. Payment terms governed by master supply agreement. This document is valid in electronic format without physical signature."}
-                            </p>
-                            <div className="sig-row">
-                                <div className="sig-block">
-                                    <div className="sig-line"></div>
-                                    <p className="sig-caption">Prepared By</p>
-                                </div>
-                                <div className="sig-block">
-                                    <div className="sig-line"></div>
-                                    <p className="sig-caption">Authorized By</p>
-                                </div>
-                            </div>
+                        <div className="seal-left">
+                            <img src={companySeal} alt="Company Seal" className="company-seal-large" />
                         </div>
 
                         <div className="totals">
@@ -742,9 +729,6 @@ const PurchaseOrderView: React.FC = () => {
                             <div className="totals-row grand">
                                 <span className="lbl">Grand Total</span>
                                 <span className="val">{formatCurrency(order.grandTotal)}</span>
-                            </div>
-                            <div className="seal-wrap">
-                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>

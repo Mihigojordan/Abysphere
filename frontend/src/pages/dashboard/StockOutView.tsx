@@ -394,8 +394,8 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
-                .seal-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
-                .company-seal { width: 90px; height: 90px; object-fit: contain; opacity: 0.88; }
+                .seal-left { display: flex; align-items: center; justify-content: flex-start; }
+                .company-seal-large { width: 180px; height: 180px; object-fit: contain; opacity: 0.92; }
 
                 .print-hint {
                     text-align: center; margin-top: 24px; font-size: 9px;
@@ -538,26 +538,8 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
 
                     {/* FOOTER SECTION */}
                     <div className="footer-section">
-                        <div>
-                            <p className="notes-label">Terms</p>
-                            <p className="notes-text">
-                                Goods once sold are not returnable without prior authorization. This receipt serves as proof of purchase.
-                                Thank you for your business.
-                            </p>
-                            <div className="sig-row">
-                                <div className="sig-block">
-                                    <div className="sig-line"></div>
-                                    <p className="sig-caption">Customer Acknowledgment</p>
-                                </div>
-                                <div className="sig-block">
-                                    <div className="sig-line"></div>
-                                    <p className="sig-caption">
-                                        {isEmployee
-                                            ? `${(employeeData as any)?.first_name ?? 'Staff'} ${(employeeData as any)?.last_name ?? ''}`
-                                            : 'Authorized By'}
-                                    </p>
-                                </div>
-                            </div>
+                        <div className="seal-left">
+                            <img src={companySeal} alt="Company Seal" className="company-seal-large" />
                         </div>
 
                         <div className="totals">
@@ -572,9 +554,6 @@ const StockOutView: React.FC<StockOutViewProps> = ({ role: initialRole }) => {
                             <div className="totals-row grand">
                                 <span className="lbl">Grand Total</span>
                                 <span className="val">{formatCurrency(grandTotal)}</span>
-                            </div>
-                            <div className="seal-wrap">
-                                <img src={companySeal} alt="Company Seal" className="company-seal" />
                             </div>
                         </div>
                     </div>
