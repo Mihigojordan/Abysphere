@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Printer, Download, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import proformaService from '../../services/proformaInvoiceService';
 import pmsLogo from '../../assets/erasebg-transformed.png';
+import companySeal from '../../assets/company_seal.png';
 
 interface ProformaInvoice {
     id: string;
@@ -289,6 +290,9 @@ const ProformaInvoiceView: React.FC = () => {
                 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
                 .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 
+                .seal-left { display: flex; align-items: center; justify-content: flex-start; }
+                .company-seal-large { width: 420px; height: auto; object-fit: contain; opacity: 0.92; }
+
                 .print-hint { text-align: center; margin-top: 24px; font-size: 9px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; }
                 .print-hint kbd { font-family: 'DM Mono', monospace; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 5px; font-size: 9px; color: var(--primary); }
             `}</style>
@@ -422,11 +426,8 @@ const ProformaInvoiceView: React.FC = () => {
 
                     {/* FOOTER SECTION */}
                     <div className="footer-section">
-                        <div>
-                            <p className="notes-label">Notes & Terms</p>
-                            <p className="notes-text">
-                                {proforma.notes || 'Standard terms apply. This proforma invoice is valid for 30 days from the issue date. Payment confirms the order.'}
-                            </p>
+                        <div className="seal-left">
+                            <img src={companySeal} alt="Company Seal" className="company-seal-large" />
                         </div>
                         <div className="totals">
                             <div className="totals-row">
