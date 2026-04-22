@@ -1,50 +1,79 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>You’re Hired – {{jobTitle}}</title>
-  </head>
-  <body style="font-family: Arial, sans-serif; background-color:#f5f5f5; margin:0; padding:40px 0; text-align:center;">
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border:1px solid #ddd; border-radius:6px; margin:auto; text-align:left;">
-            
-            <!-- Header -->
-            <tr>
-              <td style="border-bottom:4px solid #ff7300; padding:20px; text-align:center;">
-                <div style="font-size:16px; color:#555;">{{companyName}}</div>
-                <div style="font-size:24px; font-weight:bold; color:#ff7300; margin-top:8px;">
-                  🎉 You’re Hired!
-                </div>
-                <div style="font-size:14px; color:#555; margin-top:4px;">
-                  Official Offer for <strong>{{jobTitle}}</strong>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- Body -->
-            <tr>
-              <td style="padding:30px; color:#333333; line-height:1.6;">
-                <p style="margin:0 0 15px;">{{startDate}}</p>
-                <p>Dear {{firstname}} {{lastname}},</p>
-                <p>We are delighted to offer you the role of <strong>{{jobTitle}}</strong> at <strong>{{companyName}}</strong>.</p>
-                <p>Your official start date will be <strong>{{startDate}}</strong>. Please prepare any necessary documents and let us know if you have any questions before your first day.</p>
-                <p>We look forward to working with you and seeing the contributions you will make.</p>
-                <p style="margin-top:25px;">Sincerely,<br/><strong>The {{companyName}} Team</strong></p>
-              </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-              <td style="border-top:4px solid #ff7300; text-align:center; padding:15px; font-size:12px; color:#666;">
-                &copy; {{year}} {{companyName}}. All rights reserved.
-              </td>
-            </tr>
-          
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Congratulations — You're Hired!</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f6ff;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+
+  <div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:#f0f6ff;opacity:0;">Great news — you have been selected for {{jobTitle}}.</div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f0f6ff;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;background:#ffffff;border:1px solid #bfdbfe;border-radius:4px;overflow:hidden;box-shadow:0 4px 20px rgba(30,58,138,0.08);">
+
+          <tr><td style="height:4px;background:#daa13c;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+          <tr>
+            <td style="background:#1e3a8a;padding:32px 40px;text-align:center;">
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.18em;color:#daa13c;text-transform:uppercase;margin-bottom:6px;">{{companyName}}</div>
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:0.02em;line-height:1.2;">Papeterie Messenger Supplier Ltd</div>
+              <div style="width:48px;height:2px;background:#daa13c;margin:14px auto 0;"></div>
+            </td>
+          </tr>
+
+          <!-- Celebration bar -->
+          <tr>
+            <td align="center" style="background:#daa13c;padding:14px 40px;">
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:0.06em;text-transform:uppercase;">You're Hired!</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:3px;">Official Offer — {{jobTitle}}</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:36px 40px 28px;">
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">Dear <strong style="color:#1e3a8a;">{{firstname}} {{lastname}}</strong>,</p>
+
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 14px;">We are delighted to offer you the role of <strong style="color:#1e3a8a;">{{jobTitle}}</strong> at <strong style="color:#1e3a8a;">{{companyName}}</strong>.</p>
+
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 14px;">Your official start date will be <strong>{{startDate}}</strong>. Please prepare any necessary documents and reach out if you have any questions before your first day.</p>
+
+              <!-- Start date block -->
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#f0f6ff;border:1px solid #bfdbfe;border-radius:4px;margin:24px 0;">
+                <tr><td style="padding:16px 24px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <tr>
+                      <td style="font-size:13px;color:#64748b;padding:4px 0;width:160px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Position</td>
+                      <td style="font-size:13px;color:#1e3a8a;padding:4px 0;font-weight:700;">{{jobTitle}}</td>
+                    </tr>
+                    <tr><td colspan="2" style="height:1px;background:#bfdbfe;padding:0;font-size:0;"></td></tr>
+                    <tr>
+                      <td style="font-size:13px;color:#64748b;padding:4px 0;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Start Date</td>
+                      <td style="font-size:13px;color:#1e3a8a;padding:4px 0;font-weight:700;">{{startDate}}</td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 8px;">We look forward to working with you and seeing the great contributions you will make.</p>
+
+              <p style="font-size:14px;color:#64748b;margin:24px 0 0;">Sincerely,<br><strong style="color:#1e3a8a;">The {{companyName}} Team</strong></p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background:#f8fafc;border-top:3px solid #daa13c;padding:24px 40px;text-align:center;">
+              <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;font-weight:700;color:#1e3a8a;margin:0 0 6px;letter-spacing:0.02em;">Papeterie Messenger Supplier Ltd</p>
+              <p style="font-size:12px;color:#64748b;margin:0 0 4px;">Kigali, Rwanda &nbsp;|&nbsp; +250 784 544 729 &nbsp;|&nbsp; papemessenger@gmail.com</p>
+              <p style="font-size:11px;color:#94a3b8;margin:12px 0 0;">&copy; {{year}} Papeterie Messenger Supplier Ltd. All rights reserved.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>

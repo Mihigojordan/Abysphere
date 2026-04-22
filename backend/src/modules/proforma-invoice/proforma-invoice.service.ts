@@ -65,7 +65,8 @@ export class ProformaInvoiceService {
             const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
             const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
             const afterDiscount = itemSubtotal - discount;
-            const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+            const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
+            const tax = (afterDiscount * taxPct) / 100;
 
             subtotal += afterDiscount;
             totalTax += tax;
@@ -112,7 +113,8 @@ export class ProformaInvoiceService {
                         const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
                         const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
                         const afterDiscount = itemSubtotal - discount;
-                        const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+                        const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
+                        const tax = (afterDiscount * taxPct) / 100;
                         const totalPrice = afterDiscount + tax;
 
                         return {
@@ -123,7 +125,7 @@ export class ProformaInvoiceService {
                             quantity: Number(item.quantity),
                             unitPrice: Number(item.unitPrice),
                             discountPct: item.discountPct || 0,
-                            taxPct: item.taxPct || 0,
+                            taxPct: taxPct,
                             totalPrice,
                         };
                     }),
@@ -215,7 +217,8 @@ export class ProformaInvoiceService {
                             const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
                             const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
                             const afterDiscount = itemSubtotal - discount;
-                            const tax = item.taxPct ? (afterDiscount * Number(item.taxPct)) / 100 : 0;
+                            const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
+                            const tax = (afterDiscount * taxPct) / 100;
                             const totalPrice = afterDiscount + tax;
 
                             return {
@@ -226,7 +229,7 @@ export class ProformaInvoiceService {
                                 quantity: Number(item.quantity),
                                 unitPrice: Number(item.unitPrice),
                                 discountPct: item.discountPct || 0,
-                                taxPct: item.taxPct || 0,
+                                taxPct: taxPct,
                                 totalPrice,
                             };
                         }),
@@ -382,28 +385,23 @@ export class ProformaInvoiceService {
     }
 
     private buildProformaEmailHtml(proforma: any): string {
-        const fmt = (n: any) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+        const fmtCur = (n: any) => `RWF ${Number(n || 0).toLocaleString('en-US')}`;
+        const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
         const itemRows = (proforma.items || []).map((item: any) => `
             <tr>
-                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b;">${item.productName}</td>
-                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:center;color:#64748b;">${item.quantity}</td>
-                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:#64748b;">${fmt(item.unitPrice)}</td>
-                <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:#1e293b;font-weight:600;">${fmt(item.totalPrice)}</td>
+                <td><span class="td-sku">${item.productSku || 'N/A'}</span></td>
+                <td><p class="td-name">${item.productName}</p></td>
+                <td><p class="td-qty">${item.quantity}</p></td>
+                <td class="td-price">${fmtCur(item.unitPrice)}</td>
+                <td class="td-total">${fmtCur(item.totalPrice)}</td>
             </tr>`).join('');
 
         const discountLine = Number(proforma.discountValue) > 0 ? `
-            <tr>
-                <td colspan="3" style="padding:6px 12px;text-align:right;color:#64748b;">Discount</td>
-                <td style="padding:6px 12px;text-align:right;color:#dc2626;">- ${fmt(proforma.discountValue)}</td>
-            </tr>` : '';
-
-        const taxLine = Number(proforma.taxAmount) > 0 ? `
-            <tr>
-                <td colspan="3" style="padding:6px 12px;text-align:right;color:#64748b;">Tax</td>
-                <td style="padding:6px 12px;text-align:right;color:#64748b;">+ ${fmt(proforma.taxAmount)}</td>
-            </tr>` : '';
+            <div class="totals-row">
+                <span class="lbl">Discount (${proforma.discountType || 'FIXED'})</span>
+                <span class="val">− ${fmtCur(proforma.discountValue)}</span>
+            </div>` : '';
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -411,101 +409,182 @@ export class ProformaInvoiceService {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Proforma Invoice ${proforma.proformaNumber}</title>
+<style>
+    body {
+        margin: 0; padding: 0;
+        background: #dde3ec;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+    }
+    .sheet {
+        background: #ffffff;
+        max-width: 880px;
+        margin: 48px auto;
+        box-shadow: 0 8px 48px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+    .letterhead-bar {
+        height: 8px;
+        background: linear-gradient(to right, #1e5fa8 0%, #1e5fa8 70%, #5fa3e8 70%, #5fa3e8 100%);
+    }
+    .doc { padding: 56px 64px; position: relative; }
+    .doc-content { position: relative; z-index: 1; }
+    .watermark {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.06; width: 500px;
+        pointer-events: none; z-index: 0; object-fit: contain;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    .head { padding-bottom: 40px; border-bottom: 1px solid #e2e8f0; }
+    .brand-logo { height: 52px; width: auto; object-fit: contain; }
+    .brand-tagline { font-size: 11px; font-style: italic; color: #5fa3e8; margin: 4px 0 16px; }
+    .company-meta { display: block; margin-top: 10px; }
+    .meta-row { font-size: 9px; color: #475569; font-weight: 400; margin-bottom: 3px; }
+    .meta-tin { margin-top: 5px; padding-top: 5px; border-top: 1px solid #e2e8f0; font-size: 9px; font-weight: 600; color: #0f172a; }
+    .po-block { text-align: right; }
+    .po-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #1e5fa8; margin: 0 0 4px; }
+    .po-number { font-family: Georgia, serif; font-size: 40px; line-height: 1; color: #0f172a; letter-spacing: -.02em; margin: 0 0 16px; }
+    .po-date-row { font-size: 10px; color: #475569; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 4px; }
+    .parties { padding: 36px 0; border-bottom: 1px solid #e2e8f0; }
+    .party-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; margin: 0 0 12px; }
+    .party-name { font-family: Georgia, serif; font-size: 18px; color: #0f172a; margin: 0 0 8px; line-height: 1.2; }
+    .party-detail { font-size: 11px; color: #475569; line-height: 1.8; margin: 0; }
+    .items-section { padding: 36px 0; border-bottom: 1px solid #e2e8f0; }
+    .section-label { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; margin: 0 0 16px; }
+    .items-table thead tr { border-bottom: 2px solid #0f172a; }
+    .items-table th { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; padding: 0 0 10px; text-align: left; }
+    .items-table th.right { text-align: right; }
+    .items-table th.center { text-align: center; }
+    .items-table tbody tr { border-bottom: 1px solid #e2e8f0; }
+    .items-table td { padding: 16px 0; vertical-align: top; }
+    .td-sku { font-family: monospace; font-size: 10px; font-weight: 500; color: #475569; background: #f8fafc; padding: 3px 7px; border-radius: 3px; display: inline-block; }
+    .td-name { font-size: 12px; font-weight: 600; color: #0f172a; line-height: 1.3; margin: 0; }
+    .td-qty { font-size: 12px; font-weight: 500; text-align: center; color: #0f172a; margin: 0; }
+    .td-price { font-family: monospace; font-size: 11px; color: #475569; text-align: right; }
+    .td-total { font-family: monospace; font-size: 12px; font-weight: 500; color: #0f172a; text-align: right; }
+    .footer-section { padding-top: 36px; }
+    .company-seal-large { width: 100%; max-width: 420px; height: auto; object-fit: contain; opacity: 0.92; }
+    .totals-row { padding: 6px 0; font-size: 11px; color: #475569; font-weight: 500; text-align: right; }
+    .totals-row .lbl { padding-right: 24px; display: inline-block; }
+    .totals-row .val { display: inline-block; width: 120px; text-align: right; }
+    .totals-row.grand { margin-top: 12px; padding-top: 16px; border-top: 2px solid #0f172a; }
+    .totals-row.grand .lbl { font-size: 11px; font-weight: 700; color: #0f172a; letter-spacing: .06em; text-transform: uppercase; }
+    .totals-row.grand .val { font-size: 22px; font-family: Georgia, serif; color: #1e5fa8; letter-spacing: -.02em; }
+    .doc-foot { background: #0f172a; padding: 16px 64px; }
+    .doc-foot p { font-size: 8px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); margin: 0; }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f0f6ff;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f6ff;padding:32px 0;">
-    <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(29,78,216,0.12);">
+<body>
+    <div class="sheet">
+        <div class="letterhead-bar"></div>
+        <div class="doc">
+            <!-- PLACE YOUR WATERMARK URL HERE -->
+            <img src="YOUR_WATERMARK_URL_HERE" alt="" class="watermark" />
+            <div class="doc-content">
+                <table class="head">
+                    <tr>
+                        <td valign="top">
+                            <!-- PLACE YOUR LOGO URL HERE -->
+                            <img src="YOUR_LOGO_URL_HERE" alt="PMS Logo" class="brand-logo" />
+                            <p class="brand-tagline">Customer is an asset</p>
+                            <div class="company-meta">
+                                <div class="meta-row">Kigali, Rwanda</div>
+                                <div class="meta-row">0784544729 / 0788347094</div>
+                                <div class="meta-row">papemessenger@gmail.com</div>
+                                <div class="meta-row">Acc BK: 00048-06952213-37 &nbsp;|&nbsp; Acc KCB: 4490862733</div>
+                                <div class="meta-tin">TIN: &nbsp;107510116</div>
+                            </div>
+                        </td>
+                        <td valign="top" class="po-block">
+                            <p class="po-label">Proforma Invoice</p>
+                            <p class="po-number">#\${proforma.proformaNumber}</p>
+                            <div class="po-date-row"><span>Date:</span> \${fmtDate(proforma.issueDate || proforma.createdAt)}</div>
+                            \${proforma.expiryDate ? \`<div class="po-date-row"><span>Expires:</span> \${fmtDate(proforma.expiryDate)}</div>\` : ''}
+                            <div style="margin-top: 12px; display: inline-block; padding: 4px 10px; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-radius: 2px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;">
+                                SENT
+                            </div>
+                        </td>
+                    </tr>
+                </table>
 
-        <!-- Header -->
-        <tr>
-          <td style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:36px 32px;text-align:center;">
-            <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.15em;color:#bfdbfe;text-transform:uppercase;">Papeterie Messenger Supply Ltd</p>
-            <h1 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#ffffff;">Proforma Invoice</h1>
-            <p style="margin:0;font-size:14px;color:#93c5fd;font-weight:600;">${proforma.proformaNumber}</p>
-          </td>
-        </tr>
+                <table class="parties">
+                    <tr>
+                        <td valign="top" width="50%">
+                            <p class="party-label">Bill To</p>
+                            <p class="party-name">\${proforma.clientName}</p>
+                            <p class="party-detail">
+                                \${proforma.clientEmail ? \`\${proforma.clientEmail}<br />\` : ''}
+                                \${proforma.clientPhone ? \`\${proforma.clientPhone}\` : ''}
+                            </p>
+                        </td>
+                        <td valign="top" width="50%" style="padding-left: 20px;">
+                            <p class="party-label">Issued By</p>
+                            <p class="party-name">PAPETERIE MESSENGER SUPPLY Ltd</p>
+                            <p class="party-detail">
+                                Kigali, Rwanda<br />
+                                papemessenger@gmail.com<br />
+                                0784544729 / 0788347094
+                            </p>
+                        </td>
+                    </tr>
+                </table>
 
-        <!-- Body -->
-        <tr>
-          <td style="background:#ffffff;padding:32px;">
+                <div class="items-section">
+                    <p class="section-label">Items</p>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">SKU</th>
+                                <th>Description</th>
+                                <th class="center" style="width: 90px;">Qty</th>
+                                <th class="right" style="width: 130px;">Unit Price</th>
+                                <th class="right" style="width: 140px;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            \${itemRows}
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Greeting -->
-            <p style="margin:0 0 24px;font-size:15px;color:#1e293b;">Dear <strong>${proforma.clientName}</strong>,</p>
-            <p style="margin:0 0 24px;font-size:14px;color:#64748b;line-height:1.6;">
-              Please find below your proforma invoice summary. This document is valid until the expiry date shown.
-            </p>
-
-            <!-- Invoice details card -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:24px;">
-              <tr>
-                <td style="padding:14px 16px;border-bottom:1px solid #bfdbfe;">
-                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Invoice #</span>
-                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${proforma.proformaNumber}</p>
-                </td>
-                <td style="padding:14px 16px;border-bottom:1px solid #bfdbfe;border-left:1px solid #bfdbfe;">
-                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Issue Date</span>
-                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${fmtDate(proforma.issueDate)}</p>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:14px 16px;">
-                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Expiry Date</span>
-                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${fmtDate(proforma.expiryDate)}</p>
-                </td>
-                <td style="padding:14px 16px;border-left:1px solid #bfdbfe;">
-                  <span style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;">Payment Terms</span>
-                  <p style="margin:2px 0 0;font-size:14px;font-weight:600;color:#1e293b;">${proforma.paymentTerms || 'COD'}</p>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Items table -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px;">
-              <thead>
-                <tr style="background:#1e3a8a;">
-                  <th style="padding:10px 12px;text-align:left;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Product</th>
-                  <th style="padding:10px 12px;text-align:center;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Qty</th>
-                  <th style="padding:10px 12px;text-align:right;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Unit Price</th>
-                  <th style="padding:10px 12px;text-align:right;font-size:12px;color:#bfdbfe;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">Total</th>
-                </tr>
-              </thead>
-              <tbody>${itemRows}</tbody>
-              <tfoot>
+                <table class="footer-section">
+                    <tr>
+                        <td valign="top" width="60%">
+                            <!-- PLACE YOUR COMPANY SEAL URL HERE -->
+                            <img src="YOUR_COMPANY_SEAL_URL_HERE" alt="Company Seal" class="company-seal-large" />
+                        </td>
+                        <td valign="top" width="40%">
+                            <div class="totals-row">
+                                <span class="lbl">Subtotal</span>
+                                <span class="val">\${fmtCur(proforma.subtotal)}</span>
+                            </div>
+                            <div class="totals-row">
+                                <span class="lbl">VAT (18%)</span>
+                                <span class="val">\${fmtCur(proforma.taxAmount)}</span>
+                            </div>
+                            \${discountLine}
+                            <div class="totals-row grand">
+                                <span class="lbl">Grand Total</span>
+                                <span class="val">\${fmtCur(proforma.grandTotal)}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="letterhead-bar"></div>
+        <div class="doc-foot">
+            <table width="100%">
                 <tr>
-                  <td colspan="3" style="padding:8px 12px;text-align:right;color:#64748b;border-top:1px solid #e2e8f0;">Subtotal</td>
-                  <td style="padding:8px 12px;text-align:right;border-top:1px solid #e2e8f0;">${fmt(proforma.subtotal)}</td>
+                    <td align="left"><p>System Generated · PMS ERP v2.0</p></td>
+                    <td align="right"><p>papmes.com &nbsp;|&nbsp; papemessenger@gmail.com</p></td>
                 </tr>
-                ${discountLine}
-                ${taxLine}
-                <tr style="background:#f0f6ff;">
-                  <td colspan="3" style="padding:12px;text-align:right;font-weight:700;color:#1e3a8a;font-size:15px;">Grand Total</td>
-                  <td style="padding:12px;text-align:right;font-weight:700;color:#2563eb;font-size:17px;">${fmt(proforma.grandTotal)}</td>
-                </tr>
-              </tfoot>
             </table>
-
-            ${proforma.notes ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;background:#f0f6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px;"><strong>Note:</strong> ${proforma.notes}</p>` : ''}
-
-          </td>
-        </tr>
-
-        <!-- Footer notice -->
-        <tr>
-          <td style="background:#f0f6ff;padding:20px 32px;border-top:1px solid #bfdbfe;text-align:center;">
-            <p style="margin:0 0 6px;font-size:12px;color:#64748b;font-style:italic;">
-              This is a proforma invoice and is not a tax invoice. Payment is not due until a formal invoice is issued.
-            </p>
-            <p style="margin:0;font-size:12px;color:#94a3b8;">
-              © ${new Date().getFullYear()} Papeterie Messenger Supply Ltd · This is an automated message, please do not reply.
-            </p>
-          </td>
-        </tr>
-
-      </table>
-    </td></tr>
-  </table>
+        </div>
+    </div>
 </body>
-</html>`;
+</html>\`;
     }
 }

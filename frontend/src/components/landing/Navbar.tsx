@@ -188,6 +188,17 @@ const Navbar = () => {
             )}
           </button>
 
+          {/* Sign In */}
+          <button
+            onClick={() => navigate('/admin')}
+            className="font-worksans"
+            style={{ background: 'none', color: 'var(--aby-dark)', border: '1px solid var(--aby-border)', padding: '0.6rem 1.4rem', fontSize: '0.85rem', fontWeight: 400, letterSpacing: '0.04em', cursor: 'pointer', transition: 'all 0.3s ease' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--aby-accent)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-accent)'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--aby-border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--aby-dark)'; }}
+          >
+            Sign In
+          </button>
+
           {/* Contact */}
           <button
             onClick={() => navigate('/contact')}
@@ -358,7 +369,7 @@ const Navbar = () => {
                 {link.name}
               </button>
             ))}
-            <div style={{ borderTop: '1px solid var(--aby-border)', paddingTop: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ borderTop: '1px solid var(--aby-border)', paddingTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
               <button
                 onClick={openCart}
                 aria-label="Cart"
@@ -370,6 +381,13 @@ const Navbar = () => {
                     {totalItems}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => { navigate('/admin'); setIsOpen(false); }}
+                className="font-worksans"
+                style={{ background: 'none', color: 'var(--aby-dark)', border: '1px solid var(--aby-border)', padding: '0.5rem 1.2rem', fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                Sign In
               </button>
               <button
                 onClick={() => { navigate('/contact'); setIsOpen(false); }}
