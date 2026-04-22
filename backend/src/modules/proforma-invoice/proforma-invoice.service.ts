@@ -34,6 +34,10 @@ export interface UpdateProformaDto extends Partial<Omit<CreateProformaDto, 'item
     items?: CreateProformaItemDto[];
 }
 
+const LOGO_URL = `${process.env.FRONTEND_URL_ONLY}/erasebg-transformed.png`;
+const WATERMARK_URL = `${process.env.FRONTEND_URL_ONLY}/erasebg-transformed.png`;
+const COMPANY_SEAL_URL = `${process.env.FRONTEND_URL_ONLY}/company_seal.png`;
+
 @Injectable()
 export class ProformaInvoiceService {
     constructor(
@@ -383,27 +387,27 @@ export class ProformaInvoiceService {
             data: { status: ProformaStatus.SENT },
         });
     }
+private buildProformaEmailHtml(proforma: any): string {
+    const fmtCur = (n: any) => `RWF ${Number(n || 0).toLocaleString('en-US')}`;
+    const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-    private buildProformaEmailHtml(proforma: any): string {
-        const fmtCur = (n: any) => `RWF ${Number(n || 0).toLocaleString('en-US')}`;
-        const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+    const itemRows = (proforma.items || []).map((item: any) => `
+        <tr>
+            <td><span class="td-sku">${item.productSku || 'N/A'}</span></td>
+            <td><p class="td-name">${item.productName}</p></td>
+            <td><p class="td-qty">${item.quantity}</p></td>
+            <td class="td-price">${fmtCur(item.unitPrice)}</td>
+            <td class="td-total">${fmtCur(item.totalPrice)}</td>
+        </tr>`).join('');
 
-        const itemRows = (proforma.items || []).map((item: any) => `
-            <tr>
-                <td><span class="td-sku">${item.productSku || 'N/A'}</span></td>
-                <td><p class="td-name">${item.productName}</p></td>
-                <td><p class="td-qty">${item.quantity}</p></td>
-                <td class="td-price">${fmtCur(item.unitPrice)}</td>
-                <td class="td-total">${fmtCur(item.totalPrice)}</td>
-            </tr>`).join('');
+    const discountLine = Number(proforma.discountValue) > 0 ? `
+        <div class="totals-row">
+            <span class="lbl">Discount (${proforma.discountType || 'FIXED'})</span>
+            <span class="val">− ${fmtCur(proforma.discountValue)}</span>
+        </div>` : '';
 
-        const discountLine = Number(proforma.discountValue) > 0 ? `
-            <div class="totals-row">
-                <span class="lbl">Discount (${proforma.discountType || 'FIXED'})</span>
-                <span class="val">− ${fmtCur(proforma.discountValue)}</span>
-            </div>` : '';
-
-        return `<!DOCTYPE html>
+  
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -480,14 +484,12 @@ export class ProformaInvoiceService {
     <div class="sheet">
         <div class="letterhead-bar"></div>
         <div class="doc">
-            <!-- PLACE YOUR WATERMARK URL HERE -->
-            <img src="YOUR_WATERMARK_URL_HERE" alt="" class="watermark" />
+            <img src="${WATERMARK_URL}" alt="" class="watermark" />
             <div class="doc-content">
                 <table class="head">
                     <tr>
                         <td valign="top">
-                            <!-- PLACE YOUR LOGO URL HERE -->
-                            <img src="YOUR_LOGO_URL_HERE" alt="PMS Logo" class="brand-logo" />
+                            <img src="${LOGO_URL}" alt="PMS Logo" class="brand-logo" />
                             <p class="brand-tagline">Customer is an asset</p>
                             <div class="company-meta">
                                 <div class="meta-row">Kigali, Rwanda</div>
@@ -499,9 +501,9 @@ export class ProformaInvoiceService {
                         </td>
                         <td valign="top" class="po-block">
                             <p class="po-label">Proforma Invoice</p>
-                            <p class="po-number">#\${proforma.proformaNumber}</p>
-                            <div class="po-date-row"><span>Date:</span> \${fmtDate(proforma.issueDate || proforma.createdAt)}</div>
-                            \${proforma.expiryDate ? \`<div class="po-date-row"><span>Expires:</span> \${fmtDate(proforma.expiryDate)}</div>\` : ''}
+                            <p class="po-number">#${proforma.proformaNumber}</p>
+                            <div class="po-date-row"><span>Date:</span> ${fmtDate(proforma.issueDate || proforma.createdAt)}</div>
+                            ${proforma.expiryDate ? `<div class="po-date-row"><span>Expires:</span> ${fmtDate(proforma.expiryDate)}</div>` : ''}
                             <div style="margin-top: 12px; display: inline-block; padding: 4px 10px; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-radius: 2px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;">
                                 SENT
                             </div>
@@ -513,10 +515,10 @@ export class ProformaInvoiceService {
                     <tr>
                         <td valign="top" width="50%">
                             <p class="party-label">Bill To</p>
-                            <p class="party-name">\${proforma.clientName}</p>
+                            <p class="party-name">${proforma.clientName}</p>
                             <p class="party-detail">
-                                \${proforma.clientEmail ? \`\${proforma.clientEmail}<br />\` : ''}
-                                \${proforma.clientPhone ? \`\${proforma.clientPhone}\` : ''}
+                                ${proforma.clientEmail ? `${proforma.clientEmail}<br />` : ''}
+                                ${proforma.clientPhone ? `${proforma.clientPhone}` : ''}
                             </p>
                         </td>
                         <td valign="top" width="50%" style="padding-left: 20px;">
@@ -544,7 +546,7 @@ export class ProformaInvoiceService {
                             </tr>
                         </thead>
                         <tbody>
-                            \${itemRows}
+                            ${itemRows}
                         </tbody>
                     </table>
                 </div>
@@ -552,22 +554,21 @@ export class ProformaInvoiceService {
                 <table class="footer-section">
                     <tr>
                         <td valign="top" width="60%">
-                            <!-- PLACE YOUR COMPANY SEAL URL HERE -->
-                            <img src="YOUR_COMPANY_SEAL_URL_HERE" alt="Company Seal" class="company-seal-large" />
+                            <img src="${COMPANY_SEAL_URL}" alt="Company Seal" class="company-seal-large" />
                         </td>
                         <td valign="top" width="40%">
                             <div class="totals-row">
                                 <span class="lbl">Subtotal</span>
-                                <span class="val">\${fmtCur(proforma.subtotal)}</span>
+                                <span class="val">${fmtCur(proforma.subtotal)}</span>
                             </div>
                             <div class="totals-row">
                                 <span class="lbl">VAT (18%)</span>
-                                <span class="val">\${fmtCur(proforma.taxAmount)}</span>
+                                <span class="val">${fmtCur(proforma.taxAmount)}</span>
                             </div>
-                            \${discountLine}
+                            ${discountLine}
                             <div class="totals-row grand">
                                 <span class="lbl">Grand Total</span>
-                                <span class="val">\${fmtCur(proforma.grandTotal)}</span>
+                                <span class="val">${fmtCur(proforma.grandTotal)}</span>
                             </div>
                         </td>
                     </tr>
@@ -586,5 +587,5 @@ export class ProformaInvoiceService {
     </div>
 </body>
 </html>`;
-    }
+}
 }
