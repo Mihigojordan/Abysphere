@@ -63,27 +63,22 @@ export class ProformaInvoiceService {
 
     private calculateTotals(items: CreateProformaItemDto[], discountType?: string, discountValue = 0) {
         let subtotal = 0;
-        let totalTax = 0;
 
         items.forEach((item) => {
             const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
-            const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
-            const afterDiscount = itemSubtotal - discount;
-            const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
-            const tax = (afterDiscount * taxPct) / 100;
-
-            subtotal += afterDiscount;
-            totalTax += tax;
+            subtotal += itemSubtotal;
         });
 
-        let finalGrandTotal = subtotal + totalTax;
+        const taxAmount = Math.round(subtotal * 0.18);
+
+        let grandTotal = subtotal + taxAmount;
         if (discountType === 'PERCENTAGE') {
-            finalGrandTotal -= (subtotal * Number(discountValue)) / 100;
+            grandTotal -= Math.round((subtotal * Number(discountValue)) / 100);
         } else if (discountType === 'FIXED') {
-            finalGrandTotal -= Number(discountValue);
+            grandTotal -= Number(discountValue);
         }
 
-        return { subtotal, taxAmount: totalTax, grandTotal: Math.max(0, finalGrandTotal) };
+        return { subtotal, taxAmount, grandTotal: Math.max(0, grandTotal) };
     }
 
     async create(data: CreateProformaDto) {
@@ -113,26 +108,17 @@ export class ProformaInvoiceService {
                 createdByAdminId: data.createdByAdminId,
                 createdByEmployeeId: data.createdByEmployeeId,
                 items: {
-                    create: data.items.map((item) => {
-                        const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
-                        const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
-                        const afterDiscount = itemSubtotal - discount;
-                        const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
-                        const tax = (afterDiscount * taxPct) / 100;
-                        const totalPrice = afterDiscount + tax;
-
-                        return {
-                            stockId: item.stockId,
-                            productName: item.productName,
-                            productSku: item.productSku,
-                            description: item.description,
-                            quantity: Number(item.quantity),
-                            unitPrice: Number(item.unitPrice),
-                            discountPct: item.discountPct || 0,
-                            taxPct: taxPct,
-                            totalPrice,
-                        };
-                    }),
+                    create: data.items.map((item) => ({
+                        stockId: item.stockId,
+                        productName: item.productName,
+                        productSku: item.productSku,
+                        description: item.description,
+                        quantity: Number(item.quantity),
+                        unitPrice: Number(item.unitPrice),
+                        discountPct: 0,
+                        taxPct: 18,
+                        totalPrice: Number(item.quantity) * Number(item.unitPrice),
+                    })),
                 },
             },
             include: { items: true },
@@ -193,7 +179,7 @@ export class ProformaInvoiceService {
         const { subtotal, taxAmount, grandTotal } = this.calculateTotals(
             data.items || proforma.items as any,
             data.discountType || proforma.discountType as any,
-            data.discountValue ?? Number(proforma.discountValue)
+            data.discountValue ?? Number(proforma.discountValue),
         );
 
         return this.prisma.$transaction(async (tx) => {
@@ -217,26 +203,17 @@ export class ProformaInvoiceService {
                     discountValue: data.discountValue,
                     grandTotal,
                     items: data.items ? {
-                        create: data.items.map((item) => {
-                            const itemSubtotal = Number(item.quantity) * Number(item.unitPrice);
-                            const discount = item.discountPct ? (itemSubtotal * Number(item.discountPct)) / 100 : 0;
-                            const afterDiscount = itemSubtotal - discount;
-                            const taxPct = (item.taxPct === undefined || item.taxPct === null) ? 18 : Number(item.taxPct);
-                            const tax = (afterDiscount * taxPct) / 100;
-                            const totalPrice = afterDiscount + tax;
-
-                            return {
-                                stockId: item.stockId,
-                                productName: item.productName,
-                                productSku: item.productSku,
-                                description: item.description,
-                                quantity: Number(item.quantity),
-                                unitPrice: Number(item.unitPrice),
-                                discountPct: item.discountPct || 0,
-                                taxPct: taxPct,
-                                totalPrice,
-                            };
-                        }),
+                        create: data.items.map((item) => ({
+                            stockId: item.stockId,
+                            productName: item.productName,
+                            productSku: item.productSku,
+                            description: item.description,
+                            quantity: Number(item.quantity),
+                            unitPrice: Number(item.unitPrice),
+                            discountPct: 0,
+                            taxPct: 18,
+                            totalPrice: Number(item.quantity) * Number(item.unitPrice),
+                        })),
                     } : undefined,
                 },
                 include: { items: true },

@@ -430,24 +430,39 @@ const ProformaInvoiceView: React.FC = () => {
                             <img src={companySeal} alt="Company Seal" className="company-seal-large" />
                         </div>
                         <div className="totals">
-                            <div className="totals-row">
-                                <span className="lbl">Subtotal</span>
-                                <span className="val">{formatCurrency(proforma.subtotal)}</span>
-                            </div>
-                            <div className="totals-row">
-                                <span className="lbl">VAT (18%)</span>
-                                <span className="val">{formatCurrency(proforma.taxAmount)}</span>
-                            </div>
-                            {proforma.discountValue > 0 && (
-                                <div className="totals-row">
-                                    <span className="lbl">Discount ({proforma.discountType})</span>
-                                    <span className="val">− {formatCurrency(proforma.discountValue)}</span>
-                                </div>
-                            )}
-                            <div className="totals-row grand">
-                                <span className="lbl">Grand Total</span>
-                                <span className="val">{formatCurrency(proforma.grandTotal)}</span>
-                            </div>
+                            {(() => {
+                                const vatAmount = Math.round(proforma.subtotal * 0.18);
+                                const discountAmount = proforma.discountValue > 0
+                                    ? proforma.discountType === 'PERCENTAGE'
+                                        ? Math.round((proforma.subtotal * proforma.discountValue) / 100)
+                                        : proforma.discountValue
+                                    : 0;
+                                const grandTotal = proforma.subtotal + vatAmount - discountAmount;
+                                return (
+                                    <>
+                                        <div className="totals-row">
+                                            <span className="lbl">Subtotal</span>
+                                            <span className="val">{formatCurrency(proforma.subtotal)}</span>
+                                        </div>
+                                        <div className="totals-row">
+                                            <span className="lbl">VAT (18%)</span>
+                                            <span className="val">{formatCurrency(vatAmount)}</span>
+                                        </div>
+                                        {discountAmount > 0 && (
+                                            <div className="totals-row">
+                                                <span className="lbl">
+                                                    Discount {proforma.discountType === 'PERCENTAGE' ? `(${proforma.discountValue}%)` : '(Fixed)'}
+                                                </span>
+                                                <span className="val">− {formatCurrency(discountAmount)}</span>
+                                            </div>
+                                        )}
+                                        <div className="totals-row grand">
+                                            <span className="lbl">Grand Total</span>
+                                            <span className="val">{formatCurrency(Math.max(0, grandTotal))}</span>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
 
