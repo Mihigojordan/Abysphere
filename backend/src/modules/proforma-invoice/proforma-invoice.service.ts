@@ -484,7 +484,7 @@ private buildProformaEmailHtml(proforma: any): string {
     <div class="sheet">
         <div class="letterhead-bar"></div>
         <div class="doc">
-            <img src="${WATERMARK_URL}" alt="" class="watermark" />
+            
             <div class="doc-content">
                 <table class="head">
                     <tr>
