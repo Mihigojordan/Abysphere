@@ -295,19 +295,6 @@ const ContactPage = () => {
             </svg>
             Chat on WhatsApp
           </a>
-
-          {/* Map Display */}
-          <div style={{ marginTop: '0.5rem', width: '100%', height: '280px', background: 'var(--aby-surface)', border: '1px solid var(--aby-border)', overflow: 'hidden' }}>
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255146.12644212964!2d29.932906859345716!3d-1.9295551383783472!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca4258ed8e797%3A0xf32b36a5411d0bc8!2sKigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1713500000000!5m2!1sen!2sus" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={false} 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
         </div>
 
         {/* ── Right column: Contact Form ──────────────────────────────────── */}
@@ -459,6 +446,19 @@ const ContactPage = () => {
             </button>
           </form>
         </div>
+      </div>
+
+      {/* ── Full Width Map ──────────────────────────────────────────────────── */}
+      <div style={{ width: '100%', height: '450px', display: 'block', background: 'var(--aby-surface)' }}>
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15950.051339781925!2d30.059177341654042!3d-1.9478843714083929!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca559b77ae787%3A0x1c5815ab1af5b7ec!2sUNIFY%20HOUSE!5e0!3m2!1sen!2srw!4v1776877399368!5m2!1sen!2srw" 
+          width="100%" 
+          height="100%" 
+          style={{ border: 0 }} 
+          allowFullScreen={true}
+          loading="lazy" 
+          referrerPolicy="no-referrer-when-downgrade"
+        ></iframe>
       </div>
 
       <style>{`
