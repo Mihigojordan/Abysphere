@@ -403,9 +403,8 @@ export class ProformaInvoiceService {
             try {
                 browser = await puppeteer.launch({
                     args: [...chromium.args, '--disable-web-security'],
-                    defaultViewport: chromium.defaultViewport,
                     executablePath: await chromium.executablePath(),
-                    headless: chromium.headless,
+                    headless: true,
                     timeout: 0,
                 });
 
