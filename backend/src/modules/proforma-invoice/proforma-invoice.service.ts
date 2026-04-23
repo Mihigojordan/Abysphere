@@ -4,7 +4,8 @@ import { ProformaStatus, Prisma } from '../../../generated/prisma';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
 import { EmailService } from 'src/global/email/email.service';
 import { JwtService } from '@nestjs/jwt';
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 
 export interface CreateProformaDto {
     clientName: string;
@@ -393,31 +394,54 @@ export class ProformaInvoiceService {
     async generatePdfBuffer(id: string): Promise<Buffer> {
         const proforma = await this.findOne(id);
         const html = this.buildProformaEmailHtml(proforma);
+        
+        let browser: any;
+        const maxRetries = 3;
+        let lastError: any;
 
-        const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                browser = await puppeteer.launch({
+                    args: [...chromium.args, '--disable-web-security'],
+                    defaultViewport: chromium.defaultViewport,
+                    executablePath: await chromium.executablePath(),
+                    headless: chromium.headless,
+                    timeout: 0,
+                });
 
-        const browser = await puppeteer.launch({
-            executablePath,
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--single-process',
-            ],
-        });
-        try {
-            const page = await browser.newPage();
-            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 60000 });
-            const pdfBytes = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-            });
-            return Buffer.from(pdfBytes);
-        } finally {
-            await browser.close();
+                const page = await browser.newPage();
+                page.setDefaultNavigationTimeout(0);
+                page.setDefaultTimeout(0);
+
+                await page.setContent(html, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 0,
+                });
+
+                await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 500)));
+
+                const pdfBuffer = await page.pdf({
+                    format: 'A4',
+                    printBackground: true,
+                });
+
+                await browser.close();
+                return Buffer.from(pdfBuffer);
+
+            } catch (error) {
+                lastError = error;
+                if (browser) {
+                    try {
+                        await browser.close();
+                    } catch (closeError) { }
+                }
+                console.error(`PDF generation attempt ${attempt}/${maxRetries} failed:`, error.message);
+                if (attempt === maxRetries) break;
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
         }
+
+        throw new Error(`PDF generation failed after ${maxRetries} attempts: ${lastError.message}`);
     }
 
     private buildProformaEmailHtml(proforma: any, downloadUrl?: string): string {
