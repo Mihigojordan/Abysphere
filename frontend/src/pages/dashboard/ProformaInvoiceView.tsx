@@ -451,7 +451,7 @@ const ProformaInvoiceView: React.FC = () => {
                                         {discountAmount > 0 && (
                                             <div className="totals-row">
                                                 <span className="lbl">
-                                                    Discount {proforma.discountType === 'PERCENTAGE' ? `(${proforma.discountValue}%)` : '(Fixed)'}
+                                                    Discount{proforma.discountType === 'PERCENTAGE' ? ` (${proforma.discountValue}%)` : ''}
                                                 </span>
                                                 <span className="val">− {formatCurrency(discountAmount)}</span>
                                             </div>

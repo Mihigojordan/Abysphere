@@ -425,10 +425,16 @@ export class ProformaInvoiceService {
             <td class="td-total">${fmtCur(item.totalPrice)}</td>
         </tr>`).join('');
 
+    const discountAmt = proforma.discountType === 'PERCENTAGE'
+        ? Math.round((Number(proforma.subtotal) * Number(proforma.discountValue)) / 100)
+        : Number(proforma.discountValue);
+    const discountLabel = proforma.discountType === 'PERCENTAGE'
+        ? `Discount (${proforma.discountValue}%)`
+        : 'Discount';
     const discountLine = Number(proforma.discountValue) > 0 ? `
         <div class="totals-row">
-            <span class="lbl">Discount (${proforma.discountType || 'FIXED'})</span>
-            <span class="val">− ${fmtCur(proforma.discountValue)}</span>
+            <span class="lbl">${discountLabel}</span>
+            <span class="val">− ${fmtCur(discountAmt)}</span>
         </div>` : '';
 
   
