@@ -374,7 +374,7 @@ export class ProformaInvoiceService {
     generateDownloadToken(id: string): string {
         return this.jwtService.sign(
             { sub: id, type: 'pdf-download' },
-            { secret: process.env.Jwt_SECRET_KEY, expiresIn: '72h' },
+            { secret: process.env.Jwt_SECRET_KEY },
         );
     }
 
@@ -393,7 +393,11 @@ export class ProformaInvoiceService {
     async generatePdfBuffer(id: string): Promise<Buffer> {
         const proforma = await this.findOne(id);
         const html = this.buildProformaEmailHtml(proforma);
+
+        const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
+
         const browser = await puppeteer.launch({
+            executablePath,
             headless: true,
             args: [
                 '--no-sandbox',
