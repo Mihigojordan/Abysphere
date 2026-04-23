@@ -4,8 +4,7 @@ import { ProformaStatus, Prisma } from '../../../generated/prisma';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
 import { EmailService } from 'src/global/email/email.service';
 import { JwtService } from '@nestjs/jwt';
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 
 export interface CreateProformaDto {
     clientName: string;
@@ -395,13 +394,18 @@ export class ProformaInvoiceService {
         const proforma = await this.findOne(id);
         const html = this.buildProformaEmailHtml(proforma);
         const browser = await puppeteer.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
             headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--single-process',
+            ],
         });
         try {
             const page = await browser.newPage();
-            await page.setContent(html, { waitUntil: 'networkidle0' });
+            await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 60000 });
             const pdfBytes = await page.pdf({
                 format: 'A4',
                 printBackground: true,
