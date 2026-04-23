@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProformaStatus, Prisma } from '../../../generated/prisma';
 import { generateStockSKU } from 'src/common/utils/generate-sku.util';
 import { EmailService } from 'src/global/email/email.service';
+import { JwtService } from '@nestjs/jwt';
+import puppeteer from 'puppeteer';
 
 export interface CreateProformaDto {
     clientName: string;
@@ -43,6 +45,7 @@ export class ProformaInvoiceService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly emailService: EmailService,
+        private readonly jwtService: JwtService,
     ) { }
 
     private async generateProformaNumber(): Promise<string> {
@@ -352,7 +355,10 @@ export class ProformaInvoiceService {
             }
         }
 
-        const html = this.buildProformaEmailHtml(proforma);
+        const downloadToken = this.generateDownloadToken(id);
+        const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:8000';
+        const downloadUrl = `${backendUrl}/proforma-invoices/${id}/pdf?token=${downloadToken}`;
+        const html = this.buildProformaEmailHtml(proforma, downloadUrl);
         await this.emailService.sendRawEmail(
             toEmail,
             `Proforma Invoice ${proforma.proformaNumber}`,
@@ -364,7 +370,48 @@ export class ProformaInvoiceService {
             data: { status: ProformaStatus.SENT },
         });
     }
-private buildProformaEmailHtml(proforma: any): string {
+
+    generateDownloadToken(id: string): string {
+        return this.jwtService.sign(
+            { sub: id, type: 'pdf-download' },
+            { secret: process.env.Jwt_SECRET_KEY, expiresIn: '72h' },
+        );
+    }
+
+    verifyDownloadToken(token: string): string {
+        try {
+            const payload = this.jwtService.verify<{ sub: string; type: string }>(token, {
+                secret: process.env.Jwt_SECRET_KEY,
+            });
+            if (payload.type !== 'pdf-download') throw new Error('Invalid token type');
+            return payload.sub;
+        } catch {
+            throw new UnauthorizedException('Invalid or expired download link');
+        }
+    }
+
+    async generatePdfBuffer(id: string): Promise<Buffer> {
+        const proforma = await this.findOne(id);
+        const html = this.buildProformaEmailHtml(proforma);
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
+        try {
+            const page = await browser.newPage();
+            await page.setContent(html, { waitUntil: 'networkidle0' });
+            const pdfBytes = await page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: { top: '0', right: '0', bottom: '0', left: '0' },
+            });
+            return Buffer.from(pdfBytes);
+        } finally {
+            await browser.close();
+        }
+    }
+
+    private buildProformaEmailHtml(proforma: any, downloadUrl?: string): string {
     const fmtCur = (n: any) => `RWF ${Number(n || 0).toLocaleString('en-US')}`;
     const fmtDate = (d: any) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
@@ -552,6 +599,11 @@ private buildProformaEmailHtml(proforma: any): string {
                 </table>
             </div>
         </div>
+        ${downloadUrl ? `
+        <div style="text-align:center; padding: 28px 0 32px; background:#ffffff;">
+            <a href="${downloadUrl}" style="display:inline-block; background:#1e5fa8; color:#ffffff; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:13px 40px; border-radius:4px; text-decoration:none;">&#8595;&nbsp;&nbsp;Download PDF</a>
+            <p style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:9px; color:#94a3b8; margin:8px 0 0;">This link expires in 72 hours</p>
+        </div>` : ''}
         <div class="letterhead-bar"></div>
         <div class="doc-foot">
             <table width="100%">

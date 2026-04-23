@@ -25,7 +25,7 @@ async function bootstrap() {
       'https://pms-ltd.onrender.com',
       'https://www.pms-ltd.onrender.com',
       "https://papeteriemessenger.com",
-      "https://www.papeteriemessenger.com/",
+      "https://www.papeteriemessenger.com",
     ],
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
