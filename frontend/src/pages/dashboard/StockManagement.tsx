@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { usePermission } from '../../hooks/usePermission';
 import {
     Plus,
     Search,
@@ -40,6 +41,7 @@ interface OperationStatus {
 type ViewMode = 'table' | 'grid' | 'list';
 
 const StockManagement = () => {
+    const perms = usePermission('STOCKIN_MANAGEMENT');
     const [stockins, setStockins] = useState<StockIn[]>([]);
     const [allStockins, setAllStockins] = useState<StockIn[]>([]);
     const [categories, setCategories] = useState<StockCategory[]>([]);
@@ -365,26 +367,30 @@ const StockManagement = () => {
                                     <Eye className="w-3 h-3 mr-1" />
                                     View
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        handleEditStockIn(stockIn);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
-                                >
-                                    <Edit className="w-3 h-3 mr-1" />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        handleDeleteStockIn(stockIn);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
-                                >
-                                    <Trash2 className="w-3 h-3 mr-1" />
-                                    Delete
-                                </button>
+                                {perms.canUpdate && (
+                                    <button
+                                        onClick={() => {
+                                            handleEditStockIn(stockIn);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    >
+                                        <Edit className="w-3 h-3 mr-1" />
+                                        Edit
+                                    </button>
+                                )}
+                                {perms.canDelete && (
+                                    <button
+                                        onClick={() => {
+                                            handleDeleteStockIn(stockIn);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 w-full"
+                                    >
+                                        <Trash2 className="w-3 h-3 mr-1" />
+                                        Delete
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
@@ -504,22 +510,26 @@ const StockManagement = () => {
                                         >
                                             <Eye className="w-3 h-3" />
                                         </button>
-                                        <button
-                                            onClick={() => handleEditStockIn(stockIn)}
-                                            disabled={operationLoading}
-                                            className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
-                                            title="Edit"
-                                        >
-                                            <Edit className="w-3 h-3" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteStockIn(stockIn)}
-                                            disabled={operationLoading}
-                                            className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-3 h-3" />
-                                        </button>
+                                        {perms.canUpdate && (
+                                            <button
+                                                onClick={() => handleEditStockIn(stockIn)}
+                                                disabled={operationLoading}
+                                                className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
+                                                title="Edit"
+                                            >
+                                                <Edit className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                        {perms.canDelete && (
+                                            <button
+                                                onClick={() => handleDeleteStockIn(stockIn)}
+                                                disabled={operationLoading}
+                                                className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -718,15 +728,17 @@ const StockManagement = () => {
                                 <Download className="w-3 h-3" />
                                 <span>Export</span>
                             </button>
-                            <button
-                                onClick={handleAddStockIn}
-                                disabled={operationLoading}
-                                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                                aria-label="Add new stock item"
-                            >
-                                <Plus className="w-3 h-3" />
-                                <span>Add Stock Item</span>
-                            </button>
+                            {perms.canCreate && (
+                                <button
+                                    onClick={handleAddStockIn}
+                                    disabled={operationLoading}
+                                    className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
+                                    aria-label="Add new stock item"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Add Stock Item</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

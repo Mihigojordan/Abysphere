@@ -56,7 +56,8 @@ export class StockoutController {
   async getAll(@Req() req: RequestWithAdminEmployee) {
     try {
       const adminId = req.admin?.id ?? req.employee?.adminId;
-      return await this.stockoutService.getAll(adminId);
+      const employeeId = req.employee?.id ?? null;
+      return await this.stockoutService.getAll(adminId, employeeId);
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }

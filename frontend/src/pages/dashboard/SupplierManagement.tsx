@@ -26,6 +26,7 @@ import supplierService from '../../services/supplierService';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -64,6 +65,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
   const { user: employeeData } = useEmployeeAuth();
   const { user: adminData } = useAdminAuth();
   const { t } = useLanguage();
+  const perms = usePermission('SUPPLIER_MANAGEMENT');
 
   /* --------------------------------------------------------------------- */
   /* Summary Stats (Memoized) */
@@ -298,32 +300,36 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
 
                 <td className="px-4 py-2.5 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => {
-                        setSelectedSupplier(sup);
-                        setFormData({
-                          name: sup.name,
-                          email: sup.email || '',
-                          phone: sup.phone || '',
-                          address: sup.address || '',
-                        });
-                        setIsEditModalOpen(true);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                      title="Edit"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedSupplier(sup);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {perms.canUpdate && (
+                      <button
+                        onClick={() => {
+                          setSelectedSupplier(sup);
+                          setFormData({
+                            name: sup.name,
+                            email: sup.email || '',
+                            phone: sup.phone || '',
+                            address: sup.address || '',
+                          });
+                          setIsEditModalOpen(true);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
+                        title="Edit"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {perms.canDelete && (
+                      <button
+                        onClick={() => {
+                          setSelectedSupplier(sup);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -380,30 +386,34 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               Since: {formatDate(sup.createdAt)}
             </span>
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  setSelectedSupplier(sup);
-                  setFormData({
-                    name: sup.name,
-                    email: sup.email || '',
-                    phone: sup.phone || '',
-                    address: sup.address || '',
-                  });
-                  setIsEditModalOpen(true);
-                }}
-                className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded"
-              >
-                <Edit className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedSupplier(sup);
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => {
+                    setSelectedSupplier(sup);
+                    setFormData({
+                      name: sup.name,
+                      email: sup.email || '',
+                      phone: sup.phone || '',
+                      address: sup.address || '',
+                    });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => {
+                    setSelectedSupplier(sup);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -441,32 +451,36 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  setSelectedSupplier(sup);
-                  setFormData({
-                    name: sup.name,
-                    email: sup.email || '',
-                    phone: sup.phone || '',
-                    address: sup.address || '',
-                  });
-                  setIsEditModalOpen(true);
-                }}
-                className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                title="Edit"
-              >
-                <Edit className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedSupplier(sup);
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => {
+                    setSelectedSupplier(sup);
+                    setFormData({
+                      name: sup.name,
+                      email: sup.email || '',
+                      phone: sup.phone || '',
+                      address: sup.address || '',
+                    });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                  title="Edit"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => {
+                    setSelectedSupplier(sup);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -542,13 +556,15 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <Download className="w-3 h-3" />
                 <span>{t('supplier.export')}</span>
               </button>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg shadow-primary-600/20 transition-all active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-                {t('supplier.addSupplier')}
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-bold text-xs shadow-lg shadow-primary-600/20 transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('supplier.addSupplier')}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -637,7 +653,7 @@ const SupplierDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             <p className="text-sm text-gray-500 mt-1">
               {searchTerm ? t('supplier.noSuppliersSub') : t('supplier.noSuppliersSub')}
             </p>
-            {!searchTerm && (
+            {!searchTerm && perms.canCreate && (
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="mt-4 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg"

@@ -35,7 +35,7 @@ export class CategoryManagementService {
       }
 
       const createdCategory = await this.prismaService.category.create({
-        data: { name, description , adminId:data.adminId , },
+        data: { name, description, adminId: data.adminId, employeeId: data.employeeId ?? null },
       });
 
       
@@ -49,18 +49,26 @@ export class CategoryManagementService {
     }
   }
 
-  async getAllCategories(id:string) {
+  async getAllCategories(adminId: string, employeeId?: string | null) {
     try {
-      const categories = await this.prismaService.category.findMany({
-        where:{
-          adminId:id
-        }
-      });
-      return categories;
+      if (employeeId) {
+        const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'CATEGORY_MANAGEMENT');
+        const where = canViewAll ? { adminId } : { adminId, employeeId };
+        return this.prismaService.category.findMany({ where });
+      }
+      return this.prismaService.category.findMany({ where: { adminId } });
     } catch (error) {
       console.error('Error getting categories:', error);
       throw new Error(error.message);
     }
+  }
+
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prismaService.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
+    });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
   }
 
   async getCategoryById(id: string) {

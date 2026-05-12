@@ -17,6 +17,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePermission } from '../../hooks/usePermission';
 import salesReturnService, {
   type SalesReturnResponse as ServiceSalesReturn,
   type SalesReturnStatistics,
@@ -80,6 +81,7 @@ type ViewMode = 'table' | 'grid' | 'list';
 // Component
 // ──────────────────────────────────────────────────────────────
 const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) => {
+  const perms = usePermission('SALES_RETURN_MANAGEMENT');
   // ── State ─────────────────────────────────────────────────────
   const [salesReturns, setSalesReturns] = useState<SalesReturn[]>([]);
   const [filteredSalesReturns, setFilteredSalesReturns] = useState<SalesReturn[]>([]);
@@ -623,13 +625,15 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
                 <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.refresh')}</span>
               </button>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded shadow-sm transition-all active:scale-95"
-              >
-                <Plus className="w-3 h-3" />
-                <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.processReturn')}</span>
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex-1 sm:flex-none flex items-center justify-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded shadow-sm transition-all active:scale-95"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span className="font-semibold text-[10px] uppercase tracking-wider">{t('salesReturn.processReturn')}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -649,12 +653,14 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
             <p className="text-[10px] text-theme-text-secondary max-w-xs mx-auto mb-6">
               {searchTerm || filters.dateRange !== 'all' ? t('salesReturn.adjustFilters') : t('salesReturn.startProcessing')}
             </p>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold uppercase tracking-widest px-6 py-2.5 rounded shadow-sm transition-all"
-            >
-              {t('salesReturn.processFirst')}
-            </button>
+            {perms.canCreate && (
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-semibold uppercase tracking-widest px-6 py-2.5 rounded shadow-sm transition-all"
+              >
+                {t('salesReturn.processFirst')}
+              </button>
+            )}
           </div>
         ) : (
           <motion.div

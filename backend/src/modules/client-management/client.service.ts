@@ -7,7 +7,7 @@ export class ClientService {
     private prisma: PrismaService,
   ) { }
 
-  async create(data: any, adminId: string) {
+  async create(data: any, adminId: string, employeeId?: string | null) {
     try {
       const { id, ...clientData } = data;
 
@@ -16,6 +16,7 @@ export class ClientService {
           ...clientData,
           status: 'ACTIVE',
           adminId,
+          employeeId: employeeId || null,
         },
       });
 
@@ -26,13 +27,26 @@ export class ClientService {
     }
   }
 
-  async findAll(adminId: string) {
+  async findAll(adminId: string, employeeId?: string | null) {
     try {
-      return await this.prisma.client.findMany({ where: { adminId } });
+      let where: any = { adminId };
+      if (employeeId) {
+        const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'CLIENT_MANAGEMENT');
+        if (!canViewAll) where = { adminId, employeeId };
+      }
+      return await this.prisma.client.findMany({ where });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException('Failed to fetch clients');
     }
+  }
+
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prisma.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
+    });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
   }
 
   async findOne(id: string, adminId: string) {

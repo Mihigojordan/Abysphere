@@ -29,6 +29,7 @@ import { useNetworkStatusContext } from '../../context/useNetworkContext';
 import useEmployeeAuth from '../../context/EmployeeAuthContext';
 import useAdminAuth from '../../context/AdminAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -44,6 +45,7 @@ interface CategoryWithSync {
 }
 
 const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) => {
+  const perms = usePermission('CATEGORY_MANAGEMENT');
   const [categories, setCategories] = useState<CategoryWithSync[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<CategoryWithSync[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -421,27 +423,31 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 </td>
                 <td className="py-2 px-4 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setFormData({ name: cat.name, description: cat.description || '' });
-                        setIsEditModalOpen(true);
-                      }}
-                      className="p-1.5 text-amber-600 hover:bg-amber-500/10 rounded-md transition-colors"
-                      title="Edit Category"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        setIsDeleteModalOpen(true);
-                      }}
-                      className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
-                      title="Delete Category"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {perms.canUpdate && (
+                      <button
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setFormData({ name: cat.name, description: cat.description || '' });
+                          setIsEditModalOpen(true);
+                        }}
+                        className="p-1.5 text-amber-600 hover:bg-amber-500/10 rounded-md transition-colors"
+                        title="Edit Category"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {perms.canDelete && (
+                      <button
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                        title="Delete Category"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -477,27 +483,31 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               {cat.synced ? 'Synced' : 'Offline'}
             </div>
             <div className="flex items-center space-x-1">
-              <button
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setFormData({ name: cat.name, description: cat.description || '' });
-                  setIsEditModalOpen(true);
-                }}
-                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
-                title="Edit"
-              >
-                <Edit className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setFormData({ name: cat.name, description: cat.description || '' });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                  title="Edit"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -530,27 +540,31 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
               {cat.synced ? 'Synced' : 'Offline'}
             </div>
             <div className="flex items-center space-x-1">
-              <button
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setFormData({ name: cat.name, description: cat.description || '' });
-                  setIsEditModalOpen(true);
-                }}
-                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
-                title="Edit"
-              >
-                <Edit className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setIsDeleteModalOpen(true);
-                }}
-                className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setFormData({ name: cat.name, description: cat.description || '' });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                  title="Edit"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -626,13 +640,15 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
                 <Download className="w-3 h-3" />
                 <span>{t('category.export')}</span>
               </button>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                {t('category.addCategory')}
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs shadow-sm transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {t('category.addCategory')}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -721,7 +737,7 @@ const CategoryDashboard: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) =
             <p className="text-sm text-theme-text-secondary mt-1">
               {searchTerm ? t('category.noCategoriesSub') : t('category.noCategoriesSub')}
             </p>
-            {!searchTerm && (
+            {!searchTerm && perms.canCreate && (
               <button
                 onClick={() => setIsAddModalOpen(true)}
                 className="mt-4 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg"

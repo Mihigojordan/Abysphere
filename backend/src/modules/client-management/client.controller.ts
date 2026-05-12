@@ -41,7 +41,8 @@ export class ClientController {
     if (files?.profileImg?.[0]?.filename) {
       body.profileImage = `/uploads/profile_images/${files.profileImg[0].filename}`;
     }
-    const createdClient = await this.clientService.create(body, adminId);
+    const employeeId = req.employee?.id ?? null;
+    const createdClient = await this.clientService.create(body, adminId, employeeId);
     this.clientGateway.emitClientCreated(createdClient);
     return createdClient;
   }
@@ -50,7 +51,8 @@ export class ClientController {
   @UseGuards(DualAuthGuard)
   async findAll(@Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
-    return await this.clientService.findAll(adminId);
+    const employeeId = req.employee?.id ?? null;
+    return await this.clientService.findAll(adminId, employeeId);
   }
 
   @Get(':id')

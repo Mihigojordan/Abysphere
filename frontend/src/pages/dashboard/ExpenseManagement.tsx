@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import expenseService, { type Expense, type ExpenseType } from '../../services/expenseService';
 import useAdminAuth from '../../context/AdminAuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -77,6 +78,7 @@ const ExpenseManagement: React.FC = () => {
 
     const { user: _adminData } = useAdminAuth();
     const { t: _t } = useLanguage();
+    const perms = usePermission('EXPENSE_MANAGEMENT');
 
     const loadExpenses = useCallback(async () => {
         setIsLoading(true);
@@ -233,6 +235,7 @@ const ExpenseManagement: React.FC = () => {
                                 <Download className="w-3 h-3" />
                                 <span>{_t('expense.export')}</span>
                             </button>
+                            {perms.canCreate && (
                             <button
                                 onClick={() => {
                                     setFormData({
@@ -251,6 +254,7 @@ const ExpenseManagement: React.FC = () => {
                                 <Plus className="w-3.5 h-3.5" />
                                 {_t('expense.addExpense')}
                             </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -380,6 +384,7 @@ const ExpenseManagement: React.FC = () => {
                                             </td>
                                             <td className="py-2.5 px-4 text-right whitespace-nowrap">
                                                 <div className="flex items-center justify-end gap-1">
+                                                    {perms.canUpdate && (
                                                     <button
                                                         onClick={() => {
                                                             setSelectedExpense(exp);
@@ -390,6 +395,8 @@ const ExpenseManagement: React.FC = () => {
                                                     >
                                                         <Edit className="w-3.5 h-3.5" />
                                                     </button>
+                                                    )}
+                                                    {perms.canDelete && (
                                                     <button
                                                         onClick={() => {
                                                             setSelectedExpense(exp);
@@ -399,6 +406,7 @@ const ExpenseManagement: React.FC = () => {
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         </motion.tr>
@@ -464,6 +472,7 @@ const ExpenseManagement: React.FC = () => {
                                         {exp.type === 'DEBIT' ? '-' : '+'}{formatCurrency(Number(exp.amount))}
                                     </p>
                                     <div className="flex items-center gap-1">
+                                        {perms.canUpdate && (
                                         <button
                                             onClick={() => {
                                                 setSelectedExpense(exp);
@@ -474,6 +483,8 @@ const ExpenseManagement: React.FC = () => {
                                         >
                                             <Edit className="w-3 h-3" /> Edit
                                         </button>
+                                        )}
+                                        {perms.canDelete && (
                                         <button
                                             onClick={() => {
                                                 setSelectedExpense(exp);
@@ -483,6 +494,7 @@ const ExpenseManagement: React.FC = () => {
                                         >
                                             <Trash2 className="w-3 h-3" /> Delete
                                         </button>
+                                        )}
                                     </div>
                                 </div>
                             </motion.div>

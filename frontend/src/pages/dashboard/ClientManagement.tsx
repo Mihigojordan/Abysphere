@@ -35,6 +35,7 @@ import DeleteClientModal from '../../components/dashboard/client/DeleteClientMod
 import { API_URL } from '../../api/api';
 import { useSocketEvent } from '../../context/SocketContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 interface Client {
     id: string;
@@ -58,6 +59,7 @@ type ViewMode = 'table' | 'grid' | 'list';
 
 const ClientManagement = () => {
     const { t } = useLanguage();
+    const perms = usePermission('CLIENT_MANAGEMENT');
     const [clients, setClients] = useState<Client[]>([]);
     const [allClients, setAllClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -395,26 +397,30 @@ const ClientManagement = () => {
                                     <Eye className="w-3 h-3 mr-1.5 text-primary-500" />
                                     {t('client.actions.view')}
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        handleEditClient(client.id);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
-                                >
-                                    <Edit className="w-3 h-3 mr-1.5 text-amber-500" />
-                                    {t('client.actions.edit')}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        handleDeleteClient(client);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
-                                >
-                                    <Trash2 className="w-3 h-3 mr-1.5 text-red-500" />
-                                    {t('client.actions.delete')}
-                                </button>
+                                {perms.canUpdate && (
+                                    <button
+                                        onClick={() => {
+                                            handleEditClient(client.id);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
+                                    >
+                                        <Edit className="w-3 h-3 mr-1.5 text-amber-500" />
+                                        {t('client.actions.edit')}
+                                    </button>
+                                )}
+                                {perms.canDelete && (
+                                    <button
+                                        onClick={() => {
+                                            handleDeleteClient(client);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center px-2 py-1.5 text-[10px] text-theme-text-primary hover:bg-theme-bg-tertiary w-full transition-colors"
+                                    >
+                                        <Trash2 className="w-3 h-3 mr-1.5 text-red-500" />
+                                        {t('client.actions.delete')}
+                                    </button>
+                                )}
                             </div>
                         )}
                     </div>
@@ -562,22 +568,26 @@ const ClientManagement = () => {
                                         >
                                             <Eye className="w-3 h-3" />
                                         </button>
-                                        <button
-                                            onClick={() => handleEditClient(client.id)}
-                                            disabled={operationLoading}
-                                            className="text-theme-text-secondary hover:text-amber-600 p-1 disabled:opacity-50"
-                                            title={t('client.actions.edit')}
-                                        >
-                                            <Edit className="w-3.5 h-3.5 text-amber-500" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteClient(client)}
-                                            disabled={operationLoading}
-                                            className="text-theme-text-secondary hover:text-red-600 p-1 disabled:opacity-50"
-                                            title={t('client.actions.delete')}
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                        </button>
+                                        {perms.canUpdate && (
+                                            <button
+                                                onClick={() => handleEditClient(client.id)}
+                                                disabled={operationLoading}
+                                                className="text-theme-text-secondary hover:text-amber-600 p-1 disabled:opacity-50"
+                                                title={t('client.actions.edit')}
+                                            >
+                                                <Edit className="w-3.5 h-3.5 text-amber-500" />
+                                            </button>
+                                        )}
+                                        {perms.canDelete && (
+                                            <button
+                                                onClick={() => handleDeleteClient(client)}
+                                                disabled={operationLoading}
+                                                className="text-theme-text-secondary hover:text-red-600 p-1 disabled:opacity-50"
+                                                title={t('client.actions.delete')}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                            </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -640,22 +650,26 @@ const ClientManagement = () => {
                             >
                                 <Eye className="w-4 h-4" />
                             </button>
-                            <button
-                                onClick={() => handleEditClient(client.id)}
-                                disabled={operationLoading}
-                                className="text-theme-text-secondary hover:text-amber-600 p-1.5 rounded-full hover:bg-amber-500/10 transition-colors disabled:opacity-50"
-                                title="Edit Client"
-                            >
-                                <Edit className="w-4 h-4 text-amber-500" />
-                            </button>
-                            <button
-                                onClick={() => handleDeleteClient(client)}
-                                disabled={operationLoading}
-                                className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                                title="Delete Client"
-                            >
-                                <Trash2 className="w-4 h-4 text-red-500" />
-                            </button>
+                            {perms.canUpdate && (
+                                <button
+                                    onClick={() => handleEditClient(client.id)}
+                                    disabled={operationLoading}
+                                    className="text-theme-text-secondary hover:text-amber-600 p-1.5 rounded-full hover:bg-amber-500/10 transition-colors disabled:opacity-50"
+                                    title="Edit Client"
+                                >
+                                    <Edit className="w-4 h-4 text-amber-500" />
+                                </button>
+                            )}
+                            {perms.canDelete && (
+                                <button
+                                    onClick={() => handleDeleteClient(client)}
+                                    disabled={operationLoading}
+                                    className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                    title="Delete Client"
+                                >
+                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -789,15 +803,17 @@ const ClientManagement = () => {
                                 <Download className="w-3 h-3" />
                                 <span>{t('client.export')}</span>
                             </button>
-                            <button
-                                onClick={handleAddClient}
-                                disabled={operationLoading}
-                                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-50 text-[10px]"
-                                aria-label="Add new client"
-                            >
-                                <Plus className="w-3 h-3" />
-                                <span>{t('client.addClient')}</span>
-                            </button>
+                            {perms.canCreate && (
+                                <button
+                                    onClick={handleAddClient}
+                                    disabled={operationLoading}
+                                    className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-50 text-[10px]"
+                                    aria-label="Add new client"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    <span>{t('client.addClient')}</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

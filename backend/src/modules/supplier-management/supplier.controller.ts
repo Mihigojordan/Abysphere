@@ -35,7 +35,8 @@ export class SupplierController {
   async findAll(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
     if (!adminId) throw new BadRequestException('Admin ID not found in request');
-    return this.supplierService.findAll(filters, adminId);
+    const employeeId = req.employee?.id ?? null;
+    return this.supplierService.findAll(filters, adminId, employeeId);
   }
 
   @Get(':id')
@@ -80,6 +81,7 @@ export class SupplierController {
   async export(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
     if (!adminId) throw new BadRequestException('Admin ID not found in request');
-    return this.supplierService.export(filters, adminId);
+    const employeeId = req.employee?.id ?? null;
+    return this.supplierService.export(filters, adminId, employeeId);
   }
 }

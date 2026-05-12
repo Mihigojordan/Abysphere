@@ -210,19 +210,35 @@ export class StockoutService {
     });
   }
 
-  async getAll(adminId: string) {
+  async getAll(adminId: string, employeeId?: string | null) {
     if (!adminId) {
       throw new BadRequestException('Admin ID is missing');
     }
 
+    let where: any = { adminId };
+    if (employeeId) {
+      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'STOCKOUT_MANAGEMENT');
+      if (!canViewAll) {
+        where = { adminId, employeeId };
+      }
+    }
+
     return this.prisma.stockOut.findMany({
-      where: { adminId },
+      where,
       include: {
-        stockin: true, // includes all stock details
+        stockin: true,
         admin: true,
         employee: true,
       },
     });
+  }
+
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prisma.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
+    });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
   }
 
   async getOne(id: string) {

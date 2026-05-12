@@ -111,10 +111,18 @@ export class SupplierService {
     });
   }
 
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prisma.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
+    });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
+  }
+
   /**
    * Get all suppliers with filtering and pagination
    */
-  async findAll(filters: SupplierFilterDto = {}, adminId: string) {
+  async findAll(filters: SupplierFilterDto = {}, adminId: string, employeeId?: string | null) {
     const {
       search,
       status,
@@ -147,6 +155,14 @@ export class SupplierService {
       where.status = status;
     }
     where.adminId = adminId;
+
+    // Employee view filter
+    if (employeeId) {
+      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'SUPPLIER_MANAGEMENT');
+      if (!canViewAll) {
+        where.employeeId = employeeId;
+      }
+    }
 
     // Rating filter
     if (minRating !== undefined) {
@@ -447,8 +463,8 @@ export class SupplierService {
   /**
    * Export suppliers
    */
-  async export(filters: SupplierFilterDto = {}, adminId: string) {
-    const { data } = await this.findAll({ ...filters, limit: 10000 }, adminId);
+  async export(filters: SupplierFilterDto = {}, adminId: string, employeeId?: string | null) {
+    const { data } = await this.findAll({ ...filters, limit: 10000 }, adminId, employeeId);
     return data;
   }
 }

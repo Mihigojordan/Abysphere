@@ -24,6 +24,7 @@ import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 import { Download, ChevronDown } from 'lucide-react';
 
+import { usePermission } from '../../hooks/usePermission';
 import stockOutService from '../../services/stockoutService';
 import stockInService from '../../services/stockService';
 import UpsertStockOutModal from '../../components/dashboard/stock/out/UpsertStockOutModal';
@@ -75,6 +76,7 @@ interface Filters {
 type ViewMode = 'table' | 'grid' | 'list';
 
 const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) => {
+  const perms = usePermission('STOCKOUT_MANAGEMENT');
   const [stockOuts, setStockOuts] = useState<StockOut[]>([]);
   const [filteredStockOuts, setFilteredStockOuts] = useState<StockOut[]>([]);
   const [stockIns, setStockIns] = useState<StockIn[]>([]);
@@ -534,15 +536,19 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
 
   const ActionButtons = ({ item }: { item: StockOut }) => (
     <div className="flex items-center gap-3">
-      <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
-        <Edit3 size={16} />
-      </button>
+      {perms.canUpdate && (
+        <button onClick={() => openEditModal(item)} className="text-amber-600 hover:text-amber-700" title={t('stockOut.edit')}>
+          <Edit3 size={16} />
+        </button>
+      )}
       <button onClick={() => openViewModal(item)} className="text-gray-500 hover:text-primary-600" title={t('stockOut.viewDetails')}>
         <Eye size={16} />
       </button>
-      <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title={t('stockOut.delete')}>
-        <Trash2 size={16} />
-      </button>
+      {perms.canDelete && (
+        <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:text-red-700" title={t('stockOut.delete')}>
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 
@@ -776,20 +782,24 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
                   )}
                 </AnimatePresence>
               </div>
-              <button
-                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
-              >
-                <Plus className="w-3 h-3" />
-                <span>{t('stockOut.recordSale')}</span>
-              </button>
-              <button
-                onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
-              >
-                <FileUp className="w-3 h-3" />
-                <span>{t('stockOut.importSales')}</span>
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                  className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{t('stockOut.recordSale')}</span>
+                </button>
+              )}
+              {perms.canCreate && (
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
+                >
+                  <FileUp className="w-3 h-3" />
+                  <span>{t('stockOut.importSales')}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -942,12 +952,14 @@ const StockOutManagement: React.FC<{ role: 'admin' | 'employee' }> = ({ role }) 
             <p className="text-xs text-theme-text-secondary mb-6">
               {searchTerm || filters.dateRange !== 'all' ? t('stockOut.adjustFilters') : t('stockOut.startRecording')}
             </p>
-            <button
-              onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
-              className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
-            >
-              {t('stockOut.recordFirstSale')}
-            </button>
+            {perms.canCreate && (
+              <button
+                onClick={() => { setSelectedStockOut(null); setIsAddModalOpen(true); }}
+                className="bg-primary-600 text-white text-xs px-4 py-2 rounded"
+              >
+                {t('stockOut.recordFirstSale')}
+              </button>
+            )}
           </div>
         ) : (
           <>

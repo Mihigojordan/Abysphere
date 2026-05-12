@@ -7,7 +7,10 @@ export class CategoryManagementController {
   constructor(private readonly categoryService: CategoryManagementService) {}
 
   @Post('create')
-  async createCategory(@Body() data) {
+  @UseGuards(DualAuthGuard)
+  async createCategory(@Req() req: RequestWithAdminEmployee, @Body() data) {
+    data.adminId = req.admin?.id ?? req.employee?.adminId;
+    data.employeeId = req.employee?.id ?? null;
     return await this.categoryService.createCategory(data);
   }
 
@@ -15,7 +18,8 @@ export class CategoryManagementController {
   @UseGuards(DualAuthGuard)
   async getAllCategories(@Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
-    return await this.categoryService.getAllCategories(adminId);
+    const employeeId = req.employee?.id ?? null;
+    return await this.categoryService.getAllCategories(adminId, employeeId);
   }
 
   @Get('getone/:id')

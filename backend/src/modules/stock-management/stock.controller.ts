@@ -35,7 +35,8 @@ export class StockController {
   @UseGuards(DualAuthGuard)
   async getAllStocks(@Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
-    return await this.stockService.findAll(adminId);
+    const employeeId = req.employee?.id ?? null;
+    return await this.stockService.findAll(adminId, employeeId);
   }
 
   @Get('alerts')

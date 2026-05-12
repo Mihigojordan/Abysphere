@@ -8,6 +8,7 @@ import {
 import employeeService from '../services/employeeService';
 import { API_URL } from '../api/api';
 import type { Employee } from '../types/model';
+import { useSocket, useSocketEvent } from './SocketContext';
 
 interface LoginData {
   identifier: string;
@@ -79,11 +80,25 @@ export const EmployeeAuthProvider: React.FC<EmployeeAuthProviderProps> = ({ chil
   const [isOTPRequired, setIsOTPRequired] = useState(false);
   const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
 
+  const { emit } = useSocket();
+
   const updateAuthState = (authData: AuthState) => {
     setUser(authData.user);
     setIsAuthenticated(authData.isAuthenticated);
     setIsLocked(authData.isLocked);
   };
+
+  // Join employee room for real-time permission updates
+  useEffect(() => {
+    if (user?.id && isAuthenticated) {
+      emit('joinEmployeeRoom', { employeeId: user.id });
+    }
+  }, [user?.id, isAuthenticated, emit]);
+
+  // Real-time permission push from backend
+  useSocketEvent('permissionsUpdated', (updatedPermissions: any[]) => {
+    setUser((prev) => prev ? { ...prev, permissions: updatedPermissions } as any : prev);
+  });
 
   /**
    * Employee readout with email/phone + password

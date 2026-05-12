@@ -23,7 +23,8 @@ export class ExpenseManagementController {
   async create(@Req() req: RequestWithAdminEmployee, @Body() data: any) {
     try {
       const adminId = req.admin?.id ?? req.employee?.adminId;
-      return await this.expenseService.create(adminId, data);
+      const employeeId = req.employee?.id ?? null;
+      return await this.expenseService.create(adminId, data, employeeId);
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }
@@ -33,7 +34,8 @@ export class ExpenseManagementController {
   async findAll(@Req() req: RequestWithAdminEmployee) {
     try {
       const adminId = req.admin?.id ?? req.employee?.adminId;
-      return await this.expenseService.findAll(adminId);
+      const employeeId = req.employee?.id ?? null;
+      return await this.expenseService.findAll(adminId, employeeId);
     } catch (error) {
       throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }

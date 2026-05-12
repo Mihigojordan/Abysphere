@@ -148,11 +148,17 @@ export class SalesReturnService {
   }
 
   // Get all sales returns for an admin
-  async findAll(adminId: string) {
+  async findAll(adminId: string, employeeId?: string | null) {
     if (!adminId) throw new BadRequestException('Admin ID is missing');
 
+    let where: any = { adminId };
+    if (employeeId) {
+      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'SALES_RETURN_MANAGEMENT');
+      if (!canViewAll) where = { adminId, employeeId };
+    }
+
     const returns = await this.prisma.salesReturn.findMany({
-      where: { adminId },
+      where,
       include: {
         items: {
           include: {
@@ -170,6 +176,14 @@ export class SalesReturnService {
       message: 'Sales returns retrieved successfully',
       data: returns,
     };
+  }
+
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prisma.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
+    });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
   }
 
   // Get a single sales return by ID

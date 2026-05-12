@@ -5,10 +5,14 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PermissionGateway } from './permission.gateway';
 
 @Injectable()
 export class PermissionService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissionGateway: PermissionGateway,
+  ) {}
 
   async getTemplates(adminId: string) {
     return this.prisma.permissionTemplate.findMany({
@@ -156,9 +160,12 @@ export class PermissionService {
     if (existing)
       throw new ConflictException('Employee already has this permission');
 
-    return this.prisma.employeePermissionAssignment.create({
+    await this.prisma.employeePermissionAssignment.create({
       data: { employeeId, templateId, adminId },
     });
+
+    await this.pushPermissionsToEmployee(employeeId);
+    return { success: true };
   }
 
   async revokeTemplate(
@@ -173,9 +180,17 @@ export class PermissionService {
     );
     if (!assignment) throw new NotFoundException('Assignment not found');
 
-    return this.prisma.employeePermissionAssignment.delete({
+    await this.prisma.employeePermissionAssignment.delete({
       where: { id: assignment.id },
     });
+
+    await this.pushPermissionsToEmployee(employeeId);
+    return { success: true };
+  }
+
+  private async pushPermissionsToEmployee(employeeId: string) {
+    const permissions = await this.getEmployeePermissions(employeeId);
+    this.permissionGateway.emitPermissionsUpdated(employeeId, permissions);
   }
 
   async getEmployeePermissions(employeeId: string) {

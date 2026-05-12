@@ -18,7 +18,8 @@ export class SalesReturnController {
   @UseGuards(DualAuthGuard)
   async findAll(@Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
-    return this.salesReturnService.findAll(adminId);
+    const employeeId = req.employee?.id ?? null;
+    return this.salesReturnService.findAll(adminId, employeeId);
   }
 
   @Get(':id')

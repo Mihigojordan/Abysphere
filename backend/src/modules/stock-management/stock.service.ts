@@ -6,7 +6,7 @@ import { Prisma } from 'generated/prisma';
 export class StockService {
   constructor(private prisma: PrismaService) { }
 
-  async createStock(data: any, adminId: string) {
+  async createStock(data: any, adminId: string, employeeId?: string | null) {
     let supplierName: string | null = null;
 
     if (data.supplier && typeof data.supplier === 'string' && data.supplier.length === 36) {
@@ -58,6 +58,7 @@ export class StockService {
           unitPrice: new Prisma.Decimal(unitCost),
           notes: `Stock replenished: ${data.itemName} (+${addedQty})`,
           createdByAdminId: adminId,
+          createdByEmployeeId: employeeId || null,
         },
       });
 
@@ -82,6 +83,7 @@ export class StockService {
       reorderLevel: Number(data.reorderLevel) || 0,
       expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
       adminId,
+      employeeId: employeeId || null,
     };
 
     const created = await this.prisma.stock.create({ data: stockData });
@@ -98,17 +100,28 @@ export class StockService {
         unitPrice: new Prisma.Decimal(unitCost),
         notes: `New stock created: ${data.itemName}`,
         createdByAdminId: adminId,
+        createdByEmployeeId: employeeId || null,
       },
     });
 
     return created;
   }
 
-  async findAll(adminId: string) {
-    return this.prisma.stock.findMany({
-      where: { adminId },
-      orderBy: { createdAt: 'desc' },
+  async findAll(adminId: string, employeeId?: string | null) {
+    if (employeeId) {
+      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'STOCK_MANAGEMENT');
+      const where = canViewAll ? { adminId } : { adminId, employeeId };
+      return this.prisma.stock.findMany({ where, orderBy: { createdAt: 'desc' } });
+    }
+    return this.prisma.stock.findMany({ where: { adminId }, orderBy: { createdAt: 'desc' } });
+  }
+
+  private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
+    const assignments = await this.prisma.employeePermissionAssignment.findMany({
+      where: { employeeId, adminId },
+      include: { template: true },
     });
+    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
   }
 
   async getStockAlerts(adminId: string) {
