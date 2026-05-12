@@ -49,9 +49,9 @@ export class SupplierService {
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
     const code = `SUP-${randomNumber}`;
     
-    // Check if this code already exists
-    const existingSupplier = await this.prisma.supplier.findUnique({
-      where: { code }
+    // Check if this code already exists for this admin
+    const existingSupplier = await this.prisma.supplier.findFirst({
+      where: { code, adminId }
     });
     
     if (!existingSupplier) {
@@ -67,7 +67,7 @@ export class SupplierService {
   /**
    * Create a new supplier
    */
-  async create(data: CreateSupplierDto, adminId: string): Promise<Supplier> {
+  async create(data: CreateSupplierDto, adminId: string, employeeId?: string | null): Promise<Supplier> {
 
 
     // Generate code if not provided
@@ -88,7 +88,8 @@ export class SupplierService {
       data: {
         ...data,
         code,
-        adminId, // Link to admin
+        adminId,
+        employeeId: employeeId || null,
         country: data.country || 'Rwanda',
         status: data.status || SupplierStatus.ACTIVE,
         rating: data.rating || 0,

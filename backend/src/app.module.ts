@@ -46,6 +46,7 @@ import { StockoutModule } from './modules/stockout-management/stockout.module';
 import { SalesReturnModule } from './modules/salesReturn-management/salesReturn.module';
 import { MembershipPlanModule } from './modules/membership-plan-management/membership-plan.module';
 import { ExpenseManagementModule } from './modules/expense-management/expense-management.module';
+import { PermissionModule } from './modules/permission-management/permission.module';
 
 @Module({
   imports: [
@@ -92,7 +93,8 @@ import { ExpenseManagementModule } from './modules/expense-management/expense-ma
     StockoutModule,
     SalesReturnModule,
     MembershipPlanModule,
-    ExpenseManagementModule
+    ExpenseManagementModule,
+    PermissionModule,
   ],
   controllers: [AppController],
 })

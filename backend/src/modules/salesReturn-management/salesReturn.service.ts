@@ -40,6 +40,7 @@ export class SalesReturnService {
         creditnoteId,
         createdAt: createdAt ? new Date(createdAt) : new Date(),
         adminId,
+        employeeId: employeeId || null,
       },
     });
 

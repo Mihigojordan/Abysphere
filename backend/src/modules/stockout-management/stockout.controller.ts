@@ -12,62 +12,53 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { StockoutService } from './stockout.service';
-import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
-import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { DualAuthGuard, RequestWithAdminEmployee } from 'src/guards/dual-auth.guard';
 
 @Controller('stockout')
 export class StockoutController {
   constructor(private readonly stockoutService: StockoutService) { }
 
   @Get('performance')
-  @UseGuards(AdminJwtAuthGuard)
-  async getProductPerformance(@Req() req: RequestWithAdmin) {
-    return await this.stockoutService.getProductPerformance(req.admin!.id);
+  @UseGuards(DualAuthGuard)
+  async getProductPerformance(@Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    return await this.stockoutService.getProductPerformance(adminId);
   }
 
   @Post('create')
-  @UseGuards(AdminJwtAuthGuard)
-  async register(@Body() body: any, @Req() req: RequestWithAdmin) {
-
+  @UseGuards(DualAuthGuard)
+  async register(@Body() body: any, @Req() req: RequestWithAdminEmployee) {
     try {
-      body.adminId = req.admin?.id
-
-
+      body.adminId = req.admin?.id ?? req.employee?.adminId;
+      body.employeeId = req.employee?.id ?? null;
       return await this.stockoutService.create(body);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('bulk-import')
-  @UseGuards(AdminJwtAuthGuard)
-  async bulkImport(@Body() body: any[], @Req() req: RequestWithAdmin) {
+  @UseGuards(DualAuthGuard)
+  async bulkImport(@Body() body: any[], @Req() req: RequestWithAdminEmployee) {
     try {
       if (!Array.isArray(body)) {
         throw new HttpException('Input must be an array', HttpStatus.BAD_REQUEST);
       }
-      return await this.stockoutService.bulkImport(body, req.admin!.id);
+      const adminId = req.admin?.id ?? req.employee?.adminId;
+      return await this.stockoutService.bulkImport(body, adminId);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }
   }
 
   @Get('all')
-  @UseGuards(AdminJwtAuthGuard)
-  async getAll(@Req() req: RequestWithAdmin) {
+  @UseGuards(DualAuthGuard)
+  async getAll(@Req() req: RequestWithAdminEmployee) {
     try {
-      return await this.stockoutService.getAll(req.admin!.id);
+      const adminId = req.admin?.id ?? req.employee?.adminId;
+      return await this.stockoutService.getAll(adminId);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -85,36 +76,27 @@ export class StockoutController {
     try {
       return await this.stockoutService.getOne(id);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.NOT_FOUND);
     }
   }
 
   @Put('update/:id')
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(DualAuthGuard)
   async update(@Param('id') id: string, @Body() body: any) {
     try {
       return await this.stockoutService.update(id, body);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
     }
   }
 
   @Delete('delete/:id')
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(DualAuthGuard)
   async delete(@Param('id') id: string, @Body() data) {
     try {
       return await this.stockoutService.delete(id);
     } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(error.message, error.status || HttpStatus.NOT_FOUND);
     }
   }
 }

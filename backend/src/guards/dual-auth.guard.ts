@@ -27,7 +27,7 @@ export class DualAuthGuard implements CanActivate {
     if (adminToken) {
       try {
         const decodedAdmin = await this.jwtService.verifyAsync(adminToken, {
-          secret: process.env.JWT_SECRET || 'secretkey',
+          secret: process.env.Jwt_SECRET_KEY || 'secretkey',
         });
 
         request.admin = decodedAdmin;
@@ -43,7 +43,7 @@ export class DualAuthGuard implements CanActivate {
         const decodedEmployee = await this.jwtService.verifyAsync(
           employeeToken,
           {
-            secret: process.env.JWT_SECRET || 'secretkey',
+            secret: process.env.Jwt_SECRET_KEY || 'secretkey',
           },
         );
 

@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   CreditCard,
   Building,
-  Users
+  Users,
+  Shield,
 } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import useAdminAuth from "../../context/AdminAuthContext";
@@ -120,12 +121,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
   };
 
   /* ---------------------------------------------------------------------- */
-  /*  Helper – does the current admin have a given feature?                */
+  /*  Helper – does the current user have access to a given feature?      */
   /* ---------------------------------------------------------------------- */
   const hasFeature = (name?: string): boolean => {
-    if (role === 'employee') return true; // Employees see all features they are allowed to see by role
-    if (!name) return true;                     // no guard → always visible
-    return !!user?.features?.some((f) => f.name === name);
+    if (!name) return true; // no guard → always visible
+    if (role === 'admin') return !!user?.features?.some((f) => f.name === name);
+    // employee: visible only when they have at least one permission template for this feature
+    if (role === 'employee') {
+      const emp = user as unknown as { permissions?: Array<{ featureName: string }> };
+      return !!emp?.permissions?.some((p) => p.featureName === name);
+    }
+    return false;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -145,7 +151,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Building,
         path: `${base}/department-management`,
         feature: "DEPARTMENTS_MANAGEMENT",
-        allowedRoles: ["admin"],
       },
       {
         id: "employees",
@@ -153,6 +158,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onToggle, role }) => {
         icon: Users,
         path: `${base}/employee-management`,
         feature: "EMPLOYEES_MANAGEMENT",
+      },
+      {
+        id: "permission-management",
+        label: "Permissions",
+        icon: Shield,
+        path: `${base}/permission-management`,
+        // Admin-only: employees cannot manage permissions
         allowedRoles: ["admin"],
       },
 

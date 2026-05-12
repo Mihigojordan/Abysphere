@@ -1,4 +1,33 @@
 
+// 0. ======/=> PERMISSIONS <=/========
+
+export interface PermissionTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  featureName: string;
+  adminId: string;
+  canViewOwn: boolean;
+  canViewAll: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: { assignments: number };
+}
+
+export interface EmployeePermissionAssignment {
+  id: string;
+  employeeId: string;
+  templateId: string;
+  adminId: string;
+  createdAt?: string;
+  template?: PermissionTemplate;
+}
+
+// ========================================================================================================
+
 // 1. ======/=> EMPOLOYEE <=/========
 // Interface for employee data (used for validation)
 export const EMPLOYEE_STATUS = ['ACTIVE', 'TERMINATED', 'RESIGNED', 'PROBATION'] as const;
@@ -34,6 +63,7 @@ export interface Employee extends EmployeeData {
     contract?: Contract; // Assuming one-to-one relationship for simplicity
     created_at?: string; // ISO string
     updated_at?: string; // ISO string
+    permissions?: PermissionTemplate[]; // assigned permission templates
 }
 
 // ========================================================================================================

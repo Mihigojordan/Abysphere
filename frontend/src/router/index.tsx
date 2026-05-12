@@ -115,6 +115,7 @@ const BoxWaterChangingManagement = lazy(() => import('../pages/dashboard/BoxWate
 const PondWaterChangingManagement = lazy(() => import('../pages/dashboard/PondWaterChangingManagment'))
 const PondMedicationManagement = lazy(() => import('../pages/dashboard/PondMedicationManagement'))
 const ExpenseManagement = lazy(() => import('../pages/dashboard/ExpenseManagement'))
+const PermissionManagement = lazy(() => import('../pages/dashboard/PermissionManagement'))
 /**
  * Loading spinner component for Suspense fallback
  */
@@ -286,6 +287,14 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <AdminProfile />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'permission-management',
+                element: (
+                  <SuspenseWrapper>
+                    <PermissionManagement />
                   </SuspenseWrapper>
                 ),
               },
@@ -1148,6 +1157,121 @@ const routes = createBrowserRouter([
                 element: (
                   <SuspenseWrapper>
                     <CategoryDashboard role="employee" />
+                  </SuspenseWrapper>
+                ),
+              },
+
+              // ── Feature-permission routes for employees ─────────────────
+
+              {
+                path: 'department-management',
+                element: (
+                  <SuspenseWrapper>
+                    <DepartmentDashboard role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'employee-management',
+                element: (
+                  <SuspenseWrapper>
+                    <EmployeeDashboard role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'employee-management/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <ViewEmployee role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'supplier-management',
+                element: (
+                  <SuspenseWrapper>
+                    <SupplierDashboard role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInManagement role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management/create',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInFormExample role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management/update/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInFormExample role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockin-management/:id',
+                element: (
+                  <SuspenseWrapper>
+                    <StockInViewPage role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stockout-management',
+                element: (
+                  <SuspenseWrapper>
+                    <StockOutDashboard role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'sales-return-management',
+                element: (
+                  <SuspenseWrapper>
+                    <SalesReturnDashboard role='employee' />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'reports/sales',
+                element: (
+                  <SuspenseWrapper>
+                    <SalesReportPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'reports/inventory',
+                element: (
+                  <SuspenseWrapper>
+                    <InventoryReportPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'stock-alerts',
+                element: (
+                  <SuspenseWrapper>
+                    <StockAlertsPage />
+                  </SuspenseWrapper>
+                ),
+              },
+              {
+                path: 'expense-management',
+                element: (
+                  <SuspenseWrapper>
+                    <ExpenseManagement />
                   </SuspenseWrapper>
                 ),
               },

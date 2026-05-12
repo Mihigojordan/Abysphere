@@ -68,6 +68,7 @@ export class EmployeeAuthService {
 
     const token = this.jwtService.sign({
       id: employee.id,
+      adminId: employee.adminId,
       role: 'employee',
     });
 
@@ -84,6 +85,7 @@ export class EmployeeAuthService {
 
     const token = this.jwtService.sign({
       id: employee.id,
+      adminId: employee.adminId,
       role: 'employee',
     });
 
@@ -178,8 +180,20 @@ async unlockEmployee(id: string, body: { password: string }) {
  async findOne(employeeId: string) {
     const employee = await this.prisma.employee.findUnique({
       where: { id: employeeId },
+      include: {
+        assignments: {
+          include: { template: true },
+        },
+      },
     });
-    return employee;
+
+    if (!employee) return null;
+
+    const { assignments, ...rest } = employee;
+    return {
+      ...rest,
+      permissions: assignments.map((a) => a.template),
+    };
   }
 
 }

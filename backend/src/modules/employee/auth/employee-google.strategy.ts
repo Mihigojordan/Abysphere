@@ -72,7 +72,7 @@ export class GoogleEmployeeStrategy extends PassportStrategy(
       });
 
       if (employee) {
-        const token = this.jwtService.sign({ id: employee.id, role: 'employee' });
+        const token = this.jwtService.sign({ id: employee.id, adminId: employee.adminId, role: 'employee' });
         return done(null, { employee, token, state });
       }
 
@@ -101,7 +101,7 @@ export class GoogleEmployeeStrategy extends PassportStrategy(
         });
       }
 
-      const token = this.jwtService.sign({ id: employee.id, role: 'employee' });
+      const token = this.jwtService.sign({ id: employee.id, adminId: employee.adminId, role: 'employee' });
       return done(null, { employee, token, state });
     } catch (error) {
       console.error('Google Employee Strategy Error:', error);

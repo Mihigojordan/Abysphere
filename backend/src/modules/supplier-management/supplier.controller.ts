@@ -13,9 +13,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { SupplierService, CreateSupplierDto, UpdateSupplierDto, SupplierFilterDto } from './supplier.service';
-import { SupplierStatus } from '../../../generated/prisma';
-import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
-import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { DualAuthGuard, RequestWithAdminEmployee } from 'src/guards/dual-auth.guard';
 import { Req } from '@nestjs/common';
 
 @Controller('supplier')
@@ -23,23 +21,20 @@ export class SupplierController {
   constructor(private readonly supplierService: SupplierService) { }
 
   @Post()
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(DualAuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async create(@Req() req: RequestWithAdmin, @Body() createDto: CreateSupplierDto) {
-    const adminId = req.admin?.id;
-    if (!adminId) {
-      throw new BadRequestException('Admin ID not found in request');
-    }
-    return this.supplierService.create(createDto, adminId);
+  async create(@Req() req: RequestWithAdminEmployee, @Body() createDto: CreateSupplierDto) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    if (!adminId) throw new BadRequestException('Admin ID not found in request');
+    const employeeId = req.employee?.id ?? null;
+    return this.supplierService.create(createDto, adminId, employeeId);
   }
 
   @Get()
-  @UseGuards(AdminJwtAuthGuard)
-  async findAll(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdmin) {
-    const adminId = req.admin?.id;
-    if (!adminId) {
-      throw new BadRequestException('Admin ID not found in request');
-    }
+  @UseGuards(DualAuthGuard)
+  async findAll(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    if (!adminId) throw new BadRequestException('Admin ID not found in request');
     return this.supplierService.findAll(filters, adminId);
   }
 
@@ -73,22 +68,18 @@ export class SupplierController {
   }
 
   @Post('import')
-  @UseGuards(AdminJwtAuthGuard)
-  async bulkImport(@Req() req: RequestWithAdmin, @Body() suppliers: CreateSupplierDto[]) {
-    const adminId = req.admin?.id;
-    if (!adminId) {
-      throw new BadRequestException('Admin ID not found in request');
-    }
+  @UseGuards(DualAuthGuard)
+  async bulkImport(@Req() req: RequestWithAdminEmployee, @Body() suppliers: CreateSupplierDto[]) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    if (!adminId) throw new BadRequestException('Admin ID not found in request');
     return this.supplierService.bulkImport(suppliers, adminId);
   }
 
   @Get('export/all')
-  @UseGuards(AdminJwtAuthGuard)
-  async export(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdmin) {
-    const adminId = req.admin?.id;
-    if (!adminId) {
-      throw new BadRequestException('Admin ID not found in request');
-    }
+  @UseGuards(DualAuthGuard)
+  async export(@Query() filters: SupplierFilterDto, @Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    if (!adminId) throw new BadRequestException('Admin ID not found in request');
     return this.supplierService.export(filters, adminId);
   }
 }

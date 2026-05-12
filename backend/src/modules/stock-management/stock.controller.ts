@@ -10,80 +10,71 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { StockService } from './stock.service';
-import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
-import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { DualAuthGuard, RequestWithAdminEmployee } from 'src/guards/dual-auth.guard';
 
 @Controller('stock')
 export class StockController {
   constructor(private readonly stockService: StockService) { }
 
-  // ✅ Create Stock
   @Post('create')
-  @UseGuards(AdminJwtAuthGuard)
-  async createStock(@Req() req: RequestWithAdmin, @Body() data) {
-    const adminId = req.admin!.id;
-    return await this.stockService.createStock(data, adminId);
+  @UseGuards(DualAuthGuard)
+  async createStock(@Req() req: RequestWithAdminEmployee, @Body() data) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    const employeeId = req.employee?.id ?? null;
+    return await this.stockService.createStock(data, adminId, employeeId);
   }
 
-  // ✅ Bulk Import Stock
   @Post('bulk-import')
-  @UseGuards(AdminJwtAuthGuard)
-  async bulkImport(@Req() req: RequestWithAdmin, @Body() data: any[]) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async bulkImport(@Req() req: RequestWithAdminEmployee, @Body() data: any[]) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.bulkImport(data, adminId);
   }
 
-  // ✅ Get All Stocks
   @Get('all')
-  @UseGuards(AdminJwtAuthGuard)
-  async getAllStocks(@Req() req: RequestWithAdmin) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async getAllStocks(@Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.findAll(adminId);
   }
 
-  // ✅ Get Stock Alerts
   @Get('alerts')
-  @UseGuards(AdminJwtAuthGuard)
-  async getStockAlerts(@Req() req: RequestWithAdmin) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async getStockAlerts(@Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.getStockAlerts(adminId);
   }
 
-  // ✅ Get Stock by ID
   @Get('getone/:id')
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(DualAuthGuard)
   async getStockById(@Param('id') id: string) {
     return await this.stockService.findOne(Number(id));
   }
 
-  // ✅ Update Stock
   @Put('update/:id')
-  @UseGuards(AdminJwtAuthGuard)
-  async updateStock(@Req() req: RequestWithAdmin, @Param('id') id: string, @Body() data) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async updateStock(@Req() req: RequestWithAdminEmployee, @Param('id') id: string, @Body() data) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.update(Number(id), data, adminId);
   }
 
-  // ✅ Delete Stock
   @Delete('delete/:id')
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(DualAuthGuard)
   async deleteStock(@Param('id') id: string) {
     return await this.stockService.remove(Number(id));
   }
 
-  // ── Stock History Endpoints ──────────────────────────────────────
-
   @Get('history/all')
-  @UseGuards(AdminJwtAuthGuard)
-  async getStockHistory(@Req() req: RequestWithAdmin) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async getStockHistory(@Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.getStockHistory(adminId);
   }
 
   @Get('history/:stockId')
-  @UseGuards(AdminJwtAuthGuard)
-  async getStockHistoryByStockId(@Req() req: RequestWithAdmin, @Param('stockId') stockId: string) {
-    const adminId = req.admin!.id;
+  @UseGuards(DualAuthGuard)
+  async getStockHistoryByStockId(@Req() req: RequestWithAdminEmployee, @Param('stockId') stockId: string) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
     return await this.stockService.getStockHistoryByStockId(Number(stockId), adminId);
   }
 }

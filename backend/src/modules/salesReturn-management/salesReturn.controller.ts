@@ -1,24 +1,24 @@
 import { Controller, Post, Body, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { SalesReturnService } from './salesReturn.service';
-import { AdminJwtAuthGuard } from 'src/guards/adminGuard.guard';
-import { RequestWithAdmin } from 'src/common/interfaces/admin.interface';
+import { DualAuthGuard, RequestWithAdminEmployee } from 'src/guards/dual-auth.guard';
 
 @Controller('sales-return')
 export class SalesReturnController {
   constructor(private readonly salesReturnService: SalesReturnService) {}
 
   @Post('create')
-     @UseGuards(AdminJwtAuthGuard)
-  async create(@Body() data,@Req() req: RequestWithAdmin) {
-    data.adminId = req.admin?.id
+  @UseGuards(DualAuthGuard)
+  async create(@Body() data, @Req() req: RequestWithAdminEmployee) {
+    data.adminId = req.admin?.id ?? req.employee?.adminId;
+    data.employeeId = req.employee?.id ?? null;
     return this.salesReturnService.create(data);
   }
 
   @Get()
-   @UseGuards(AdminJwtAuthGuard)
-  async findAll(@Req() req: RequestWithAdmin) {
-    
-    return this.salesReturnService.findAll(req.admin!.id);
+  @UseGuards(DualAuthGuard)
+  async findAll(@Req() req: RequestWithAdminEmployee) {
+    const adminId = req.admin?.id ?? req.employee?.adminId;
+    return this.salesReturnService.findAll(adminId);
   }
 
   @Get(':id')
