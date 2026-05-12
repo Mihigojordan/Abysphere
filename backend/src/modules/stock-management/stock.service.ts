@@ -109,7 +109,7 @@ export class StockService {
 
   async findAll(adminId: string, employeeId?: string | null) {
     if (employeeId) {
-      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'STOCK_MANAGEMENT');
+      const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'STOCKIN_MANAGEMENT');
       const where = canViewAll ? { adminId } : { adminId, employeeId };
       return this.prisma.stock.findMany({ where, orderBy: { createdAt: 'desc' } });
     }

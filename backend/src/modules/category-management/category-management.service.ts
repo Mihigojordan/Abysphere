@@ -52,9 +52,19 @@ export class CategoryManagementService {
   async getAllCategories(adminId: string, employeeId?: string | null) {
     try {
       if (employeeId) {
-        const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'CATEGORY_MANAGEMENT');
-        const where = canViewAll ? { adminId } : { adminId, employeeId };
-        return this.prismaService.category.findMany({ where });
+        const assignments = await this.prismaService.employeePermissionAssignment.findMany({
+          where: { employeeId, adminId },
+          include: { template: true },
+        });
+        const catPerms = assignments.filter(a => a.template.featureName === 'CATEGORY_MANAGEMENT');
+        const canViewAll = catPerms.some(a => a.template.canViewAll);
+        const canViewOwn = catPerms.some(a => a.template.canViewOwn);
+        // If view_own (and not view_all): show only their own
+        // Otherwise (view_all or no category permission): show all company categories
+        if (canViewOwn && !canViewAll) {
+          return this.prismaService.category.findMany({ where: {  employeeId } });
+        }
+        return this.prismaService.category.findMany({ where: { adminId } });
       }
       return this.prismaService.category.findMany({ where: { adminId } });
     } catch (error) {
