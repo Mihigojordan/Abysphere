@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -33,7 +34,12 @@ export class EmployeeService {
     emergency_contact_phone?: string;
     adminId: string;
   }) {
-    // 🔍 Check if employee exists by email or national_id
+    const adminExists = await this.prisma.admin.findUnique({ where: { id: data.adminId } });
+    if (!adminExists) {
+      throw new UnauthorizedException('Admin account not found. Please log in again.');
+    }
+
+    // Check if employee exists by email or national_id
     const existingEmployee = await this.prisma.employee.findFirst({
       where: {
         OR: [
@@ -61,10 +67,7 @@ export class EmployeeService {
       },
     });
 
-    // Get admin (company) info for the email
-    const admin = await this.prisma.admin.findUnique({
-      where: { id: data.adminId },
-    });
+    const admin = adminExists;
 
     const currentYear = new Date().getFullYear();
     const loginUrl = process.env.FRONTEND_URL || 'https://app.mysystem.rw';
