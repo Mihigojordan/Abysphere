@@ -18,7 +18,7 @@ export class PermissionGateway implements OnGatewayConnection, OnGatewayDisconne
     console.log(`Permission socket connected: ${client.id}`);
   }
 
-  handleDisconnection(client: Socket) {
+  handleDisconnect(client: Socket) {
     console.log(`Permission socket disconnected: ${client.id}`);
   }
 
