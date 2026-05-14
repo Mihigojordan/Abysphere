@@ -33,7 +33,6 @@ const FEATURE_LABELS: Record<string, string> = {
   CLIENT_MANAGEMENT: 'Clients',
   CATEGORY_MANAGEMENT: 'Categories',
   SUPPLIER_MANAGEMENT: 'Suppliers',
-  EXPENSE_MANAGEMENT: 'Expenses',
   STOCKIN_MANAGEMENT: 'Stock In',
   STOCKOUT_MANAGEMENT: 'Stock Out',
   SALES_RETURN_MANAGEMENT: 'Sales Returns',

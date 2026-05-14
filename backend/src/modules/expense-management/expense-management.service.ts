@@ -18,20 +18,8 @@ export class ExpenseManagementService {
     }
 
     async findAll(adminId: string, employeeId?: string | null) {
-        let where: any = { adminId };
-        if (employeeId) {
-            const canViewAll = await this.canEmployeeViewAll(employeeId, adminId, 'EXPENSE_MANAGEMENT');
-            if (!canViewAll) where = { adminId, employeeId };
-        }
+        const where: any = employeeId ? { adminId, employeeId } : { adminId };
         return this.prisma.expense.findMany({ where, orderBy: { date: 'desc' } });
-    }
-
-    private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
-        const assignments = await this.prisma.employeePermissionAssignment.findMany({
-            where: { employeeId, adminId },
-            include: { template: true },
-        });
-        return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
     }
 
     async findOne(adminId: string, id: string) {
