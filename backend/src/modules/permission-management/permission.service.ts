@@ -30,11 +30,6 @@ export class PermissionService {
       name: string;
       description?: string;
       featureName: string;
-      canViewOwn?: boolean;
-      canViewAll?: boolean;
-      canCreate?: boolean;
-      canUpdate?: boolean;
-      canDelete?: boolean;
     },
   ) {
     // Verify the company has this feature assigned by SuperAdmin
@@ -66,11 +61,6 @@ export class PermissionService {
         description: data.description,
         featureName: data.featureName,
         adminId,
-        canViewOwn: data.canViewOwn ?? false,
-        canViewAll: data.canViewAll ?? false,
-        canCreate: data.canCreate ?? false,
-        canUpdate: data.canUpdate ?? false,
-        canDelete: data.canDelete ?? false,
       },
     });
   }
@@ -81,11 +71,6 @@ export class PermissionService {
     data: {
       name?: string;
       description?: string;
-      canViewOwn?: boolean;
-      canViewAll?: boolean;
-      canCreate?: boolean;
-      canUpdate?: boolean;
-      canDelete?: boolean;
     },
   ) {
     const template = await this.prisma.permissionTemplate.findFirst({
@@ -127,16 +112,31 @@ export class PermissionService {
         status: true,
         assignments: {
           where: { templateId },
-          select: { id: true },
+          select: {
+            id: true,
+            canViewOwn: true,
+            canViewAll: true,
+            canCreate: true,
+            canUpdate: true,
+            canDelete: true,
+          },
         },
       },
       orderBy: [{ first_name: 'asc' }],
     });
 
-    return employees.map(({ assignments, ...emp }) => ({
-      ...emp,
-      isAssigned: assignments.length > 0,
-    }));
+    return employees.map(({ assignments, ...emp }) => {
+      const assignment = assignments[0] ?? null;
+      return {
+        ...emp,
+        isAssigned: !!assignment,
+        canViewOwn: assignment?.canViewOwn ?? false,
+        canViewAll: assignment?.canViewAll ?? false,
+        canCreate: assignment?.canCreate ?? false,
+        canUpdate: assignment?.canUpdate ?? false,
+        canDelete: assignment?.canDelete ?? false,
+      };
+    });
   }
 
   async assignTemplate(
@@ -161,7 +161,42 @@ export class PermissionService {
       throw new ConflictException('Employee already has this permission');
 
     await this.prisma.employeePermissionAssignment.create({
-      data: { employeeId, templateId, adminId },
+      data: {
+        employeeId,
+        templateId,
+        adminId,
+        canViewOwn: false,
+        canViewAll: true,
+        canCreate: false,
+        canUpdate: false,
+        canDelete: false,
+      },
+    });
+
+    await this.pushPermissionsToEmployee(employeeId);
+    return { success: true };
+  }
+
+  async updateAssignment(
+    adminId: string,
+    employeeId: string,
+    templateId: string,
+    data: {
+      canViewOwn?: boolean;
+      canViewAll?: boolean;
+      canCreate?: boolean;
+      canUpdate?: boolean;
+      canDelete?: boolean;
+    },
+  ) {
+    const assignment = await this.prisma.employeePermissionAssignment.findFirst(
+      { where: { employeeId, templateId, adminId } },
+    );
+    if (!assignment) throw new NotFoundException('Assignment not found');
+
+    await this.prisma.employeePermissionAssignment.update({
+      where: { id: assignment.id },
+      data,
     });
 
     await this.pushPermissionsToEmployee(employeeId);
@@ -197,9 +232,16 @@ export class PermissionService {
     const assignments = await this.prisma.employeePermissionAssignment.findMany(
       {
         where: { employeeId },
-        include: { template: true },
+        include: { template: { select: { featureName: true } } },
       },
     );
-    return assignments.map((a) => a.template);
+    return assignments.map((a) => ({
+      featureName: a.template.featureName,
+      canViewOwn: a.canViewOwn,
+      canViewAll: a.canViewAll,
+      canCreate: a.canCreate,
+      canUpdate: a.canUpdate,
+      canDelete: a.canDelete,
+    }));
   }
 }

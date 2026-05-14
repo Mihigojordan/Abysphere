@@ -26,7 +26,8 @@ import {
   XCircle,
   AlertCircle,
   AlertTriangle,
-  X
+  X,
+  Lock,
 } from "lucide-react";
 import employeeService from "../../services/employeeService";
 import contractService from "../../services/contractService";
@@ -35,6 +36,7 @@ import type { Employee, ContractData, Contract } from "../../types/model";
 import { useSocketEvent } from "../../context/SocketContext";
 import AddContractModal from "../../components/dashboard/contract/AddContractModal";
 import { useLanguage } from "../../context/LanguageContext";
+import { usePermission } from "../../hooks/usePermission";
 
 type ViewMode = 'table' | 'grid' | 'list';
 
@@ -45,6 +47,7 @@ interface OperationStatus {
 
 const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
   const { t } = useLanguage();
+  const perms = usePermission('EMPLOYEES_MANAGEMENT');
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -375,20 +378,24 @@ const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
                     >
                       <Eye className="w-3 h-3" />
                     </button>
-                    <button
-                      onClick={() => handleEditEmployee(employee)}
-                      className="text-theme-text-secondary hover:text-primary-600 p-1"
-                      title={t('employee.actions.edit')}
-                    >
-                      <Edit className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(employee)}
-                      className="text-theme-text-secondary hover:text-red-600 p-1"
-                      title={t('employee.actions.delete')}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    {perms.canUpdate && (
+                      <button
+                        onClick={() => handleEditEmployee(employee)}
+                        className="text-theme-text-secondary hover:text-primary-600 p-1"
+                        title={t('employee.actions.edit')}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                    )}
+                    {perms.canDelete && (
+                      <button
+                        onClick={() => setDeleteConfirm(employee)}
+                        className="text-theme-text-secondary hover:text-red-600 p-1"
+                        title={t('employee.actions.delete')}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -463,21 +470,27 @@ const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
               <button onClick={() => handleViewEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title={t('employee.actions.view')}>
                 <Eye className="w-3 h-3" />
               </button>
-              <button onClick={() => handleEditEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title={t('employee.actions.edit')}>
-                <Edit className="w-3 h-3" />
-              </button>
-              <button
-                onClick={() => handleCreateContract(employee)}
-                disabled={!!(employee.id && employeeContractStatus[employee.id])}
-                className="text-theme-text-secondary hover:text-primary-600 p-1 disabled:opacity-50"
-                title={t('employee.actions.contract')}
-              >
-                <FileText className="w-3 h-3" />
-              </button>
+              {perms.canUpdate && (
+                <button onClick={() => handleEditEmployee(employee)} className="text-theme-text-secondary hover:text-primary-600 p-1" title={t('employee.actions.edit')}>
+                  <Edit className="w-3 h-3" />
+                </button>
+              )}
+              {perms.canUpdate && (
+                <button
+                  onClick={() => handleCreateContract(employee)}
+                  disabled={!!(employee.id && employeeContractStatus[employee.id])}
+                  className="text-theme-text-secondary hover:text-primary-600 p-1 disabled:opacity-50"
+                  title={t('employee.actions.contract')}
+                >
+                  <FileText className="w-3 h-3" />
+                </button>
+              )}
             </div>
-            <button onClick={() => setDeleteConfirm(employee)} className="text-theme-text-secondary hover:text-red-600 p-1" title={t('employee.actions.delete')}>
-              <Trash2 className="w-3 h-3" />
-            </button>
+            {perms.canDelete && (
+              <button onClick={() => setDeleteConfirm(employee)} className="text-theme-text-secondary hover:text-red-600 p-1" title={t('employee.actions.delete')}>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -543,20 +556,24 @@ const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
               >
                 <Eye className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => handleEditEmployee(employee)}
-                className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
-                title={t('employee.actions.edit')}
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(employee)}
-                className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors"
-                title={t('employee.actions.delete')}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => handleEditEmployee(employee)}
+                  className="text-theme-text-secondary hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors"
+                  title={t('employee.actions.edit')}
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => setDeleteConfirm(employee)}
+                  className="text-theme-text-secondary hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                  title={t('employee.actions.delete')}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -615,6 +632,20 @@ const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
     );
   };
 
+  if (!perms.canViewAll && !perms.canViewOwn) {
+    return (
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Access Denied</h2>
+          <p className="text-sm text-theme-text-secondary">You don't have permission to view employees.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header */}
@@ -644,14 +675,16 @@ const EmployeeDashboard: React.FC<{ role: string }> = ({ role }) => {
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                 <span>{t('employee.refresh')}</span>
               </button>
-              <button
-                onClick={handleAddEmployee}
-                disabled={operationLoading}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
-              >
-                <Plus className="w-3 h-3" />
-                <span>{t('employee.addEmployee')}</span>
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={handleAddEmployee}
+                  disabled={operationLoading}
+                  className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>{t('employee.addEmployee')}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

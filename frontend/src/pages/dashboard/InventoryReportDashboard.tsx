@@ -6,11 +6,14 @@ import {
   DollarSign,
   AlertTriangle,
   Warehouse,
+  Lock,
 } from 'lucide-react';
 import stockService, { type Stock } from '../../services/stockService';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 const InventoryReportPage = () => {
+  const perms = usePermission('VIEW_INVENTORY_REPORTS');
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -162,6 +165,20 @@ const InventoryReportPage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
           <p className="mt-4 text-theme-text-secondary">{t('inventoryReport.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!perms.canViewAll && !perms.canViewOwn) {
+    return (
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Access Denied</h2>
+          <p className="text-sm text-theme-text-secondary">You don't have permission to view inventory reports.</p>
         </div>
       </div>
     );

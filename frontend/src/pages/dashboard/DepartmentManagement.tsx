@@ -19,8 +19,10 @@ import {
   List,
   RefreshCw,
   Calendar,
+  Lock,
 } from "lucide-react";
 import departmentService from "../../services/departmentService";
+import { usePermission } from "../../hooks/usePermission";
 
 interface Department {
   id: string;
@@ -57,6 +59,7 @@ interface DepartmentService {
 type ViewMode = 'table' | 'grid' | 'list';
 
 const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
+  const perms = usePermission('DEPARTMENTS_MANAGEMENT');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [allDepartments, setAllDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -280,22 +283,26 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
                     >
                       <Eye className="w-3 h-3" />
                     </button>
-                    <button
-                      onClick={() => setEditingDepartment(department)}
-                      disabled={operationLoading}
-                      className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
-                      title="Edit"
-                    >
-                      <Edit className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(department)}
-                      disabled={operationLoading}
-                      className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    {perms.canUpdate && (
+                      <button
+                        onClick={() => setEditingDepartment(department)}
+                        disabled={operationLoading}
+                        className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
+                        title="Edit"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </button>
+                    )}
+                    {perms.canDelete && (
+                      <button
+                        onClick={() => setDeleteConfirm(department)}
+                        disabled={operationLoading}
+                        className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -339,22 +346,26 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
             >
               <Eye className="w-3 h-3" />
             </button>
-            <button
-              onClick={() => setEditingDepartment(department)}
-              disabled={operationLoading}
-              className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
-              title="Edit"
-            >
-              <Edit className="w-3 h-3" />
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(department)}
-              disabled={operationLoading}
-              className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
-              title="Delete"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
+            {perms.canUpdate && (
+              <button
+                onClick={() => setEditingDepartment(department)}
+                disabled={operationLoading}
+                className="text-gray-400 hover:text-primary-600 p-1 disabled:opacity-50"
+                title="Edit"
+              >
+                <Edit className="w-3 h-3" />
+              </button>
+            )}
+            {perms.canDelete && (
+              <button
+                onClick={() => setDeleteConfirm(department)}
+                disabled={operationLoading}
+                className="text-gray-400 hover:text-red-600 p-1 disabled:opacity-50"
+                title="Delete"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
       ))}
@@ -390,22 +401,26 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
               >
                 <Eye className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => setEditingDepartment(department)}
-                disabled={operationLoading}
-                className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50"
-                title="Edit Department"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setDeleteConfirm(department)}
-                disabled={operationLoading}
-                className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50"
-                title="Delete Department"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              {perms.canUpdate && (
+                <button
+                  onClick={() => setEditingDepartment(department)}
+                  disabled={operationLoading}
+                  className="text-gray-400 hover:text-primary-600 p-1.5 rounded-full hover:bg-primary-50 transition-colors disabled:opacity-50"
+                  title="Edit Department"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+              )}
+              {perms.canDelete && (
+                <button
+                  onClick={() => setDeleteConfirm(department)}
+                  disabled={operationLoading}
+                  className="text-gray-400 hover:text-red-600 p-1.5 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50"
+                  title="Delete Department"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -465,6 +480,20 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
     );
   };
 
+  if (!perms.canViewAll && !perms.canViewOwn) {
+    return (
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Access Denied</h2>
+          <p className="text-sm text-theme-text-secondary">You don't have permission to view departments.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
       {/* Header */}
@@ -485,15 +514,17 @@ const DepartmentDashboard: React.FC<{role:string}> = ({role})  => {
                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
-              <button
-                onClick={() => setShowAddModal(true)}
-                disabled={operationLoading}
-                className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
-                aria-label="Add new department"
-              >
-                <Plus className="w-3 h-3" />
-                <span>Add Department</span>
-              </button>
+              {perms.canCreate && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  disabled={operationLoading}
+                  className="flex items-center space-x-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded font-medium transition-colors disabled:opacity-50"
+                  aria-label="Add new department"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Add Department</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
   Grid3X3,
   Settings,
   ShoppingCart,
+  Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePermission } from '../../hooks/usePermission';
@@ -491,6 +492,20 @@ const SalesReturnManagement: React.FC<SalesReturnManagementProps> = ({ role }) =
   );
 
   // ── Render ─────────────────────────────────────────────────────
+  if (!perms.canViewAll && !perms.canViewOwn) {
+    return (
+      <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Access Denied</h2>
+          <p className="text-sm text-theme-text-secondary">You don't have permission to view sales returns.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-theme-bg-secondary text-[10px] text-theme-text-primary">
       {/* Toast Notification */}

@@ -90,6 +90,12 @@ model EmployeePermissionAssignment {
   templateId String
   adminId    String
 
+  canViewOwn Boolean            @default(false)
+  canViewAll Boolean            @default(false)
+  canCreate  Boolean            @default(false)
+  canUpdate  Boolean            @default(false)
+  canDelete  Boolean            @default(false)
+
   employee   Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   template   PermissionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   admin      Admin              @relation(fields: [adminId], references: [id], onDelete: Cascade)

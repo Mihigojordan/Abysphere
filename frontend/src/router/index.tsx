@@ -87,7 +87,7 @@ const CageViewPage = lazy(() => import("../components/dashboard/cage/CageViewMor
 const MedicationForm = lazy(() => import("../components/dashboard/cage/MedicationForm"));
 const DailyFeedRecordForm = lazy(() => import("../components/dashboard/cage/DailyFeedRecordForm"));
 const StockCategoryManagement = lazy(() => import("../pages/dashboard/StockCategoryManagement"));
-const StockManagement = lazy(() => import("../pages/dashboard/StockManagement"));
+
 const StockInForm = lazy(() => import("../components/dashboard/stock/StockFormPage"));
 const StockInViewPage = lazy(() => import("../components/dashboard/stock/StockInViewPage"));
 const StockRequestManagement = lazy(() => import("../pages/dashboard/StockRequestManagement"));
@@ -677,14 +677,7 @@ const routes = createBrowserRouter([
                   </SuspenseWrapper>
                 ),
               },
-              {
-                path: 'stock-management',
-                element: (
-                  <SuspenseWrapper>
-                    <StockManagement role='admin' />
-                  </SuspenseWrapper>
-                ),
-              },
+
               {
                 path: 'stock-management/create',
                 element: (
@@ -958,14 +951,7 @@ const routes = createBrowserRouter([
                 ),
               },
 
-              {
-                path: 'stock-management',
-                element: (
-                  <SuspenseWrapper>
-                    <StockManagement role='employee' />
-                  </SuspenseWrapper>
-                ),
-              },
+           
               {
                 path: 'purchase-order-management',
                 element: (

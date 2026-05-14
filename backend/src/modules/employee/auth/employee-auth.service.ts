@@ -192,7 +192,14 @@ async unlockEmployee(id: string, body: { password: string }) {
     const { assignments, ...rest } = employee;
     return {
       ...rest,
-      permissions: assignments.map((a) => a.template),
+      permissions: assignments.map((a) => ({
+        featureName: a.template.featureName,
+        canViewOwn: a.canViewOwn,
+        canViewAll: a.canViewAll,
+        canCreate: a.canCreate,
+        canUpdate: a.canUpdate,
+        canDelete: a.canDelete,
+      })),
     };
   }
 

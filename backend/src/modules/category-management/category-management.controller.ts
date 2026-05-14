@@ -18,8 +18,9 @@ export class CategoryManagementController {
   @UseGuards(DualAuthGuard)
   async getAllCategories(@Req() req: RequestWithAdminEmployee) {
     const adminId = req.admin?.id ?? req.employee?.adminId;
-    const employeeId = req.employee?.id ?? null;
-    return await this.categoryService.getAllCategories(adminId, employeeId);
+    console.log(req.employee);
+    
+    return await this.categoryService.getAllCategories(adminId);
   }
 
   @Get('getone/:id')

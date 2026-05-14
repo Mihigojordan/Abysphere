@@ -81,6 +81,28 @@ export class PermissionController {
     );
   }
 
+  @Patch('assign/:employeeId/:templateId')
+  updateAssignment(
+    @Req() req: RequestWithAdmin,
+    @Param('employeeId') employeeId: string,
+    @Param('templateId') templateId: string,
+    @Body()
+    body: {
+      canViewOwn?: boolean;
+      canViewAll?: boolean;
+      canCreate?: boolean;
+      canUpdate?: boolean;
+      canDelete?: boolean;
+    },
+  ) {
+    return this.permissionService.updateAssignment(
+      req.admin!.id,
+      employeeId,
+      templateId,
+      body,
+    );
+  }
+
   @Delete('assign/:employeeId/:templateId')
   revokeTemplate(
     @Req() req: RequestWithAdmin,

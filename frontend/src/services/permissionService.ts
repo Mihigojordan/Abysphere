@@ -11,7 +11,20 @@ interface EmployeeWithAssignment {
   profile_picture?: string;
   status: string;
   isAssigned: boolean;
+  canViewOwn: boolean;
+  canViewAll: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
 }
+
+type AssignmentFlags = {
+  canViewOwn?: boolean;
+  canViewAll?: boolean;
+  canCreate?: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
+};
 
 class PermissionService {
   // ── Templates ─────────────────────────────────────────────────────────────
@@ -25,11 +38,6 @@ class PermissionService {
     name: string;
     description?: string;
     featureName: string;
-    canViewOwn?: boolean;
-    canViewAll?: boolean;
-    canCreate?: boolean;
-    canUpdate?: boolean;
-    canDelete?: boolean;
   }): Promise<PermissionTemplate> {
     const res = await api.post('/permissions/templates', data);
     return res.data;
@@ -37,15 +45,7 @@ class PermissionService {
 
   async updateTemplate(
     id: string,
-    data: Partial<{
-      name: string;
-      description: string;
-      canViewOwn: boolean;
-      canViewAll: boolean;
-      canCreate: boolean;
-      canUpdate: boolean;
-      canDelete: boolean;
-    }>,
+    data: Partial<{ name: string; description: string }>,
   ): Promise<PermissionTemplate> {
     const res = await api.patch(`/permissions/templates/${id}`, data);
     return res.data;
@@ -64,6 +64,14 @@ class PermissionService {
 
   async assignTemplate(employeeId: string, templateId: string): Promise<void> {
     await api.post('/permissions/assign', { employeeId, templateId });
+  }
+
+  async updateAssignment(
+    employeeId: string,
+    templateId: string,
+    flags: AssignmentFlags,
+  ): Promise<void> {
+    await api.patch(`/permissions/assign/${employeeId}/${templateId}`, flags);
   }
 
   async revokeTemplate(employeeId: string, templateId: string): Promise<void> {

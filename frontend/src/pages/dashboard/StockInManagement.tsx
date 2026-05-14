@@ -22,7 +22,8 @@ import {
     TrendingUp,
     X,
     Grid3X3,
-    List
+    List,
+    Lock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
@@ -37,6 +38,7 @@ import { useSocketEvent } from '../../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePermission } from '../../hooks/usePermission';
 
 interface OperationStatus {
     type: 'success' | 'error' | 'info';
@@ -47,6 +49,7 @@ type ViewMode = 'table' | 'grid' | 'list';
 type DateFilterOption = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 const StockInManagement = ({ role }: { role: string }) => {
+    const perms = usePermission('STOCKIN_MANAGEMENT');
     const [stocks, setStocks] = useState<Stock[]>([]);
     const [allStocks, setAllStocks] = useState<Stock[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -656,15 +659,15 @@ const StockInManagement = ({ role }: { role: string }) => {
                                             <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title={t('stockIn.viewStock')}>
                                                 <Eye className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.editStock')}>
+                                            {perms.canUpdate && <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.editStock')}>
                                                 <Edit className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.deleteStock')}>
+                                            </button>}
+                                            {perms.canDelete && <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.deleteStock')}>
                                                 <Trash2 className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.quickUpdate')}>
+                                            </button>}
+                                            {perms.canUpdate && <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title={t('stockIn.quickUpdate')}>
                                                 <RefreshCw className="w-4 h-4" />
-                                            </button>
+                                            </button>}
                                         </div>
                                     </td>
                                 </tr>
@@ -721,15 +724,15 @@ const StockInManagement = ({ role }: { role: string }) => {
                             <button onClick={() => handleViewStock(stock)} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all" title="View Stock">
                                 <Eye className="w-5 h-5" />
                             </button>
-                            <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Edit Stock">
+                            {perms.canUpdate && <button onClick={() => handleEditStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-amber-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Edit Stock">
                                 <Edit className="w-5 h-5" />
-                            </button>
-                            <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Delete Stock">
+                            </button>}
+                            {perms.canDelete && <button onClick={() => handleDeleteStock(stock)} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-red-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Delete Stock">
                                 <Trash2 className="w-5 h-5" />
-                            </button>
-                            <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Quick Update">
+                            </button>}
+                            {perms.canUpdate && <button onClick={() => { setSelectedStock(stock); setIsQuickUpdateModalOpen(true); }} disabled={operationLoading} className="p-2 text-theme-text-secondary hover:text-primary-600 hover:bg-theme-bg-secondary rounded-lg transition-all disabled:opacity-50" title="Quick Update">
                                 <RefreshCw className="w-5 h-5" />
-                            </button>
+                            </button>}
                         </div>
                     </div>
                 </div>
@@ -773,6 +776,20 @@ const StockInManagement = ({ role }: { role: string }) => {
             </div>
         );
     };
+
+    if (!perms.canViewAll && !perms.canViewOwn) {
+        return (
+            <div className="min-h-screen bg-theme-bg-secondary flex items-center justify-center">
+                <div className="text-center p-8">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Lock className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-theme-text-primary mb-2">Access Denied</h2>
+                    <p className="text-sm text-theme-text-secondary">You don't have permission to view stock records.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-theme-bg-secondary text-xs text-theme-text-primary transition-colors duration-200">
@@ -901,16 +918,16 @@ const StockInManagement = ({ role }: { role: string }) => {
                                     )}
                                 </AnimatePresence>
                             </div>
-                            <button onClick={handleAddStock} disabled={operationLoading}
+                            {perms.canCreate && <button onClick={handleAddStock} disabled={operationLoading}
                                 className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md shadow-primary-600/20 transition-all disabled:opacity-50">
                                 <Plus className="w-4 h-4" />
                                 <span className="text-xs">{t('stockIn.receiveStock')}</span>
-                            </button>
-                            <button onClick={() => setIsImportModalOpen(true)} disabled={operationLoading}
+                            </button>}
+                            {perms.canCreate && <button onClick={() => setIsImportModalOpen(true)} disabled={operationLoading}
                                 className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50">
                                 <Upload className="w-4 h-4" />
                                 <span className="text-xs">{t('stockIn.importStock')}</span>
-                            </button>
+                            </button>}
                         </div>
                     </div>
                 </div>

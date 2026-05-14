@@ -49,23 +49,8 @@ export class CategoryManagementService {
     }
   }
 
-  async getAllCategories(adminId: string, employeeId?: string | null) {
+  async getAllCategories(adminId: string) {
     try {
-      if (employeeId) {
-        const assignments = await this.prismaService.employeePermissionAssignment.findMany({
-          where: { employeeId, adminId },
-          include: { template: true },
-        });
-        const catPerms = assignments.filter(a => a.template.featureName === 'CATEGORY_MANAGEMENT');
-        const canViewAll = catPerms.some(a => a.template.canViewAll);
-        const canViewOwn = catPerms.some(a => a.template.canViewOwn);
-        // If view_own (and not view_all): show only their own
-        // Otherwise (view_all or no category permission): show all company categories
-        if (canViewOwn && !canViewAll) {
-          return this.prismaService.category.findMany({ where: {  employeeId } });
-        }
-        return this.prismaService.category.findMany({ where: { adminId } });
-      }
       return this.prismaService.category.findMany({ where: { adminId } });
     } catch (error) {
       console.error('Error getting categories:', error);
@@ -76,9 +61,9 @@ export class CategoryManagementService {
   private async canEmployeeViewAll(employeeId: string, adminId: string, featureName: string): Promise<boolean> {
     const assignments = await this.prismaService.employeePermissionAssignment.findMany({
       where: { employeeId, adminId },
-      include: { template: true },
+      include: { template: { select: { featureName: true } } },
     });
-    return assignments.some(a => a.template.featureName === featureName && a.template.canViewAll);
+    return assignments.some(a => a.template.featureName === featureName && a.canViewAll);
   }
 
   async getCategoryById(id: string) {
